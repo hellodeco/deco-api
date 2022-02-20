@@ -2,17 +2,19 @@ import fs from "fs"
 import path from "path"
 import { ApolloServer } from "apollo-server"
 import { Resolvers } from "./generated/resolvers-types"
-import {
-  getAllEmails,
-} from "./db-access"
+import * as dbAccess from "./db-access"
+
+interface Context {
+  dbAccess: typeof dbAccess
+}
 
 const typeDefs = fs.readFileSync(
   path.join(__dirname, 'schema.graphql')
 ).toString('utf-8')
 
-const resolvers: Resolvers = {
+const resolvers: Resolvers<Context> = {
   Query: {
-    allEmails: () => getAllEmails(),
+    allEmails: (parent, args, context) => context.dbAccess.getAllEmails(),
   },
 };
 
@@ -22,7 +24,7 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: {
-    dbAccess: {},
+    dbAccess,
   },
 });
 
