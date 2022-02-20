@@ -1,11 +1,11 @@
-import knex from "knex"
-import dotenv from "dotenv"
+import knex from 'knex'
+import dotenv from 'dotenv'
 
 dotenv.config()
 
-let ssl = false;
+let ssl = false
 if (process.env.NODE_ENV === 'production') {
-  ssl = true;
+  ssl = true
 }
 
 export default knex({
