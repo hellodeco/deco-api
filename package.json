@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "watch": "ts-node-dev --respawn --exit-child --watch src src/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "generate-graphql": "graphql-codegen"
   },
   "devDependencies": {
     "ts-node-dev": "^1.1.8",
@@ -17,6 +18,9 @@
     "@graphql-codegen/typescript": "^2.4.5",
     "@graphql-codegen/typescript-resolvers": "^2.5.2",
     "apollo-server": "^3.6.3",
-    "graphql": "^16.3.0"
+    "dotenv": "^16.0.0",
+    "graphql": "^16.3.0",
+    "knex": "^1.0.3",
+    "pg": "^8.7.3"
   }
 }
