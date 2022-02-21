@@ -1,8 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import { ApolloServer, AuthenticationError } from 'apollo-server'
+import { ApolloServer } from 'apollo-server'
+import { applyMiddleware, } from 'graphql-middleware'
+import { makeExecutableSchema } from '@graphql-tools/schema'
 import jwt from 'jsonwebtoken'
 import { Resolvers } from './generated/resolvers-types'
+import permissions from './permissions'
 import * as dbAccess from './db-access'
 
 interface User {
@@ -18,7 +21,7 @@ async function verifyJWT(token: string): Promise<User | null> {
   return new Promise((resolve, reject) => {
     jwt.verify(token, process.env.JWT_PUBLIC_KEY, (err: jwt.VerifyErrors, auth: jwt.JwtPayload) => {
       if (err) {
-        return reject()
+        return reject(null)
       }
 
       return resolve({ userfrontID: auth?.userUuid })
@@ -41,19 +44,22 @@ const resolvers: Resolvers<Context> = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  schema: applyMiddleware(
+    makeExecutableSchema({
+      typeDefs,
+      resolvers
+    }),
+    permissions,
+  ),
   context: async ({ req, }) => {
     let user: User
     const authHeader = req.headers.authorization || ''
     const [, token] = authHeader.split(' ')
 
-    if (!token) {
-      throw new AuthenticationError(`No auth token sent with request`) 
-    }
-
-    try {
-      user = await verifyJWT(token)
-    } catch (err) {
-      throw new AuthenticationError(`Not authorized`) 
+    if (token) {
+      try {
+        user = await verifyJWT(token)
+      } catch (err) {}
     }
 
     return {
