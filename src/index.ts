@@ -3,6 +3,7 @@ import path from 'path'
 import { ApolloServer } from 'apollo-server'
 import { applyMiddleware, } from 'graphql-middleware'
 import { makeExecutableSchema } from '@graphql-tools/schema'
+import { GraphQLUUID } from 'graphql-scalars'
 import jwt from 'jsonwebtoken'
 import { Resolvers } from './generated/resolvers-types'
 import permissions from './permissions'
@@ -34,8 +35,21 @@ const typeDefs = fs
   .toString('utf-8')
 
 const resolvers: Resolvers<Context> = {
+  UUID: GraphQLUUID,
   Query: {
     allEmails: (parent, args, context) => context.dbAccess.getAllEmails(),
+    currentUserEmails: (parent, args, { dbAccess }) => {
+      return null
+    },
+    currentUser: async (parrent, args, { dbAccess, user }) => {
+      const userMeta = await dbAccess.getUserMetaByUserfrontID(user.userfrontID) 
+
+      return {
+        fullName: userMeta.full_name,
+        emailAddress: userMeta.email_address,
+        userfrontID: user.userfrontID,
+      }
+    },
   },
 }
 

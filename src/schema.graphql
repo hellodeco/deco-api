@@ -1,3 +1,11 @@
+scalar UUID
+
+type User {
+  fullName: String
+  emailAddress: String
+  userfrontID: UUID
+}
+
 type Email {
   subject: String
   body: String
@@ -6,4 +14,6 @@ type Email {
 
 type Query {
   allEmails: [Email]!
+  currentUserEmails: [Email]!
+  currentUser: User
 }

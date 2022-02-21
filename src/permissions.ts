@@ -7,6 +7,8 @@ const isAuthenticated = rule()((parent, args, { user }) => {
 const permissions = shield({
   Query: {
     allEmails: isAuthenticated,
+    currentUser: isAuthenticated,
+    currentUserEmails: isAuthenticated,
   },
 })
 export default permissions

@@ -1,4 +1,4 @@
-import { GraphQLResolveInfo } from 'graphql';
+import { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -11,6 +11,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
+  UUID: any;
 };
 
 export type Email = {
@@ -23,6 +24,15 @@ export type Email = {
 export type Query = {
   __typename?: 'Query';
   allEmails: Array<Maybe<Email>>;
+  currentUser?: Maybe<User>;
+  currentUserEmails: Array<Maybe<Email>>;
+};
+
+export type User = {
+  __typename?: 'User';
+  emailAddress?: Maybe<Scalars['String']>;
+  fullName?: Maybe<Scalars['String']>;
+  userfrontID?: Maybe<Scalars['UUID']>;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -99,6 +109,8 @@ export type ResolversTypes = ResolversObject<{
   Email: ResolverTypeWrapper<Email>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
+  UUID: ResolverTypeWrapper<Scalars['UUID']>;
+  User: ResolverTypeWrapper<User>;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -107,6 +119,8 @@ export type ResolversParentTypes = ResolversObject<{
   Email: Email;
   Query: {};
   String: Scalars['String'];
+  UUID: Scalars['UUID'];
+  User: User;
 }>;
 
 export type EmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Email'] = ResolversParentTypes['Email']> = ResolversObject<{
@@ -118,10 +132,25 @@ export type EmailResolvers<ContextType = any, ParentType extends ResolversParent
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   allEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
+  currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  currentUserEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
+}>;
+
+export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any> {
+  name: 'UUID';
+}
+
+export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
+  emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  fullName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  userfrontID?: Resolver<Maybe<ResolversTypes['UUID']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type Resolvers<ContextType = any> = ResolversObject<{
   Email?: EmailResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
+  UUID?: GraphQLScalarType;
+  User?: UserResolvers<ContextType>;
 }>;
 
