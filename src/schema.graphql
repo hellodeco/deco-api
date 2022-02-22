@@ -14,6 +14,5 @@ type Email {
 
 type Query {
   allEmails: [Email]!
-  currentUserEmails: [Email]!
   currentUser: User
 }

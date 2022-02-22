@@ -24,8 +24,8 @@ export type Email = {
 export type Query = {
   __typename?: 'Query';
   allEmails: Array<Maybe<Email>>;
+  allUsers?: Maybe<User>;
   currentUser?: Maybe<User>;
-  currentUserEmails: Array<Maybe<Email>>;
 };
 
 export type User = {
@@ -132,8 +132,8 @@ export type EmailResolvers<ContextType = any, ParentType extends ResolversParent
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   allEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
+  allUsers?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  currentUserEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
 }>;
 
 export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any> {
