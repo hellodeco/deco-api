@@ -1,7 +1,7 @@
 import { rule, shield } from 'graphql-shield'
 
 const isAuthenticated = rule()((parent, args, { user }) => {
-  return user?.userfrontID
+  return Boolean(user?.userfrontID)
 })
 
 const permissions = shield({

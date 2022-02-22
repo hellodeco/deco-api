@@ -18,8 +18,8 @@ const resolvers: Resolvers<Context> = {
     currentUser: async (parrent, args, { dbAccess, user }) => {
       const userMeta = await dbAccess.getUserMetaByUserfrontID(user.userfrontID) 
       return {
-        fullName: userMeta.full_name,
-        emailAddress: userMeta.email_address,
+        fullName: userMeta.fullName,
+        emailAddress: userMeta.emailAddress,
         userfrontID: user.userfrontID,
       }
     },
