@@ -6,7 +6,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema'
 import jwt from 'jsonwebtoken'
 import permissions from './permissions'
 import * as dbAccess from './db-access'
-import resolvers, { User } from './resolvers'
+import resolvers, { User } from './resolvers/resolvers'
 
 async function verifyJWT(token: string): Promise<User | null> {
   return new Promise((resolve, reject) => {
