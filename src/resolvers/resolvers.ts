@@ -1,6 +1,6 @@
 import { GraphQLUUID } from 'graphql-scalars'
 import { Resolvers } from '../generated/resolvers-types'
-import * as dbAccess from '../db-access'
+import * as dbAccess from '../db-access/db-access'
 import { queryResolvers } from './queries'
 import { mutationResolvers } from './mutations'
 
