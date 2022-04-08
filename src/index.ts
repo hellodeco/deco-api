@@ -4,7 +4,7 @@ import { ApolloServer } from 'apollo-server'
 import { applyMiddleware } from 'graphql-middleware'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import jwt from 'jsonwebtoken'
-// import permissions from './permissions'
+import permissions from './permissions'
 import * as dbAccess from './db-access/db-access'
 import * as notionAccess from './notion-access/notion-access'
 import resolvers, { User } from './resolvers/resolvers'
@@ -37,7 +37,7 @@ const server = new ApolloServer({
       typeDefs,
       resolvers,
     }),
-    // permissions,
+    permissions,
   ),
   context: async ({ req }) => {
     let user: User
