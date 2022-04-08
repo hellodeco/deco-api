@@ -84,15 +84,4 @@ export function getUserMetaByUserfrontID(userfrontID: string) {
     .first()
 }
 
-// const a = async () => {
-//   console.log('hello world')
-//   const b = await createNewEmailByUserMetaID({
-//     plainTextContent: 'hello my friend',
-//     userMetaID: '54345',
-//     emailThreadID: '21',
-//   })
-//   console.log(b)
-//   return b
-// }
-
-// a()
+console.log('db access fired')

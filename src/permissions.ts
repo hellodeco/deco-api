@@ -4,10 +4,11 @@ const isAuthenticated = rule()((parent, args, { user }) => {
   return Boolean(user?.userfrontID)
 })
 
-const permissions = shield({
-  Query: {
-    allEmails: isAuthenticated,
-    currentUser: isAuthenticated,
-  },
-})
-export default permissions
+// const permissions = shield({
+//   Query: {
+//     // allEmails: isAuthenticated,
+//     // currentUser: isAuthenticated,
+//   },
+// })
+
+// export default permissions

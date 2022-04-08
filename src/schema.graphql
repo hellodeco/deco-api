@@ -16,3 +16,7 @@ type Query {
   allEmails: [Email]!
   currentUser: User
 }
+
+type Mutation {
+  wipeNotionDatabase: [String]
+}
