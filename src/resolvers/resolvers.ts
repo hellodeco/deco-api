@@ -8,7 +8,7 @@ import { mutationResolvers } from './mutations'
 interface Context {
   dbAccess: typeof dbAccess
   user: User
-  wipeNotionDatabase: typeof notionAccess
+  notionAccess: typeof notionAccess
 }
 
 export interface User {

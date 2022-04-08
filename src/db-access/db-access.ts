@@ -58,8 +58,6 @@ export async function createNewEmailByUserMetaID(args: {
 
   const user = await dbConnection('user_meta').where('id', args.userMetaID)
 
-  console.log(thread, user)
-
   const date = new Date().toISOString()
   return dbConnection('emails').insert({
     created_at: date,
@@ -83,5 +81,3 @@ export function getUserMetaByUserfrontID(userfrontID: string) {
     .select('*')
     .first()
 }
-
-console.log('db access fired')

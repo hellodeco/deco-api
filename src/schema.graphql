@@ -19,4 +19,5 @@ type Query {
 
 type Mutation {
   wipeNotionDatabase: [String]
+  deleteNotionTableProperties: [String]
 }

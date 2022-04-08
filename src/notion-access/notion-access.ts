@@ -6,15 +6,12 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY })
 const notionDatabaseId = process.env.NOTION_DATABASE_ID
 
 export const wipeNotionDatabase = async () => {
-  console.log('wipe notion database has started')
   const response = await notion.databases.query({
     database_id: notionDatabaseId,
   })
 
   const promises = []
   const archivedPageIDs = []
-
-  console.log(response.results)
 
   response.results.forEach((result) => {
     promises.push(
@@ -30,8 +27,36 @@ export const wipeNotionDatabase = async () => {
   })
 
   await Promise.all(promises)
-  console.log('completed promises')
   return archivedPageIDs
+}
+
+export const deleteNotionTableProperties = async () => {
+  const response = await notion.databases.retrieve({
+    database_id: notionDatabaseId,
+  })
+
+  const properties = response.properties
+
+  const promises = []
+
+  const props = Object.values(properties)
+
+  props.forEach((property) => {
+    if (property.id !== 'title') {
+      promises.push(
+        new Promise(async () => {
+          await notion.databases.update({
+            database_id: notionDatabaseId,
+            properties: {
+              [property.id]: null,
+            },
+          })
+        }),
+      )
+    }
+  })
+
+  await Promise.all(promises)
 }
 
 // const a = async () => {
