@@ -6,7 +6,17 @@ export const mutationResolvers: MutationResolvers = {
     return archivedIDs
   },
   deleteNotionTableProperties: async (parent, args, context) => {
-    await context.notionAccess.deleteNotionTableProperties()
-    return true
+    const deletedProperties =
+      await context.notionAccess.deleteNotionTableProperties()
+    return deletedProperties
+  },
+  formatNotionTable: async (parent, args, context) => {
+    const formattedTable = await context.notionAccess.formatNotionTable()
+    return formattedTable
+  },
+  addEmailToNotion: async (parent, args, context) => {
+    console.log(args)
+    const addedEmail = await context.notionAccess.addEmailToNotion(args)
+    return addedEmail
   },
 }

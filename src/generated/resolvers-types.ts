@@ -23,7 +23,23 @@ export type Email = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  addEmailToNotion?: Maybe<Scalars['String']>;
+  deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
+  formatNotionTable?: Maybe<Scalars['Boolean']>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
+};
+
+
+export type MutationAddEmailToNotionArgs = {
+  newEmail?: InputMaybe<NewEmail>;
+};
+
+export type NewEmail = {
+  emailID?: InputMaybe<Scalars['Int']>;
+  emailThreadID?: InputMaybe<Scalars['Int']>;
+  from?: InputMaybe<Scalars['String']>;
+  plainTextContent?: InputMaybe<Scalars['String']>;
+  subject?: InputMaybe<Scalars['String']>;
 };
 
 export type Query = {
@@ -111,7 +127,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Email: ResolverTypeWrapper<Email>;
+  Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
+  NewEmail: NewEmail;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
@@ -122,7 +140,9 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   Email: Email;
+  Int: Scalars['Int'];
   Mutation: {};
+  NewEmail: NewEmail;
   Query: {};
   String: Scalars['String'];
   UUID: Scalars['UUID'];
@@ -137,6 +157,9 @@ export type EmailResolvers<ContextType = any, ParentType extends ResolversParent
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  addEmailToNotion?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
+  deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
 
