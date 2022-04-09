@@ -12,6 +12,14 @@ type Email {
   from: String
 }
 
+# input NewEmail {
+#   subject: String
+#   from: String
+#   emailID: Int
+#   emailThreadID: Int
+#   plainTextContent: String
+# }
+
 type Query {
   allEmails: [Email]!
   currentUser: User
@@ -19,5 +27,13 @@ type Query {
 
 type Mutation {
   wipeNotionDatabase: [String]
-  deleteNotionTableProperties: [String]
+  deleteNotionTableProperties: [String],
+  formatNotionTable: Boolean
+  addEmailToNotion(newEmail: {
+    subject: String
+    from: String
+    emailID: Int
+    emailThreadID: Int
+    plainTextContent: String
+  }): String
 }
