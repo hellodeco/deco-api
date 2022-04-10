@@ -31,10 +31,10 @@ export type Mutation = {
 
 
 export type MutationAddEmailToNotionArgs = {
-  newEmail?: InputMaybe<NewEmail>;
+  newEmail?: InputMaybe<NewEmailInput>;
 };
 
-export type NewEmail = {
+export type NewEmailInput = {
   emailID?: InputMaybe<Scalars['Int']>;
   emailThreadID?: InputMaybe<Scalars['Int']>;
   from?: InputMaybe<Scalars['String']>;
@@ -129,7 +129,7 @@ export type ResolversTypes = ResolversObject<{
   Email: ResolverTypeWrapper<Email>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
-  NewEmail: NewEmail;
+  NewEmailInput: NewEmailInput;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
@@ -142,7 +142,7 @@ export type ResolversParentTypes = ResolversObject<{
   Email: Email;
   Int: Scalars['Int'];
   Mutation: {};
-  NewEmail: NewEmail;
+  NewEmailInput: NewEmailInput;
   Query: {};
   String: Scalars['String'];
   UUID: Scalars['UUID'];
