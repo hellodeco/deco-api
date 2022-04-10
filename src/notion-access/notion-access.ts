@@ -111,8 +111,9 @@ export const addEmailToNotion = async (newEmail: NewEmail) => {
 
   const time = Date.now()
   const deliveryDate = new Date(time)
-  const deliveryDateAsString = deliveryDate.toString()
+  const deliveryDateAsISOString = deliveryDate.toISOString()
 
+  console.log(deliveryDate)
   const emailCreated = await notion.pages.create({
     parent: { database_id: notionDatabaseId },
     properties: {
@@ -128,9 +129,11 @@ export const addEmailToNotion = async (newEmail: NewEmail) => {
       From: {
         email: from,
       },
-      // Delivered: {
-      //    date: deliveryDateAsString,
-      // },
+      Delivered: {
+        date: {
+          start: deliveryDateAsISOString,
+        },
+      },
       Email_ID: {
         number: emailID,
       },
