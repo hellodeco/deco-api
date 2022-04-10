@@ -15,7 +15,6 @@ export const mutationResolvers: MutationResolvers = {
     return formattedTable
   },
   addEmailToNotion: async (parent, args, context) => {
-    console.log(args)
     const addedEmail = await context.notionAccess.addEmailToNotion(args)
     return addedEmail
   },
