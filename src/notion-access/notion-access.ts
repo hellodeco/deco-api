@@ -6,11 +6,13 @@ const notion = new Client({ auth: process.env.NOTION_API_KEY })
 const notionDatabaseId = process.env.NOTION_DATABASE_ID
 
 export interface NewEmail {
-  subject: string
-  from: string
-  emailID: number
-  emailThreadID: number
-  plainTextContent: string
+  newEmail: {
+    subject: string
+    from: string
+    emailID: number
+    emailThreadID: number
+    plainTextContent: string
+  }
 }
 
 export const wipeNotionDatabase = async () => {
@@ -104,7 +106,8 @@ export const formatNotionTable = async () => {
 }
 
 export const addEmailToNotion = async (newEmail: NewEmail) => {
-  const { subject, from, emailID, emailThreadID, plainTextContent } = newEmail
+  const { subject, from, emailID, emailThreadID, plainTextContent } =
+    newEmail.newEmail
 
   const time = Date.now()
   const deliveryDate = new Date(time)
@@ -126,7 +129,7 @@ export const addEmailToNotion = async (newEmail: NewEmail) => {
         email: from,
       },
       // Delivered: {
-      //    deliveryDateAsString,
+      //    date: deliveryDateAsString,
       // },
       Email_ID: {
         number: emailID,
