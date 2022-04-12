@@ -37,7 +37,6 @@ app.get('/healthz', async (req, res) => {
 })
 
 app.get('/oauth/notion', (req, res) => {
-  console.log('entering auth endpoint.....')
   const state = uuid()
   const params = new URLSearchParams({
     client_id: process.env.NOTION_CLIENT_ID,
@@ -58,7 +57,6 @@ app.get('/oauth/notion', (req, res) => {
 })
 
 app.get('/oauth/notion/callback', async (req, res) => {
-  console.log('entering callback urll...........')
   /**
    * @todo handle the case that the user denies the notion integration access
    * in which case they will be directed back here with an `error` as documented
