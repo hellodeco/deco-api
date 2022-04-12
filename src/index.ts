@@ -7,6 +7,8 @@ import resolvers from './resolvers/resolvers'
 import { createServer } from './create-server';
 import { app } from './express'
 
+import 'dotenv/config'
+
 const typeDefs = fs
   .readFileSync(path.join(__dirname, 'schema.graphql'))
   .toString('utf-8')
