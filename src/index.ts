@@ -25,6 +25,5 @@ createServer({
   schema,
   app,
 }).then(({ server, port }) => {
-  console.log(server)
   console.log(`🚀 Server ready at http://localhost:${port}`);
 })
