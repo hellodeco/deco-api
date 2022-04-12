@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 function getPort() {
   const defaultPort = 4000
   const overridePort = process.env.PORT &&
