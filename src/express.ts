@@ -1,4 +1,6 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
+import bodyParser from 'body-parser';
 import dotenv from 'dotenv'
 import cors from 'cors'
 import fetch from 'node-fetch'
@@ -11,6 +13,20 @@ import {
 } from './constants';
 
 export const app = express()
+
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+app.use(cookieParser())
+app.use(express.urlencoded({ extended: true}))
+
+// Set some headers to help with cross-origin cookies
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true')
+  res.header('Access-Control-Allow-Origin', req.headers.origin)
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept')
+  next()
+})
 
 const NOTION_AUTH_COOKIE_STATE_KEY = 'notion-auth-state'
 
@@ -36,7 +52,7 @@ app.get('/healthz', async (req, res) => {
   res.status(200).json({ message: 'success' })
 })
 
-app.get('/oauth/notion', (req, res) => {
+app.get('/oauth/notion', async (req, res) => {
   const state = uuid()
   const params = new URLSearchParams({
     client_id: process.env.NOTION_CLIENT_ID,
@@ -68,7 +84,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
 
   const { code, state } = req.query
   const prevState = req.cookies.state
-  res.clearCookie(NOTION_AUTH_COOKIE_STATE_KEY)
+  await res.clearCookie(NOTION_AUTH_COOKIE_STATE_KEY)
 
   if (prevState !== state) {
     res.status(403).send({
@@ -123,7 +139,8 @@ app.get('/oauth/notion/callback', async (req, res) => {
     owner,
   })
 
-  res.redirect(`${FRONTEND_BASE_URL}/auth/notion/success`)
+  // res.redirect(`${FRONTEND_BASE_URL}/auth/notion/success`)
+  res.send('success!')
 })
 
 app.post('/create-checkout-session', async (req, res) => {
