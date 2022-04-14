@@ -19,18 +19,18 @@ interface UserMeta extends DBModel {
 }
 
 interface NotionIntegration {
-	userfrontUserID: string
-	accessToken: string
+  userfrontUserID: string
+  accessToken: string
   tokenType: string
-	workspaceID: string
-	workspaceName: string
-	workspaceIcon: string
-	botID: string
-	userID: string
-	userFullName: string
-	avatarURL: string
-	type: string
-	email: string
+  workspaceID: string
+  workspaceName: string
+  workspaceIcon: string
+  botID: string
+  userID: string
+  userFullName: string
+  avatarURL: string
+  type: string
+  email: string
 }
 
 export function getAllEmails() {
