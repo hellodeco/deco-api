@@ -28,7 +28,6 @@ app.get('/healthz', async (req, res) => {
 })
 
 app.get('/oauth/notion', (req, res) => {
-  console.log('oauthNotion fired dawg!')
   res.send('hello!')
 })
 
