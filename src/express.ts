@@ -173,6 +173,9 @@ app.get('/oauth/notion/callback', async (req, res) => {
 	  email: owner?.user?.person?.email,
   })
 
+  /**
+   * @todo redirect to frontend once it is ready
+   */
   // res.redirect(`${FRONTEND_BASE_URL}/auth/notion/success`)
   res.send('success!')
 })
