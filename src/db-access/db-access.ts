@@ -1,4 +1,5 @@
 import dbConnection from '../db-connection'
+import { objectCamelToSnake } from '../utils'
 
 /**
  * @todo type these return values
@@ -15,6 +16,21 @@ interface UserMeta extends DBModel {
   emailAddress: string
   userfrontUserID: string
   fullName: string
+}
+
+interface NotionIntegration {
+	userfrontUserID: string
+	accessToken: string
+  tokenType: string
+	workspaceID: string
+	workspaceName: string
+	workspaceIcon: string
+	botID: string
+	userID: string
+	userFullName: string
+	avatarURL: string
+	type: string
+	email: string
 }
 
 export function getAllEmails() {
@@ -80,4 +96,9 @@ export function getUserMetaByUserfrontID(userfrontID: string) {
     .where('userfront_user_id', userfrontID)
     .select('*')
     .first()
+}
+
+export function createNotionIntegration(notionIntegration: NotionIntegration) {
+  return dbConnection<NotionIntegration>('notion_integrations')
+    .insert(objectCamelToSnake(notionIntegration))
 }

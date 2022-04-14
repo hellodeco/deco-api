@@ -1,7 +1,5 @@
 import http from 'http';
 import type { Express } from 'express';
-import jwt from 'jsonwebtoken'
-import express from 'express'
 import { ApolloServer } from 'apollo-server-express';
 import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
 import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/types';
@@ -9,6 +7,7 @@ import { PORT } from './constants'
 import resolvers, { User } from './resolvers/resolvers'
 import * as dbAccess from './db-access/db-access'
 import * as notionAccess from './notion-access/notion-access'
+import { verifyJWT } from './jwt'
 
 interface StartApolloServerOpts {
   typeDefs: string
@@ -17,21 +16,6 @@ interface StartApolloServerOpts {
   app: Express
 }
 
-async function verifyJWT(token: string): Promise<User | null> {
-  return new Promise((resolve, reject) => {
-    jwt.verify(
-      token,
-      process.env.JWT_PUBLIC_KEY,
-      (err: jwt.VerifyErrors, auth: jwt.JwtPayload) => {
-        if (err) {
-          return reject(null)
-        }
-
-        return resolve({ userfrontID: auth?.userUuid })
-      },
-    )
-  })
-}
 
 export async function createServer({
   typeDefs,
