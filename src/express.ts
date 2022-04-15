@@ -1,32 +1,45 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
-import bodyParser from 'body-parser';
+import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import fetch from 'node-fetch'
-import { v4 as uuid }  from 'uuid'
+import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
-import { createNotionIntegration, getUserMetaByUserfrontID } from './db-access/db-access'
+import {
+  createNotionIntegration,
+  getUserMetaByUserfrontID,
+} from './db-access/db-access'
 import { verifyJWT } from './jwt'
 import {
   SERVER_BASE_URL,
   NOTION_BASE_URL,
   FRONTEND_BASE_URL,
-} from './constants';
+} from './constants'
+import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 
 export const app = express()
 
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
+// this endpoint needs to run before other parsing middleware is run because Stripe is a huge diva and relies on raw body data
+app.post(
+  '/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook,
+)
+
 app.use(cookieParser())
-app.use(express.urlencoded({ extended: true}))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 // Set some headers to help with cross-origin cookies
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Credentials', 'true')
   res.header('Access-Control-Allow-Origin', req.headers.origin)
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept')
+  res.header(
+    'Access-Control-Allow-Headers',
+    'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept',
+  )
   next()
 })
 
@@ -34,8 +47,6 @@ const NOTION_AUTH_COOKIE_STATE_KEY = 'notion-auth-state'
 const AUTH_TOKEN_COOKIE_STATE_KEY = 'auth-token'
 
 dotenv.config()
-
-app.use(express.json())
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
@@ -57,7 +68,7 @@ app.get('/healthz', async (req, res) => {
 
 app.get('/oauth/notion', async (req, res) => {
   const { authToken } = req.query
-  
+
   if (!authToken) {
     return res.status(403).json({
       success: false,
@@ -122,14 +133,14 @@ app.get('/oauth/notion/callback', async (req, res) => {
     grant_type: 'authorization_code',
     redirect_uri: `${SERVER_BASE_URL}/oauth/notion/callback`,
   }
-  
+
   const tokenRes = await fetch(tokenUrl.toString(), {
     method: 'post',
     headers: {
       Authorization: `Basic ${notionBasicAuth}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(tokenReqBody)
+    body: JSON.stringify(tokenReqBody),
   })
 
   const { userfrontID } = await verifyJWT(authToken)
@@ -162,7 +173,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
   await createNotionIntegration({
     userfrontUserID: userMeta.userfrontUserID,
     accessToken: access_token,
-     tokenType: token_type,
+    tokenType: token_type,
     workspaceID: workspace_id,
     workspaceName: workspace_name,
     workspaceIcon: workspace_icon,
@@ -181,7 +192,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
   res.send('success!')
 })
 
-app.post('/create-checkout-session', async (req, res) => {
+app.post('/stripe/checkout-session', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     line_items: [
       {
