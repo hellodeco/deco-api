@@ -158,6 +158,11 @@ app.get('/oauth/notion/callback', async (req, res) => {
     owner,
   } = json
 
+  /**
+   * @todo decide how to handle multiple user authentications. e.g. should we store multiple
+   * records in notion_integrations?
+   */
+
   await createNotionIntegration({
 	  userfrontUserID: userMeta.userfrontUserID,
 	  accessToken: access_token,
