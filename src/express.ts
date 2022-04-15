@@ -33,10 +33,6 @@ app.use((req, res, next) => {
 const NOTION_AUTH_COOKIE_STATE_KEY = 'notion-auth-state'
 const AUTH_TOKEN_COOKIE_STATE_KEY = 'auth-token'
 
-/**
-https://veryspry.ngrok.io/oauth/notion?authToken=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjdlM2Y3NWRjLTcyZjMtNGMwYy1hZjZlLWVhMDU1Zjg4NGJkZiJ9.eyJtb2RlIjoidGVzdCIsInRlbmFudElkIjoid245NXA2bjUiLCJ1c2VySWQiOjYxLCJ1c2VyVXVpZCI6ImVmZDI5NTRjLTM0OTMtNGQzZC05OWVhLWUyNWY4MmRlZmQzZiIsImlzQ29uZmlybWVkIjpmYWxzZSwiYXV0aG9yaXphdGlvbiI6e30sImlzcyI6InVzZXJmcm9udCIsInNlc3Npb25JZCI6ImI0NGJmOGI1LWQwOWYtNDBkZi1hMTk3LTUwNDVlZWE5MDQwYSIsImlhdCI6MTY0OTk3MjQwNywiZXhwIjoxNjUwNTc3MjA3fQ.YM-ut1UrNnLpne4QCnrHi_GojzePC3VGGzTs5ZLJaxAIOAR15fckPHa6CS_9pA5HqOGrSp7Q_4S_epMpuCTKWE43DwSxFej9er-CUXvteHsPz7CkGd0_k5CYvNdtqn8aHkg0NpMOvXS_OF2hr2dHHBH4S0yPjpvAFxYUhIHEWijbZrG_r5GErRGVvVbGkNG4w3ek-6nWz7ZBCxD3UfIWUoGil5NZXNcB-2ppyBcskXr6xdYmBDTTwlXHhodvdhNkSq4Q_hp2tWtdxDLz2M_Wfr8M5uvnmgvhbuv2agPEHmXxT3sGCNPGYvp43l71OTy9Xn14MTPgRr1OXP0loLxo-XiLHY6oj9_Vm3lVyc4JlGveLWNc1etMYW23C0AljJURLWG7duu5KVR4SG7foBu1m2P_ug6O_6C3yfppiGCHHQqiRoGWe3DJdhm11CHYlyZdjkyyIcvwBCkhbNyRmmVe1iGgTyC7xNgJ5YVLD_EtXBjokZfoAwCkNfEA42CNhgQh_pM_ET9qP2knHs7u-IWa--EcnFO1cq6yjAGtkHWOZUuym96SAELXdM4Ol6Px1NW52P9-VY6b6ypZONEpgzE01BEKghpddgX0jyQQtAp3UXlz0MdTXjbD6BB4qZGtSA6PEiaOhtaf5VnAGWjXQHxm7EKROhOSJJKq4VlO7_zgU_k
-*/
-
 dotenv.config()
 
 app.use(express.json())
@@ -164,18 +160,18 @@ app.get('/oauth/notion/callback', async (req, res) => {
    */
 
   await createNotionIntegration({
-	  userfrontUserID: userMeta.userfrontUserID,
-	  accessToken: access_token,
-    tokenType: token_type,
-	  workspaceID: workspace_id,
-	  workspaceName: workspace_name,
-	  workspaceIcon: workspace_icon,
-	  botID: bot_id,
-	  userID: owner?.user?.id,
-	  userFullName: owner?.user?.name,
-	  avatarURL: owner?.user?.avatar_url,
-	  type: owner?.user?.type,
-	  email: owner?.user?.person?.email,
+    userfrontUserID: userMeta.userfrontUserID,
+    accessToken: access_token,
+     tokenType: token_type,
+    workspaceID: workspace_id,
+    workspaceName: workspace_name,
+    workspaceIcon: workspace_icon,
+    botID: bot_id,
+    userID: owner?.user?.id,
+    userFullName: owner?.user?.name,
+    avatarURL: owner?.user?.avatar_url,
+    type: owner?.user?.type,
+    email: owner?.user?.person?.email,
   })
 
   /**
