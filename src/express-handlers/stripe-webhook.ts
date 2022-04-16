@@ -95,6 +95,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     await createUserMeta({
       userfrontUserID: createdUserUUID,
       fullName: name,
+      signupEmail: email,
       createdAt: date,
       updatedAt: date,
     })
