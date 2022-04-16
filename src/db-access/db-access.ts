@@ -13,6 +13,7 @@ interface DBModel {
 interface UserMeta extends DBModel {
   userfrontUserID: string
   fullName: string
+  signupEmail?: string
   emailAddress?: string
 }
 
@@ -103,7 +104,6 @@ export function createNotionIntegration(notionIntegration: NotionIntegration) {
 }
 
 export function createUserMeta(userMeta: UserMeta) {
-  const date = new Date().toISOString()
   return dbConnection<UserMeta>('user_meta').insert(
     objectCamelToSnake(userMeta),
   )
