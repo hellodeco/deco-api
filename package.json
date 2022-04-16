@@ -23,6 +23,7 @@
     "@graphql-codegen/typescript-resolvers": "^2.5.2",
     "@graphql-tools/schema": "^8.3.1",
     "@notionhq/client": "^1.0.4",
+    "@userfront/core": "^0.3.1",
     "apollo-server-core": "^3.6.7",
     "apollo-server-express": "^3.6.7",
     "body-parser": "^1.20.0",
@@ -36,9 +37,9 @@
     "graphql-shield": "^7.5.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^1.0.3",
-    "pg": "^8.7.3",
-    "stripe": "^8.217.0",
     "node-fetch": "2.6.7",
-    "snake-case": "^3.0.4"
+    "pg": "^8.7.3",
+    "snake-case": "^3.0.4",
+    "stripe": "^8.217.0"
   }
 }
