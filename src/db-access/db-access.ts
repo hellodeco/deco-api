@@ -6,16 +6,14 @@ import { objectCamelToSnake } from '../utils'
  */
 
 interface DBModel {
-  id: number
   createdAt: string
   updatedAt: string
-  deletedAt?: string
 }
 
 interface UserMeta extends DBModel {
-  emailAddress: string
   userfrontUserID: string
   fullName: string
+  emailAddress?: string
 }
 
 interface NotionIntegration {
@@ -99,6 +97,14 @@ export function getUserMetaByUserfrontID(userfrontID: string) {
 }
 
 export function createNotionIntegration(notionIntegration: NotionIntegration) {
-  return dbConnection<NotionIntegration>('notion_integrations')
-    .insert(objectCamelToSnake(notionIntegration))
+  return dbConnection<NotionIntegration>('notion_integrations').insert(
+    objectCamelToSnake(notionIntegration),
+  )
+}
+
+export function createUserMeta(userMeta: UserMeta) {
+  const date = new Date().toISOString()
+  return dbConnection<UserMeta>('user_meta').insert(
+    objectCamelToSnake(userMeta),
+  )
 }

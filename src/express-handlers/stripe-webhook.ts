@@ -1,21 +1,10 @@
 import express, { Request, Response } from 'express'
-import cookieParser from 'cookie-parser'
-import bodyParser from 'body-parser'
 import dotenv from 'dotenv'
-import cors from 'cors'
 import fetch from 'node-fetch'
-import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
-import {
-  createNotionIntegration,
-  getUserMetaByUserfrontID,
-} from './../db-access/db-access'
-import { verifyJWT } from './../jwt'
-import {
-  SERVER_BASE_URL,
-  NOTION_BASE_URL,
-  FRONTEND_BASE_URL,
-} from './../constants'
+import { createUserMeta } from './../db-access/db-access'
+import Userfront from '@userfront/core'
+Userfront.init('wn95p6n5')
 
 dotenv.config()
 
@@ -23,7 +12,31 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 })
 
-export const handleStripeWebhook = async (req: any, res: Response) => {
+// even though we're only searching for ONE result
+// we still have to have this garbage-ass giant object with all these conjunctions and groups
+// real professional, Userfront
+const generateUserfrontSearchPayload = (email: string) => ({
+  order: 'lastActiveAt_ASC',
+  page: 1,
+  filters: {
+    conjunction: 'and',
+    filterGroups: [
+      {
+        conjunction: 'and',
+        filters: [
+          {
+            attr: 'email',
+            type: 'string',
+            comparison: 'is',
+            value: email,
+          },
+        ],
+      },
+    ],
+  },
+})
+
+export const handleStripeWebhook = async (req: Request, res: Response) => {
   const sig = req.headers['stripe-signature']
   let event
   try {
@@ -34,6 +47,57 @@ export const handleStripeWebhook = async (req: any, res: Response) => {
     )
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`)
+  }
+
+  // todo - write handlers for cancelation events (after we launch)
+  // will also want to split into separate handlers per event type and extract to their own files
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object
+
+    const { email, name } = session.customer_details
+
+    // add userfront user
+    // this will also automatically send a login link to the cx
+    try {
+      await Userfront.signup({
+        method: 'passwordless',
+        email: email,
+        name: name,
+        redirect: false,
+      })
+    } catch (err) {
+      console.log(err)
+    }
+
+    // todo - swap out this Authorization header with a .env variable
+    // get userfront UUID from signup
+    const userfrontResponse = await fetch(
+      'https://api.userfront.com/v0/users/find',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization:
+            'Bearer uf_test_admin_wn95p6n5_35cde8ca99b2438107c4e77ab0fa8356',
+        },
+        body: JSON.stringify(generateUserfrontSearchPayload(email)),
+      },
+    )
+
+    const userfrontData = await userfrontResponse.json()
+
+    const createdUserUUID = userfrontData.results[0].userUuid
+
+    const date = new Date().toISOString()
+
+    // add deco db user_meta
+    await createUserMeta({
+      userfrontUserID: createdUserUUID,
+      fullName: name,
+      createdAt: date,
+      updatedAt: date,
+    })
   }
 
   return res.status(200).end()
