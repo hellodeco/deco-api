@@ -45,7 +45,13 @@ export type NewEmailInput = {
 export type Query = {
   __typename?: 'Query';
   allEmails: Array<Maybe<Email>>;
+  checkEmailAddressAvailability?: Maybe<Scalars['Boolean']>;
   currentUser?: Maybe<User>;
+};
+
+
+export type QueryCheckEmailAddressAvailabilityArgs = {
+  decoEmail?: InputMaybe<Scalars['String']>;
 };
 
 export type User = {
@@ -166,6 +172,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   allEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
+  checkEmailAddressAvailability?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryCheckEmailAddressAvailabilityArgs>>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 }>;
 

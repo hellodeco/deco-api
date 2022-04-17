@@ -23,6 +23,7 @@ input NewEmailInput {
 
 type Query {
   allEmails: [Email]!
+  checkEmailAddressAvailability(decoEmail: String): Boolean
   currentUser: User
 }
 
