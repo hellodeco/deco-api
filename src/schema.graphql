@@ -3,6 +3,7 @@ scalar UUID
 type User {
   fullName: String
   emailAddress: String
+  signupEmail: String
   userfrontID: UUID
 }
 
@@ -27,7 +28,7 @@ type Query {
 
 type Mutation {
   wipeNotionDatabase: [String]
-  deleteNotionTableProperties: [String],
+  deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   addEmailToNotion(newEmail: NewEmailInput): String
 }
