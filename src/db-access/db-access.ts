@@ -108,3 +108,10 @@ export function createUserMeta(userMeta: UserMeta) {
     objectCamelToSnake(userMeta),
   )
 }
+
+export function checkEmailAddressAvailability(decoEmail: string) {
+  return dbConnection<UserMeta>('user_meta')
+    .where('email_address', decoEmail)
+    .select('*')
+    .first()
+}
