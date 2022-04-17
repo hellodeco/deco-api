@@ -52,6 +52,7 @@ export type User = {
   __typename?: 'User';
   emailAddress?: Maybe<Scalars['String']>;
   fullName?: Maybe<Scalars['String']>;
+  signupEmail?: Maybe<Scalars['String']>;
   userfrontID?: Maybe<Scalars['UUID']>;
 };
 
@@ -175,6 +176,7 @@ export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 export type UserResolvers<ContextType = any, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = ResolversObject<{
   emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fullName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  signupEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   userfrontID?: Resolver<Maybe<ResolversTypes['UUID']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

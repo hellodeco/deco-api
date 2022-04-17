@@ -1,8 +1,8 @@
-import http from 'http';
-import type { Express } from 'express';
-import { ApolloServer } from 'apollo-server-express';
-import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core';
-import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/types';
+import http from 'http'
+import type { Express } from 'express'
+import { ApolloServer } from 'apollo-server-express'
+import { ApolloServerPluginDrainHttpServer } from 'apollo-server-core'
+import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/types'
 import { PORT } from './constants'
 import resolvers, { User } from './resolvers/resolvers'
 import * as dbAccess from './db-access/db-access'
@@ -11,11 +11,10 @@ import { verifyJWT } from './jwt'
 
 interface StartApolloServerOpts {
   typeDefs: string
-  resolvers: typeof resolvers,
-  schema: GraphQLSchemaWithFragmentReplacements,
+  resolvers: typeof resolvers
+  schema: GraphQLSchemaWithFragmentReplacements
   app: Express
 }
-
 
 export async function createServer({
   typeDefs,
@@ -46,22 +45,19 @@ export async function createServer({
         notionAccess,
       }
     },
-  });
+  })
 
-  await server.start();
+  await server.start()
   server.applyMiddleware({
     app,
     // path at which the graphql server is hosted
-    path: '/api'
-  });
+    path: '/api',
+  })
 
   return new Promise<{
     server: typeof server
-    port: number,
-  }>(resolve => {
-    httpServer.listen(
-      { port: PORT },
-      () => resolve({ server, port: PORT })
-    )
-  });
+    port: number
+  }>((resolve) => {
+    httpServer.listen({ port: PORT }, () => resolve({ server, port: PORT }))
+  })
 }
