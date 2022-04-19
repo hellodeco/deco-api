@@ -8,7 +8,8 @@
     "watch": "ts-node-dev --respawn --exit-child --watch src src/index.ts",
     "build": "tsc",
     "generate-graphql": "graphql-codegen",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "knex": "knex --knexfile src/knexfile.ts"
   },
   "devDependencies": {
     "eslint": "^8.9.0",

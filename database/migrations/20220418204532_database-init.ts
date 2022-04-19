@@ -30,6 +30,7 @@ const tableConfigs: Array<TableConfig> = [
       { 
         name: 'signup_email',
         type: ColType.String,
+        unique: true,
       },
       { 
         name: 'userfront_user_id',
@@ -203,7 +204,18 @@ export async function up(knex: Knex): Promise<any> {
    */
   const promises = tableConfigs.map(async ({ name, columns }) => {
     await knex.schema.createTable(name, table => {
-      table.increments(),
+      // add auto incrementing id column of type INT
+      table.increments()
+
+      // add standard datetime fields
+      table.timestamp('created_at', { useTz: false, }).defaultTo(
+        knex.fn.now(),
+      )
+      table.timestamp('updated_at', { useTz: false, }).defaultTo(
+        knex.fn.now(),
+      )
+      table.timestamp('deleted_at', { useTz: false, })
+
       columns.forEach(({ name, type, unique }) => {
         switch(type) {
           case ColType.String:
