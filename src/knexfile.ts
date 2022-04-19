@@ -22,7 +22,7 @@ export default {
   },
   migrations: {
     extension: 'ts',
-    directory: path.join('..', 'migrations'),
+    directory: path.join('..', 'database', 'migrations',),
   },
   postProcessResponse: (result) => {
     if (!result) {
