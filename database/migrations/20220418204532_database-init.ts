@@ -18,15 +18,6 @@ interface TableConfig {
 
 const TIMESTAMP_TRIGGER_NAME = 'update_timestamp'
 
-const tableNames = [
-  'user_meta',
-  'notion_integrations',
-  'email_threads',
-  'emails',
-  'email_headers',
-  'attachments',
-]
-
 const tableConfigs: Array<TableConfig> = [
   {
     name: 'user_meta',
@@ -221,6 +212,8 @@ export async function up(knex: Knex): Promise<any> {
           case ColType.Int: 
             table.integer(name)
             break
+          default:
+            console.warn(`Column not created for ${name} because no "type" was provided`) 
         }
 
         if (unique) {
