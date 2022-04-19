@@ -24,6 +24,10 @@ export default {
     extension: 'ts',
     directory: path.join('..', 'database', 'migrations',),
   },
+  seeds: {
+    extension: 'ts',
+    directory: path.join('..', 'database', 'seeds',),
+  },
   postProcessResponse: (result) => {
     if (!result) {
       return null
