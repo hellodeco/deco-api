@@ -113,7 +113,6 @@ export const addEmailToNotion = async (newEmail: NewEmail) => {
   const deliveryDate = new Date(time)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
-  console.log(deliveryDate)
   const emailCreated = await notion.pages.create({
     parent: { database_id: notionDatabaseId },
     properties: {
@@ -161,22 +160,3 @@ export const addEmailToNotion = async (newEmail: NewEmail) => {
 
   return emailCreated.id
 }
-
-export const logProps = async () => {
-  const response = await notion.databases.retrieve({
-    database_id: notionDatabaseId,
-  })
-
-  const properties = response.properties
-
-  console.log(properties)
-}
-
-// logProps()
-// addEmailToNotion(
-//   'Hey, this is a test email on April 7th',
-//   'Tyler Halstead <tylerhhal@gmail.com>',
-//   25,
-//   22,
-//   "I'm gonna fucking finish this product man",
-// )
