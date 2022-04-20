@@ -11,7 +11,7 @@ interface DBModel {
 }
 
 interface UserMeta extends DBModel {
-  userfrontUserID: string
+  userfrontUserId: string
   fullName: string
   signupEmail?: string
   emailAddress?: string
