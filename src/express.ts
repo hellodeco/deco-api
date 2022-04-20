@@ -125,7 +125,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
 
   const tokenUrl = new URL(`${NOTION_BASE_URL}/v1/oauth/token`)
 
-  let notionBasicAuth = `${process.env.NOTION_CLIENT_ID}:${process.env.NOTION_CLIENT_SECRET}`
+  let notionBasicAuth = `${process.env.NOTION_CLIENT_ID}:${process.env.NOTION_OAUTH_CLIENT_SECRET}`
   notionBasicAuth = Buffer.from(notionBasicAuth).toString('base64')
 
   const tokenReqBody = {
@@ -171,7 +171,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
    */
 
   await createNotionIntegration({
-    userfrontUserID: userMeta.userfrontUserID,
+    userfrontUserID: userMeta.userfrontUserId,
     accessToken: access_token,
     tokenType: token_type,
     workspaceID: workspace_id,
