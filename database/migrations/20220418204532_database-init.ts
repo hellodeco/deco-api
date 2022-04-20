@@ -176,6 +176,10 @@ const tableConfigs: Array<TableConfig> = [
         name: 'value',
         type: ColType.String,
       },
+      {
+        name: 'email_id',
+        type: ColType.Int,
+      },
     ]
   }
 ]
