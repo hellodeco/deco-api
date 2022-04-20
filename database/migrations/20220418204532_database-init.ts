@@ -254,7 +254,7 @@ export async function down(knex: Knex): Promise<void> {
 
 
   const promises = tableConfigs.map(async ({ name }) => {
-    knex.schema.dropTableIfExists(name)
+    return knex.schema.dropTableIfExists(name)
   })
 
   await Promise.all(promises)
