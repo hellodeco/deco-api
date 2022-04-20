@@ -18,7 +18,7 @@ interface UserMeta extends DBModel {
 }
 
 interface NotionIntegration {
-  userfrontUserID: string
+  userfrontUserId: string
   accessToken: string
   tokenType: string
   workspaceID: string
@@ -109,7 +109,7 @@ export function createUserMeta(userMeta: UserMeta) {
   )
 }
 
-export function checkEmailAddressAvailability(decoEmail: string) {
+export function getUserMetaByDecoEmail(decoEmail: string) {
   return dbConnection<UserMeta>('user_meta')
     .where('email_address', decoEmail)
     .select('*')

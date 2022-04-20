@@ -171,7 +171,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
    */
 
   await createNotionIntegration({
-    userfrontUserID: userMeta.userfrontUserId,
+    userfrontUserId: userMeta.userfrontUserId,
     accessToken: access_token,
     tokenType: token_type,
     workspaceID: workspace_id,
