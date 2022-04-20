@@ -2,8 +2,8 @@ import { QueryResolvers } from '../generated/resolvers-types'
 
 export const queryResolvers: QueryResolvers = {
   allEmails: (parent, args, context) => context.dbAccess.getAllEmails(),
-  checkEmailAddressAvailability: async (parent, args, context) => {
-    const existingUser = await context.dbAccess.checkEmailAddressAvailability(
+  getUserMetaByDecoEmail: async (parent, args, context) => {
+    const existingUser = await context.dbAccess.getUserMetaByDecoEmail(
       args.decoEmail,
     )
 
