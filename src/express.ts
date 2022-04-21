@@ -70,9 +70,13 @@ app.get('/oauth/notion', async (req, res) => {
   const { authToken } = req.query
 
   if (!authToken) {
+    /**
+     * @todo redirect to client once it is ready
+     */
+    // return res.redirect(`${FRONTEND_BASE_URL}/auth/notion/failed`)
     return res.status(403).json({
       success: false,
-      message: 'unable to authenticate with notion',
+      message: 'error: unable to authenticate with notion. auth token not provided',
     })
   }
 
@@ -100,96 +104,118 @@ app.get('/oauth/notion', async (req, res) => {
 })
 
 app.get('/oauth/notion/callback', async (req, res) => {
-  /**
-   * @todo handle the case that the user denies the notion integration access
-   * in which case they will be directed back here with an `error` as documented
-   * here: https://developers.notion.com/docs/authorization
-   * also see:
-   * - https://developers.notion.com/docs/authorization#user-authorization-failures
-   * - https://developers.notion.com/docs/authorization#token-request-failures
-   */
-
-  const { code, state } = req.query
+  const { code, state, error } = req.query
   const prevState = req.cookies[NOTION_AUTH_COOKIE_STATE_KEY]
   const authToken = req.cookies[AUTH_TOKEN_COOKIE_STATE_KEY]
 
   res.clearCookie(NOTION_AUTH_COOKIE_STATE_KEY)
   res.clearCookie(AUTH_TOKEN_COOKIE_STATE_KEY)
 
+  /**
+   * if req.query.error exists, then the user denied access to the integration
+   * @reference https://developers.notion.com/docs/authorization#user-authorization-failures
+   * @reference https://developers.notion.com/docs/authorization#token-request-failures
+   */
+  if (error) {
+    /**
+     * @todo redirect to client once it is ready
+     */
+    // return res.redirect(`${FRONTEND_BASE_URL}/auth/notion/failed`)
+    return res.status(400).send({
+      success: false,
+      message: 'access denied',
+    })
+  }
+
   if (prevState !== state) {
+    /**
+     * @todo redirect to client once it is ready
+     */
+    // return res.redirect(`${FRONTEND_BASE_URL}/auth/notion/failed`)
     return res.status(403).send({
       success: false,
       message: 'not authorized',
     })
   }
 
-  const tokenUrl = new URL(`${NOTION_BASE_URL}/v1/oauth/token`)
+  try {
+    const { userfrontID } = await verifyJWT(authToken)
+    const userMeta = await getUserMetaByUserfrontID(userfrontID)
 
-  let notionBasicAuth = `${process.env.NOTION_CLIENT_ID}:${process.env.NOTION_OAUTH_CLIENT_SECRET}`
-  notionBasicAuth = Buffer.from(notionBasicAuth).toString('base64')
+    if (!userMeta) {
+      /**
+       * @todo redirect to client once it is ready
+       */
+      // return res.redirect(`${FRONTEND_BASE_URL}/auth/notion/failed`)
+      return res.status(403).json({
+        message: 'could not authenticate',
+        success: false,
+      })
+    }
 
-  const tokenReqBody = {
-    code,
-    grant_type: 'authorization_code',
-    redirect_uri: `${SERVER_BASE_URL}/oauth/notion/callback`,
-  }
+    const tokenUrl = new URL(`${NOTION_BASE_URL}/v1/oauth/token`)
 
-  const tokenRes = await fetch(tokenUrl.toString(), {
-    method: 'post',
-    headers: {
-      Authorization: `Basic ${notionBasicAuth}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(tokenReqBody),
-  })
+    let notionBasicAuth = `${process.env.NOTION_CLIENT_ID}:${process.env.NOTION_OAUTH_CLIENT_SECRET}`
+    notionBasicAuth = Buffer.from(notionBasicAuth).toString('base64')
 
-  const { userfrontID } = await verifyJWT(authToken)
-  const userMeta = await getUserMetaByUserfrontID(userfrontID)
+    const tokenReqBody = {
+      code,
+      grant_type: 'authorization_code',
+      redirect_uri: `${SERVER_BASE_URL}/oauth/notion/callback`,
+    }
 
-  if (!userMeta) {
-    return res.status(403).json({
-      message: 'could not authenticate',
-      success: false,
+    const tokenRes = await fetch(tokenUrl.toString(), {
+      method: 'post',
+      headers: {
+        Authorization: `Basic ${notionBasicAuth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tokenReqBody),
     })
+
+    const json = await tokenRes.json()
+
+    const {
+      access_token,
+      token_type,
+      workspace_id,
+      workspace_name,
+      workspace_icon,
+      bot_id,
+      owner,
+    } = json
+
+    /**
+     * @todo decide how to handle multiple user authentications. e.g. should we store multiple
+     * records in notion_integrations?
+     */
+    await createNotionIntegration({
+      userfrontUserId: userMeta.userfrontUserId,
+      accessToken: access_token,
+      tokenType: token_type,
+      workspaceId: workspace_id,
+      workspaceName: workspace_name,
+      workspaceIcon: workspace_icon,
+      botID: bot_id,
+      userID: owner?.user?.id,
+      userFullName: owner?.user?.name,
+      avatarURL: owner?.user?.avatar_url,
+      type: owner?.user?.type,
+      email: owner?.user?.person?.email,
+    })
+    /**
+     * @todo redirect to frontend once it is ready
+     */
+    // res.redirect(`${FRONTEND_BASE_URL}/auth/notion/success`)
+    return res.send('success!')
+  } catch (err) {
+    console.error(err)
+    /**
+     * @todo redirect to frontend once it is ready
+     */
+    // res.redirect(`${FRONTEND_BASE_URL}/auth/notion/failed`)
+    return res.send('failed!')
   }
-
-  const json = await tokenRes.json()
-
-  const {
-    access_token,
-    token_type,
-    workspace_id,
-    workspace_name,
-    workspace_icon,
-    bot_id,
-    owner,
-  } = json
-
-  /**
-   * @todo decide how to handle multiple user authentications. e.g. should we store multiple
-   * records in notion_integrations?
-   */
-
-  await createNotionIntegration({
-    userfrontUserId: userMeta.userfrontUserId,
-    accessToken: access_token,
-    tokenType: token_type,
-    workspaceId: workspace_id,
-    workspaceName: workspace_name,
-    workspaceIcon: workspace_icon,
-    botID: bot_id,
-    userID: owner?.user?.id,
-    userFullName: owner?.user?.name,
-    avatarURL: owner?.user?.avatar_url,
-    type: owner?.user?.type,
-    email: owner?.user?.person?.email,
-  })
-
-  /**
-   * @todo redirect to frontend once it is ready
-   */
-  // res.redirect(`${FRONTEND_BASE_URL}/auth/notion/success`)
-  res.send('success!')
 })
 
 app.post('/stripe/checkout-session', async (req, res) => {
