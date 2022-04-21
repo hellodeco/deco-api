@@ -9,6 +9,7 @@ interface ColumnConfig {
   name: string
   type: ColType
   unique?: boolean
+  charLimit?: number
 }
 
 interface TableConfig {
@@ -175,6 +176,7 @@ const tableConfigs: Array<TableConfig> = [
       {
         name: 'value',
         type: ColType.String,
+        charLimit: 10000,
       },
       {
         name: 'email_id',
@@ -220,13 +222,13 @@ export async function up(knex: Knex): Promise<any> {
       )
       table.timestamp('deleted_at', { useTz: false, })
 
-      columns.forEach(({ name, type, unique }) => {
+      columns.forEach(({ name, type, unique, charLimit }) => {
         switch(type) {
           case ColType.String:
-            table.string(name)
+            table.string(name, charLimit)
             break
           case ColType.Int: 
-            table.integer(name)
+            table.integer(name, charLimit)
             break
           default:
             console.warn(`Column not created for ${name} because no "type" was provided`) 
