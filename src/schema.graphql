@@ -28,7 +28,7 @@ type Query {
 }
 
 type Mutation {
-  wipeNotionDatabase: [String]
+  wipeNotionDatabase(userfrontID: String): [String]
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   addEmailToNotion(newEmail: NewEmailInput): String

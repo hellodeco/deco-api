@@ -21,7 +21,7 @@ interface NotionIntegration {
   userfrontUserId: string
   accessToken: string
   tokenType: string
-  workspaceID: string
+  workspaceId: string
   workspaceName: string
   workspaceIcon: string
   botID: string
@@ -112,6 +112,13 @@ export function createUserMeta(userMeta: UserMeta) {
 export function getUserMetaByDecoEmail(decoEmail: string) {
   return dbConnection<UserMeta>('user_meta')
     .where('email_address', decoEmail)
+    .select('*')
+    .first()
+}
+
+export function getNotionIntegrationByUserfrontID(userfrontID: string) {
+  return dbConnection<NotionIntegration>('notion_integrations')
+    .where('userfront_user_id', userfrontID)
     .select('*')
     .first()
 }

@@ -174,7 +174,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
     userfrontUserId: userMeta.userfrontUserId,
     accessToken: access_token,
     tokenType: token_type,
-    workspaceID: workspace_id,
+    workspaceId: workspace_id,
     workspaceName: workspace_name,
     workspaceIcon: workspace_icon,
     botID: bot_id,

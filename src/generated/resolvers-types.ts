@@ -34,6 +34,11 @@ export type MutationAddEmailToNotionArgs = {
   newEmail?: InputMaybe<NewEmailInput>;
 };
 
+
+export type MutationWipeNotionDatabaseArgs = {
+  userfrontID?: InputMaybe<Scalars['String']>;
+};
+
 export type NewEmailInput = {
   emailID?: InputMaybe<Scalars['Int']>;
   emailThreadID?: InputMaybe<Scalars['Int']>;
@@ -167,7 +172,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   addEmailToNotion?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+  wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType, Partial<MutationWipeNotionDatabaseArgs>>;
 }>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
