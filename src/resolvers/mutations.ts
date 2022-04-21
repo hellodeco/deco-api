@@ -1,23 +1,30 @@
 import { MutationResolvers } from '../generated/resolvers-types'
 
 export const mutationResolvers: MutationResolvers = {
-  wipeNotionDatabase: async (parent, args, context) => {
-    const archivedIDs = await context.notionAccess.wipeNotionDatabase(
-      args.userfrontID,
+  wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
+    const archivedIDs = await notionAccess.wipeNotionDatabase(
+      user.userfrontID,
     )
     return archivedIDs
   },
-  deleteNotionTableProperties: async (parent, args, context) => {
+  deleteNotionTableProperties: async (_, args, { notionAccess, user }) => {
     const deletedProperties =
-      await context.notionAccess.deleteNotionTableProperties()
+      await notionAccess.deleteNotionTableProperties(
+        user.userfrontID,
+      )
     return deletedProperties
   },
-  formatNotionTable: async (parent, args, context) => {
-    const formattedTable = await context.notionAccess.formatNotionTable()
+  formatNotionTable: async (_, args, { notionAccess, user }) => {
+    const formattedTable = await notionAccess.formatNotionTable(
+      user.userfrontID,
+    )
     return formattedTable
   },
-  addEmailToNotion: async (parent, args, context) => {
-    const addedEmail = await context.notionAccess.addEmailToNotion(args)
+  addEmailToNotion: async (_, args, { notionAccess, user }) => {
+    const addedEmail = await notionAccess.addEmailToNotion({
+      newEmail: args,
+      userfrontID: user.userfrontID,
+    })
     return addedEmail
   },
 }

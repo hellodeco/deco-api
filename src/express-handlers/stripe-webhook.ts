@@ -59,12 +59,19 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     // add userfront user
     // this will also automatically send a login link to the cx
     try {
-      await Userfront.signup({
+      const res = await Userfront.signup({
         method: 'passwordless',
         email: email,
         name: name,
         redirect: false,
       })
+
+      /**
+       * @todo only log res in development mode
+       * "res" contains the token and uuid that we can use to exchange
+       * with Userfront for a valid login
+       */
+      console.log(res)
     } catch (err) {
       console.log(err)
     }

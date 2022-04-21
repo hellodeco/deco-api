@@ -183,7 +183,16 @@ app.get('/oauth/notion/callback', async (req, res) => {
       workspace_icon,
       bot_id,
       owner,
+      error,
     } = json
+
+    if (error) {
+      /**
+       * @todo respond to a potential error
+       * example error: invalid_client
+       */
+    }
+    console.log(access_token, json)
 
     /**
      * @todo decide how to handle multiple user authentications. e.g. should we store multiple
