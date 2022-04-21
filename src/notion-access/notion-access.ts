@@ -65,126 +65,144 @@ export const wipeNotionDatabase = async (userfrontID: string) => {
   return archivedPageTitles
 }
 
-// export const deleteNotionTableProperties = async () => {
-//   const response = await notion.databases.retrieve({
-//     database_id: notionDatabaseId,
-//   })
+export const deleteNotionTableProperties = async (userfrontID: string) => {
+  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
+    userfrontID,
+  )
 
-//   const properties = response.properties
+  const response = await notion.databases.retrieve({
+    database_id: notionDatabaseId,
+  })
 
-//   const deletedProperties = []
+  const properties = response.properties
 
-//   const props = Object.values(properties)
+  const deletedProperties = []
 
-//   for (let p of props) {
-//     if (p.id !== 'title') {
-//       let res = await notion.databases.update({
-//         database_id: notionDatabaseId,
-//         properties: {
-//           [p.id]: null,
-//         },
-//       })
-//       console.log(res)
-//       deletedProperties.push(p.name)
-//     }
-//   }
+  const props = Object.values(properties)
 
-//   return deletedProperties
-// }
+  for (let p of props) {
+    if (p.id !== 'title') {
+      let res = await notion.databases.update({
+        database_id: notionDatabaseId,
+        properties: {
+          [p.id]: null,
+        },
+      })
+      console.log(res)
+      deletedProperties.push(p.name)
+    }
+  }
 
-// export const formatNotionTable = async () => {
-//   const response = await notion.databases.retrieve({
-//     database_id: notionDatabaseId,
-//   })
+  return deletedProperties
+}
 
-//   const properties = response.properties
+export const formatNotionTable = async (userfrontID: string) => {
+  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
+    userfrontID,
+  )
 
-//   const props = Object.values(properties)
+  const response = await notion.databases.retrieve({
+    database_id: notionDatabaseId,
+  })
 
-//   if (props.length > 1 || props[0].id !== 'title') {
-//     console.log(
-//       'Looks like there are too many existing properties in the table.',
-//     )
-//     return false
-//   }
+  const properties = response.properties
 
-//   await notion.databases.update({
-//     database_id: notionDatabaseId,
-//     properties: {
-//       From: {
-//         type: 'email',
-//         email: {},
-//       },
-//       Delivered: {
-//         type: 'date',
-//         date: {},
-//       },
-//       Email_ID: {
-//         type: 'number',
-//         number: {},
-//       },
-//       Email_Thread_ID: {
-//         type: 'number',
-//         number: {},
-//       },
-//     },
-//   })
+  const props = Object.values(properties)
 
-//   return true
-// }
+  if (props.length > 1 || props[0].id !== 'title') {
+    console.log(
+      'Looks like there are too many existing properties in the table.',
+    )
+    return false
+  }
 
-// export const addEmailToNotion = async (newEmail: NewEmail) => {
-//   const { subject, from, emailID, emailThreadID, plainTextContent } =
-//     newEmail.newEmail
+  await notion.databases.update({
+    database_id: notionDatabaseId,
+    properties: {
+      From: {
+        type: 'email',
+        email: {},
+      },
+      Delivered: {
+        type: 'date',
+        date: {},
+      },
+      Email_ID: {
+        type: 'number',
+        number: {},
+      },
+      Email_Thread_ID: {
+        type: 'number',
+        number: {},
+      },
+    },
+  })
 
-//   const time = Date.now()
-//   const deliveryDate = new Date(time)
-//   const deliveryDateAsISOString = deliveryDate.toISOString()
+  return true
+}
 
-//   const emailCreated = await notion.pages.create({
-//     parent: { database_id: notionDatabaseId },
-//     properties: {
-//       title: {
-//         title: [
-//           {
-//             text: {
-//               content: subject,
-//             },
-//           },
-//         ],
-//       },
-//       From: {
-//         email: from,
-//       },
-//       Delivered: {
-//         date: {
-//           start: deliveryDateAsISOString,
-//         },
-//       },
-//       Email_ID: {
-//         number: emailID,
-//       },
-//       Email_Thread_ID: {
-//         number: emailThreadID,
-//       },
-//     },
-//     children: [
-//       {
-//         object: 'block',
-//         type: 'paragraph',
-//         paragraph: {
-//           rich_text: [
-//             {
-//               type: 'text',
-//               text: {
-//                 content: plainTextContent,
-//               },
-//             },
-//           ],
-//         },
-//       },
-//     ],
-//   })
+export const addEmailToNotion = async ({
+  newEmail,
+  userfrontID,
+}: {
+  newEmail: NewEmail,
+  userfrontID: string,
+}) => {
+  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
+    userfrontID,
+  )
 
-//   return emailCreated.id
-// }
+  const { subject, from, emailID, emailThreadID, plainTextContent } =
+    newEmail.newEmail
+
+  const time = Date.now()
+  const deliveryDate = new Date(time)
+  const deliveryDateAsISOString = deliveryDate.toISOString()
+
+  const emailCreated = await notion.pages.create({
+    parent: { database_id: notionDatabaseId },
+    properties: {
+      title: {
+        title: [
+          {
+            text: {
+              content: subject,
+            },
+          },
+        ],
+      },
+      From: {
+        email: from,
+      },
+      Delivered: {
+        date: {
+          start: deliveryDateAsISOString,
+        },
+      },
+      Email_ID: {
+        number: emailID,
+      },
+      Email_Thread_ID: {
+        number: emailThreadID,
+      },
+    },
+    children: [
+      {
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [
+            {
+              type: 'text',
+              text: {
+                content: plainTextContent,
+              },
+            },
+          ],
+        },
+      },
+    ],
+  })
+
+  return emailCreated.id
+}

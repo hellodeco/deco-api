@@ -22,4 +22,8 @@ export const queryResolvers: QueryResolvers = {
       userfrontID: user.userfrontID,
     }
   },
+  emailAddressAvailable: async (parent, args, { dbAccess }) => {
+    const userMeta = await dbAccess.getUserMetaByDecoEmail(args.email)
+    return userMeta ? false : true
+  },
 }
