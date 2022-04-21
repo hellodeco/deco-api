@@ -2,7 +2,9 @@ import { MutationResolvers } from '../generated/resolvers-types'
 
 export const mutationResolvers: MutationResolvers = {
   wipeNotionDatabase: async (parent, args, context) => {
-    const archivedIDs = await context.notionAccess.wipeNotionDatabase()
+    const archivedIDs = await context.notionAccess.wipeNotionDatabase(
+      args.userfrontID,
+    )
     return archivedIDs
   },
   deleteNotionTableProperties: async (parent, args, context) => {

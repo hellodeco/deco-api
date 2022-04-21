@@ -4,7 +4,7 @@ import { applyMiddleware } from 'graphql-middleware'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import permissions from './permissions'
 import resolvers from './resolvers/resolvers'
-import { createServer } from './create-server';
+import { createServer } from './create-server'
 import { app } from './express'
 
 import 'dotenv/config'
@@ -27,5 +27,5 @@ createServer({
   schema,
   app,
 }).then(({ server, port }) => {
-  console.log(`🚀 Server ready at http://localhost:${port}`);
+  console.log(`🚀 Server ready at http://localhost:${port}`)
 })
