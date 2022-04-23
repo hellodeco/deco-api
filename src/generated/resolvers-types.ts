@@ -15,10 +15,11 @@ export type Scalars = {
 };
 
 export type Email = {
-  __typename?: 'Email';
-  body?: Maybe<Scalars['String']>;
-  from?: Maybe<Scalars['String']>;
-  subject?: Maybe<Scalars['String']>;
+  emailID?: InputMaybe<Scalars['Int']>;
+  emailThreadID?: InputMaybe<Scalars['Int']>;
+  from?: InputMaybe<Scalars['String']>;
+  plainTextContent?: InputMaybe<Scalars['String']>;
+  subject?: InputMaybe<Scalars['String']>;
 };
 
 export type Mutation = {
@@ -31,20 +32,12 @@ export type Mutation = {
 
 
 export type MutationAddEmailToNotionArgs = {
-  newEmail?: InputMaybe<NewEmailInput>;
-};
-
-export type NewEmailInput = {
-  emailID?: InputMaybe<Scalars['Int']>;
-  emailThreadID?: InputMaybe<Scalars['Int']>;
-  from?: InputMaybe<Scalars['String']>;
-  plainTextContent?: InputMaybe<Scalars['String']>;
-  subject?: InputMaybe<Scalars['String']>;
+  newEmail?: InputMaybe<Email>;
+  toAddress?: InputMaybe<Scalars['String']>;
 };
 
 export type Query = {
   __typename?: 'Query';
-  allEmails: Array<Maybe<Email>>;
   currentUser?: Maybe<User>;
   emailAddressAvailable?: Maybe<Scalars['Boolean']>;
   getUserMetaByDecoEmail?: Maybe<Scalars['Boolean']>;
@@ -139,10 +132,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
-  Email: ResolverTypeWrapper<Email>;
+  Email: Email;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
-  NewEmailInput: NewEmailInput;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
@@ -155,18 +147,10 @@ export type ResolversParentTypes = ResolversObject<{
   Email: Email;
   Int: Scalars['Int'];
   Mutation: {};
-  NewEmailInput: NewEmailInput;
   Query: {};
   String: Scalars['String'];
   UUID: Scalars['UUID'];
   User: User;
-}>;
-
-export type EmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Email'] = ResolversParentTypes['Email']> = ResolversObject<{
-  body?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  from?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  subject?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
@@ -177,7 +161,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 }>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  allEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   emailAddressAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryEmailAddressAvailableArgs>>;
   getUserMetaByDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryGetUserMetaByDecoEmailArgs>>;
@@ -196,7 +179,6 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 }>;
 
 export type Resolvers<ContextType = any> = ResolversObject<{
-  Email?: EmailResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   UUID?: GraphQLScalarType;

@@ -7,13 +7,7 @@ type User {
   userfrontID: UUID
 }
 
-type Email {
-  subject: String
-  body: String
-  from: String
-}
-
-input NewEmailInput {
+input Email {
   subject: String
   from: String
   emailID: Int
@@ -22,7 +16,6 @@ input NewEmailInput {
 }
 
 type Query {
-  allEmails: [Email]!
   getUserMetaByDecoEmail(decoEmail: String): Boolean
   currentUser: User
   emailAddressAvailable(email: String): Boolean
@@ -32,5 +25,5 @@ type Mutation {
   wipeNotionDatabase: [String]
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
-  addEmailToNotion(newEmail: NewEmailInput): String
+  addEmailToNotion(toAddress:String, newEmail: Email): String
 }
