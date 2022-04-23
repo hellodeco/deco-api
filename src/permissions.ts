@@ -1,10 +1,14 @@
 import { rule, shield } from 'graphql-shield'
 
-const isAuthenticated = rule()((parent, args, { user }) => {
+/**
+ * @reference use the "contextual" cache to help keep this rule fast
+ * https://graphql-shield.vercel.app/docs/rules#cache
+ */
+const isAuthenticated = rule({ cache: 'contextual' })((parent, args, { user }) => {
   return Boolean(user?.userfrontID)
 })
 
-const isEmailAdaptor = rule()((parent, args, {}) => {
+const isEmailAdaptor = rule()((parent, args, ctx, info) => {
   /**
    * @todo scope this to only allow requests originating from the email adaptor
    */
