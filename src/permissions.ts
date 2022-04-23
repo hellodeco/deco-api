@@ -1,8 +1,10 @@
 import { rule, shield } from 'graphql-shield'
 
 /**
- * @reference use the "contextual" cache to help keep this rule fast
- * https://graphql-shield.vercel.app/docs/rules#cache
+ * These rules are executed on a per field basis.
+ * Using the cache option "contextual" helps speed up request validation if
+ * you only need to use the context (3rd) argument in the rule callback function.
+ * @reference https://graphql-shield.vercel.app/docs/rules#cache
  */
 const isAuthenticated = rule({ cache: 'contextual' })((parent, args, { user }) => {
   return Boolean(user?.userfrontID)
