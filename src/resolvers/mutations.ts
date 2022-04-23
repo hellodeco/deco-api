@@ -20,11 +20,25 @@ export const mutationResolvers: MutationResolvers = {
     )
     return formattedTable
   },
-  addEmailToNotion: async (_, args, { notionAccess, user }) => {
-    const addedEmail = await notionAccess.addEmailToNotion({
-      newEmail: args,
-      userfrontID: user.userfrontID,
+  addEmailToNotion: async (
+    _,
+    { toAddress, newEmail },
+    { notionAccess, dbAccess },
+  ) => {
+    const userMeta = dbAccess.getUserMetaByDecoEmail(toAddress)
+
+    if (!userMeta) {
+      return {
+        success: false,
+        message: `The recipient ${toAddress} does not exist`,
+      }
+    }
+
+    const notionEmailId = await notionAccess.addEmailToNotion({
+      newEmail,
+      userfrontID: userMeta.userfrontID,
     })
-    return addedEmail
+
+    return notionEmailId
   },
 }

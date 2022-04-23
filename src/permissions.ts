@@ -4,9 +4,15 @@ const isAuthenticated = rule()((parent, args, { user }) => {
   return Boolean(user?.userfrontID)
 })
 
+const isEmailAdaptor = rule()((parent, args, {}) => {
+  /**
+   * @todo scope this to only allow requests originating from the email adaptor
+   */
+  return true
+})
+
 const permissions = shield({
   Query: {
-    allEmails: isAuthenticated,
     currentUser: isAuthenticated,
     emailAddressAvailable: isAuthenticated,
   },
@@ -14,10 +20,7 @@ const permissions = shield({
     wipeNotionDatabase: isAuthenticated,
     deleteNotionTableProperties: isAuthenticated,
     formatNotionTable: isAuthenticated,
-    /**
-     * @todo scope this to only allow requests originating from the email adaptor
-     */
-    addEmailToNotion: isAuthenticated,
+    addEmailToNotion: isEmailAdaptor,
   }
 })
 

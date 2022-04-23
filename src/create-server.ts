@@ -36,7 +36,9 @@ export async function createServer({
       if (token) {
         try {
           user = await verifyJWT(token)
-        } catch (err) {}
+        } catch (err) {
+          console.error(err)
+        }
       }
 
       return {

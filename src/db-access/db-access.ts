@@ -32,10 +32,6 @@ interface NotionIntegration {
   email: string
 }
 
-export function getAllEmails() {
-  return dbConnection('emails').select('*')
-}
-
 export function getAllThreadsByUserMetaID(userMetaID: string) {
   return dbConnection('email_threads').where('user_meta_id', userMetaID)
 }
