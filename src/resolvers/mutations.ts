@@ -30,15 +30,16 @@ export const mutationResolvers: MutationResolvers = {
     if (!userMeta) {
       return {
         success: false,
-        message: `The recipient ${toAddress} does not exist`,
       }
     }
 
-    const notionEmailId = await notionAccess.addEmailToNotion({
+    await notionAccess.addEmailToNotion({
       newEmail,
       userfrontID: userMeta.userfrontID,
     })
 
-    return notionEmailId
+    return {
+      success: true,
+    }
   },
 }

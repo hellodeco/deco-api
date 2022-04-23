@@ -14,6 +14,11 @@ export type Scalars = {
   UUID: any;
 };
 
+export type AddEmailToNotionResult = {
+  __typename?: 'AddEmailToNotionResult';
+  success?: Maybe<Scalars['Boolean']>;
+};
+
 export type Email = {
   emailID?: InputMaybe<Scalars['Int']>;
   emailThreadID?: InputMaybe<Scalars['Int']>;
@@ -24,7 +29,7 @@ export type Email = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  addEmailToNotion?: Maybe<Scalars['String']>;
+  addEmailToNotion?: Maybe<AddEmailToNotionResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
@@ -131,6 +136,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
+  AddEmailToNotionResult: ResolverTypeWrapper<AddEmailToNotionResult>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   Email: Email;
   Int: ResolverTypeWrapper<Scalars['Int']>;
@@ -143,6 +149,7 @@ export type ResolversTypes = ResolversObject<{
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
+  AddEmailToNotionResult: AddEmailToNotionResult;
   Boolean: Scalars['Boolean'];
   Email: Email;
   Int: Scalars['Int'];
@@ -153,8 +160,13 @@ export type ResolversParentTypes = ResolversObject<{
   User: User;
 }>;
 
+export type AddEmailToNotionResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['AddEmailToNotionResult'] = ResolversParentTypes['AddEmailToNotionResult']> = ResolversObject<{
+  success?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addEmailToNotion?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
+  addEmailToNotion?: Resolver<Maybe<ResolversTypes['AddEmailToNotionResult']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
@@ -179,6 +191,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 }>;
 
 export type Resolvers<ContextType = any> = ResolversObject<{
+  AddEmailToNotionResult?: AddEmailToNotionResultResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   UUID?: GraphQLScalarType;
