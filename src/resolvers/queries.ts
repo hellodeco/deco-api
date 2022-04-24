@@ -26,4 +26,11 @@ export const queryResolvers: QueryResolvers = {
     const userMeta = await dbAccess.getUserMetaByDecoEmail(args.email)
     return userMeta ? false : true
   },
+  getNotionIntegrationByUserfrontID: async (
+    parent,
+    args,
+    { dbAccess, user },
+  ) => {
+    return await dbAccess.getNotionIntegrationByUserfrontID(user.userfrontID)
+  },
 }

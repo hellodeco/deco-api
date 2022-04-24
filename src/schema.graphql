@@ -13,6 +13,22 @@ type Email {
   from: String
 }
 
+type NotionIntegration {
+  id: String
+  userfrontUserId: String
+  accessToken: String
+  tokenType: String
+  workspaceId: String
+  workspaceName: String
+  workspaceIcon: String
+  botID: String
+  userID: String
+  userFullName: String
+  avatarURL: String
+  type: String
+  email: String
+}
+
 input NewEmailInput {
   subject: String
   from: String
@@ -26,6 +42,7 @@ type Query {
   getUserMetaByDecoEmail(decoEmail: String): Boolean
   currentUser: User
   emailAddressAvailable(email: String): Boolean
+  getNotionIntegrationByUserfrontID: NotionIntegration
 }
 
 type Mutation {
