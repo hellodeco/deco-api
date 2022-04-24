@@ -26,12 +26,18 @@ export type Mutation = {
   addEmailToNotion?: Maybe<Scalars['String']>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
+  updateDecoEmail?: Maybe<Scalars['Boolean']>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
 
 
 export type MutationAddEmailToNotionArgs = {
   newEmail?: InputMaybe<NewEmailInput>;
+};
+
+
+export type MutationUpdateDecoEmailArgs = {
+  emailAddress?: InputMaybe<Scalars['String']>;
 };
 
 export type NewEmailInput = {
@@ -173,6 +179,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   addEmailToNotion?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  updateDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationUpdateDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
 

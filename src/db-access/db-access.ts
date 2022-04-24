@@ -122,3 +122,9 @@ export function getNotionIntegrationByUserfrontID(userfrontID: string) {
     .select('*')
     .first()
 }
+
+export function updateDecoEmail(userfrontID: string, emailAddress: string) {
+  return dbConnection<UserMeta>('user_meta')
+    .where('userfront_user_id', userfrontID)
+    .update(objectCamelToSnake({ email_address: emailAddress }))
+}

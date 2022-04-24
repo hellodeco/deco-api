@@ -32,5 +32,6 @@ type Mutation {
   wipeNotionDatabase: [String]
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
+  updateDecoEmail(emailAddress: String): Boolean
   addEmailToNotion(newEmail: NewEmailInput): String
 }

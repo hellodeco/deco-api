@@ -18,7 +18,8 @@ const permissions = shield({
      * @todo scope this to only allow requests originating from the email adaptor
      */
     addEmailToNotion: isAuthenticated,
-  }
+    updateDecoEmail: isAuthenticated,
+  },
 })
 
 export default permissions
