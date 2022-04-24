@@ -17,6 +17,7 @@ input Email {
 
 type AddEmailToNotionResult {
   success: Boolean
+  notionPageId: String
 }
 
 type Query {
