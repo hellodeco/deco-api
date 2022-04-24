@@ -1,8 +1,8 @@
-import { Knex } from "knex";
+import { Knex } from 'knex'
 
 enum ColType {
   String = 'string',
-  Int = 'integer'
+  Int = 'integer',
 }
 
 interface ColumnConfig {
@@ -21,27 +21,27 @@ const TIMESTAMP_TRIGGER_NAME = 'update_timestamp'
 
 const tableConfigs: Array<TableConfig> = [
   {
-    name: 'user_meta',
+    name: 'users',
     columns: [
-      { 
+      {
         name: 'email_address',
         type: ColType.String,
         unique: true,
       },
-      { 
+      {
         name: 'signup_email',
         type: ColType.String,
         unique: true,
       },
-      { 
+      {
         name: 'userfront_user_id',
         type: ColType.String,
       },
-      { 
+      {
         name: 'full_name',
         type: ColType.String,
       },
-    ]
+    ],
   },
   {
     name: 'notion_integrations',
@@ -94,7 +94,7 @@ const tableConfigs: Array<TableConfig> = [
         name: 'email',
         type: ColType.String,
       },
-    ]
+    ],
   },
   {
     name: 'email_threads',
@@ -104,10 +104,10 @@ const tableConfigs: Array<TableConfig> = [
         type: ColType.String,
       },
       {
-        name: 'user_meta_id',
+        name: 'user_id',
         type: ColType.Int,
       },
-    ]
+    ],
   },
   {
     name: 'emails',
@@ -133,12 +133,8 @@ const tableConfigs: Array<TableConfig> = [
         type: ColType.String,
       },
       {
-        name: 'user_meta_id',
+        name: 'user_id',
         type: ColType.Int,
-      },
-      {
-        name: 'user_meta',
-        type: ColType.String,
       },
       {
         name: 'message_id',
@@ -164,7 +160,7 @@ const tableConfigs: Array<TableConfig> = [
         name: 'notion_page_id',
         type: ColType.String,
       },
-    ]
+    ],
   },
   {
     name: 'email_headers',
@@ -182,8 +178,8 @@ const tableConfigs: Array<TableConfig> = [
         name: 'email_id',
         type: ColType.Int,
       },
-    ]
-  }
+    ],
+  },
 ]
 
 export async function up(knex: Knex): Promise<any> {
@@ -203,39 +199,37 @@ export async function up(knex: Knex): Promise<any> {
         RETURN NEW;
     END;
     $$;
-  `);
+  `)
 
   /**
    * Add each table, their associated columns and ad PG timestamp trigger function
    */
   const promises = tableConfigs.map(async ({ name, columns }) => {
-    await knex.schema.createTable(name, table => {
+    await knex.schema.createTable(name, (table) => {
       // add auto incrementing id column of type INT
       table.increments()
 
       // add standard datetime fields
-      table.timestamp('created_at', { useTz: false, }).defaultTo(
-        knex.fn.now(),
-      )
-      table.timestamp('updated_at', { useTz: false, }).defaultTo(
-        knex.fn.now(),
-      )
-      table.timestamp('deleted_at', { useTz: false, })
+      table.timestamp('created_at', { useTz: false }).defaultTo(knex.fn.now())
+      table.timestamp('updated_at', { useTz: false }).defaultTo(knex.fn.now())
+      table.timestamp('deleted_at', { useTz: false })
 
       columns.forEach(({ name, type, unique, charLimit }) => {
-        switch(type) {
+        switch (type) {
           case ColType.String:
             table.string(name, charLimit)
             break
-          case ColType.Int: 
+          case ColType.Int:
             table.integer(name, charLimit)
             break
           default:
-            console.warn(`Column not created for ${name} because no "type" was provided`) 
+            console.warn(
+              `Column not created for ${name} because no "type" was provided`,
+            )
         }
 
         if (unique) {
-          table.unique([ name ])
+          table.unique([name])
         }
       })
     })
@@ -252,12 +246,10 @@ export async function up(knex: Knex): Promise<any> {
   await Promise.all(promises)
 }
 
-
 export async function down(knex: Knex): Promise<void> {
   await knex.raw(`
     DROP FUNCTION IF EXISTS ${TIMESTAMP_TRIGGER_NAME}() CASCADE;
-  `);
-
+  `)
 
   const promises = tableConfigs.map(async ({ name }) => {
     return knex.schema.dropTableIfExists(name)

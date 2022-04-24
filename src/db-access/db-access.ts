@@ -37,7 +37,7 @@ export function getAllEmails() {
 }
 
 export function getAllThreadsByUserMetaID(userMetaID: string) {
-  return dbConnection('email_threads').where('user_meta_id', userMetaID)
+  return dbConnection('email_threads').where('user_id', userMetaID)
 }
 
 export function getAllEmailsByThreadID(threadID: string) {
@@ -53,7 +53,7 @@ export function createNewThreadByUserMetaID(
     created_at: date,
     updated_at: date,
     subject: subject,
-    user_meta_id: userMetaID,
+    user_id: userMetaID,
   })
 }
 
@@ -71,7 +71,7 @@ export async function createNewEmailByUserMetaID(args: {
     args.emailThreadID,
   )
 
-  const user = await dbConnection('user_meta').where('id', args.userMetaID)
+  const user = await dbConnection('users').where('id', args.userMetaID)
 
   const date = new Date().toISOString()
   return dbConnection('emails').insert({
@@ -82,7 +82,7 @@ export async function createNewEmailByUserMetaID(args: {
     html_content: args.htmlContent,
     from: user[0].emailAddress,
     status: 'DRAFT',
-    user_meta_id: args.userMetaID,
+    user_id: args.userMetaID,
     message_id: args.messageID,
     in_reply_to: args.inReplyTo,
     references: args.references,
@@ -91,7 +91,7 @@ export async function createNewEmailByUserMetaID(args: {
 }
 
 export function getUserMetaByUserfrontID(userfrontID: string) {
-  return dbConnection<UserMeta>('user_meta')
+  return dbConnection<UserMeta>('users')
     .where('userfront_user_id', userfrontID)
     .select('*')
     .first()
@@ -104,13 +104,11 @@ export function createNotionIntegration(notionIntegration: NotionIntegration) {
 }
 
 export function createUserMeta(userMeta: UserMeta) {
-  return dbConnection<UserMeta>('user_meta').insert(
-    objectCamelToSnake(userMeta),
-  )
+  return dbConnection<UserMeta>('users').insert(objectCamelToSnake(userMeta))
 }
 
 export function getUserMetaByDecoEmail(decoEmail: string) {
-  return dbConnection<UserMeta>('user_meta')
+  return dbConnection<UserMeta>('users')
     .where('email_address', decoEmail)
     .select('*')
     .first()
@@ -124,7 +122,7 @@ export function getNotionIntegrationByUserfrontID(userfrontID: string) {
 }
 
 export function updateDecoEmail(userfrontID: string, emailAddress: string) {
-  return dbConnection<UserMeta>('user_meta')
+  return dbConnection<UserMeta>('users')
     .where('userfront_user_id', userfrontID)
     .update(objectCamelToSnake({ email_address: emailAddress }))
 }
