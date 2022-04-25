@@ -15,3 +15,5 @@ export const SERVER_BASE_URL = process.env.SERVER_BASE_URL || `http://localhost:
 export const FRONTEND_BASE_URL = process.env.FRONTEND_BASE_URL || 'http://localhost:3000'
 
 export const NOTION_BASE_URL = 'https://api.notion.com'
+
+export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.so'

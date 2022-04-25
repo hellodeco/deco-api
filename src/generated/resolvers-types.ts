@@ -4,6 +4,7 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -16,6 +17,7 @@ export type Scalars = {
 
 export type AddEmailToNotionResult = {
   __typename?: 'AddEmailToNotionResult';
+  notionPageId?: Maybe<Scalars['String']>;
   success?: Maybe<Scalars['Boolean']>;
 };
 
@@ -44,13 +46,13 @@ export type MutationAddEmailToNotionArgs = {
 export type Query = {
   __typename?: 'Query';
   currentUser?: Maybe<User>;
-  emailAddressAvailable?: Maybe<Scalars['Boolean']>;
+  emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getUserMetaByDecoEmail?: Maybe<Scalars['Boolean']>;
 };
 
 
-export type QueryEmailAddressAvailableArgs = {
-  email?: InputMaybe<Scalars['String']>;
+export type QueryEmailUsernameAvailableArgs = {
+  username: Scalars['String'];
 };
 
 
@@ -161,6 +163,7 @@ export type ResolversParentTypes = ResolversObject<{
 }>;
 
 export type AddEmailToNotionResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['AddEmailToNotionResult'] = ResolversParentTypes['AddEmailToNotionResult']> = ResolversObject<{
+  notionPageId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -174,7 +177,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  emailAddressAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryEmailAddressAvailableArgs>>;
+  emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getUserMetaByDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryGetUserMetaByDecoEmailArgs>>;
 }>;
 
