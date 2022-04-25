@@ -23,12 +23,12 @@ type AddEmailToNotionResult {
 type Query {
   getUserMetaByDecoEmail(decoEmail: String): Boolean
   currentUser: User
-  emailAddressAvailable(email: String): Boolean
+  emailUsernameAvailable(username: String!): Boolean
 }
 
 type Mutation {
   wipeNotionDatabase: [String]
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
-  addEmailToNotion(toAddress:String, newEmail: Email): AddEmailToNotionResult
+  addEmailToNotion(toAddress: String, newEmail: Email): AddEmailToNotionResult
 }

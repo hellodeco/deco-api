@@ -20,7 +20,7 @@ const isEmailAdaptor = rule()((parent, args, ctx, info) => {
 const permissions = shield({
   Query: {
     currentUser: isAuthenticated,
-    emailAddressAvailable: isAuthenticated,
+    emailUsernameAvailable: isAuthenticated,
   },
   Mutation: {
     wipeNotionDatabase: isAuthenticated,

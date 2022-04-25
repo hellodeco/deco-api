@@ -1,4 +1,5 @@
 import { QueryResolvers } from '../generated/resolvers-types'
+import { EMAIL_DOMAIN } from '../constants'
 
 export const queryResolvers: QueryResolvers = {
   getUserMetaByDecoEmail: async (parent, args, context) => {
@@ -21,8 +22,9 @@ export const queryResolvers: QueryResolvers = {
       userfrontID: user.userfrontID,
     }
   },
-  emailAddressAvailable: async (parent, args, { dbAccess }) => {
-    const userMeta = await dbAccess.getUserMetaByDecoEmail(args.email)
+  emailUsernameAvailable: async (parent, { username }, { dbAccess }) => {
+    const email = `${username}@${EMAIL_DOMAIN}`
+    const userMeta = await dbAccess.getUserMetaByDecoEmail(email)
     return userMeta ? false : true
-  },
+  }
 }
