@@ -24,8 +24,8 @@ interface NotionIntegration {
   workspaceId: string
   workspaceName: string
   workspaceIcon: string
-  botID: string
-  userID: string
+  botId: string
+  userId: string
   userFullName: string
   avatarURL: string
   type: string
@@ -34,6 +34,10 @@ interface NotionIntegration {
 
 export function getAllEmails() {
   return dbConnection('emails').select('*')
+}
+
+enum Tables {
+  NOTION_INTEGRATIONS = 'notion_integrations'
 }
 
 export function getAllThreadsByUserMetaID(userMetaID: string) {
@@ -97,8 +101,21 @@ export function getUserMetaByUserfrontID(userfrontID: string) {
     .first()
 }
 
-export function createNotionIntegration(notionIntegration: NotionIntegration) {
-  return dbConnection<NotionIntegration>('notion_integrations').insert(
+export async function createOrUpdateNotionIntegration(notionIntegration: NotionIntegration) {
+  const integration = await dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
+    .where('userfront_user_id', notionIntegration.userfrontUserId)
+    .select('*')
+    .first()
+  
+    if (integration) {
+      return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
+        .where('userfront_user_id', notionIntegration.userfrontUserId)
+        .update(
+          objectCamelToSnake(notionIntegration),
+        )
+    }
+
+  return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS).insert(
     objectCamelToSnake(notionIntegration),
   )
 }
