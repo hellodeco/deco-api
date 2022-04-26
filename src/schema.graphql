@@ -16,7 +16,6 @@ type Email {
 type NotionIntegration {
   id: String
   userfrontUserId: String
-  accessToken: String
   tokenType: String
   workspaceId: String
   workspaceName: String
@@ -42,7 +41,7 @@ type Query {
   getUserMetaByDecoEmail(decoEmail: String): Boolean
   currentUser: User
   emailAddressAvailable(email: String): Boolean
-  getNotionIntegrationByUserfrontID: NotionIntegration
+  getCurrentUserNotionIntegration: NotionIntegration
 }
 
 type Mutation {

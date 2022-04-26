@@ -50,7 +50,6 @@ export type NewEmailInput = {
 
 export type NotionIntegration = {
   __typename?: 'NotionIntegration';
-  accessToken?: Maybe<Scalars['String']>;
   avatarURL?: Maybe<Scalars['String']>;
   botID?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
@@ -70,7 +69,7 @@ export type Query = {
   allEmails: Array<Maybe<Email>>;
   currentUser?: Maybe<User>;
   emailAddressAvailable?: Maybe<Scalars['Boolean']>;
-  getNotionIntegrationByUserfrontID?: Maybe<NotionIntegration>;
+  getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
   getUserMetaByDecoEmail?: Maybe<Scalars['Boolean']>;
 };
 
@@ -204,7 +203,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 }>;
 
 export type NotionIntegrationResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionIntegration'] = ResolversParentTypes['NotionIntegration']> = ResolversObject<{
-  accessToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   avatarURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   botID?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -224,7 +222,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   allEmails?: Resolver<Array<Maybe<ResolversTypes['Email']>>, ParentType, ContextType>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   emailAddressAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryEmailAddressAvailableArgs>>;
-  getNotionIntegrationByUserfrontID?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
+  getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
   getUserMetaByDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryGetUserMetaByDecoEmailArgs>>;
 }>;
 

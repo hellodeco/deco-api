@@ -9,7 +9,7 @@ const permissions = shield({
     allEmails: isAuthenticated,
     currentUser: isAuthenticated,
     emailAddressAvailable: isAuthenticated,
-    getNotionIntegrationByUserfrontID: isAuthenticated,
+    getCurrentUserNotionIntegration: isAuthenticated,
   },
   Mutation: {
     wipeNotionDatabase: isAuthenticated,
