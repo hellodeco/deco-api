@@ -23,5 +23,5 @@ export function getNotionRedirectURI() {
 export function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
   params.append('message', message)
-  return `${FRONTEND_BASE_URL}/auth/notion/fail?${params.toString()}`
+  return `${FRONTEND_BASE_URL}/oauth/notion/fail?${params.toString()}`
 }

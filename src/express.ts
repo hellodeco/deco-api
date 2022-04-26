@@ -78,11 +78,6 @@ app.get('/oauth/notion', async (req, res) => {
     return res.redirect(createNotionAuthFailedRedirectURL({
       message: 'error: unable to authenticate with notion. auth token not provided',
     }))
-    // return res.redirect(`${FRONTEND_BASE_URL}/auth/notion/failed`)
-    // return res.status(403).json({
-    //   success: false,
-    //   message: 'error: unable to authenticate with notion. auth token not provided',
-    // })
   }
 
   const state = uuid()
@@ -191,7 +186,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
       email: owner?.user?.person?.email,
     })
 
-    return res.redirect('${FRONTEND_BASE_URL}/auth/notion/success')
+    return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
   } catch (err) {
     console.error(err)
     return res.redirect(createNotionAuthFailedRedirectURL({
