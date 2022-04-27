@@ -1,7 +1,7 @@
 import { QueryResolvers } from '../generated/resolvers-types'
+import { EMAIL_DOMAIN } from '../constants'
 
 export const queryResolvers: QueryResolvers = {
-  allEmails: (parent, args, context) => context.dbAccess.getAllEmails(),
   getUserMetaByDecoEmail: async (parent, args, context) => {
     const existingUser = await context.dbAccess.getUserMetaByDecoEmail(
       args.decoEmail,
@@ -22,19 +22,15 @@ export const queryResolvers: QueryResolvers = {
       userfrontID: user.userfrontID,
     }
   },
-  emailAddressAvailable: async (parent, args, { dbAccess }) => {
-    const userMeta = await dbAccess.getUserMetaByDecoEmail(args.email)
+  emailUsernameAvailable: async (parent, { username }, { dbAccess }) => {
+    const email = `${username}@${EMAIL_DOMAIN}`
+    const userMeta = await dbAccess.getUserMetaByDecoEmail(email)
     return userMeta ? false : true
   },
-  getCurrentUserNotionIntegration: async (
-    parent,
-    args,
-    { dbAccess, user },
-  ) => {
+  getCurrentUserNotionIntegration: async (parent, args, { dbAccess, user }) => {
     // omit the access token since it is a sensitive value and not needed for front end code
-    const { accessToken, ...integration } = await dbAccess.getNotionIntegrationByUserfrontID(
-      user.userfrontID
-    )
+    const { accessToken, ...integration } =
+      await dbAccess.getNotionIntegrationByUserfrontID(user.userfrontID)
 
     if (!accessToken) {
       return null

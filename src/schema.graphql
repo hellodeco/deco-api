@@ -7,12 +7,6 @@ type User {
   userfrontID: UUID
 }
 
-type Email {
-  subject: String
-  body: String
-  from: String
-}
-
 type NotionIntegration {
   id: String
   userfrontUserId: String
@@ -28,7 +22,7 @@ type NotionIntegration {
   email: String
 }
 
-input NewEmailInput {
+input Email {
   subject: String
   from: String
   emailID: Int
@@ -36,12 +30,16 @@ input NewEmailInput {
   plainTextContent: String
 }
 
+type AddEmailToNotionResult {
+  success: Boolean
+  notionPageId: String
+}
+
 type Query {
-  allEmails: [Email]!
   getUserMetaByDecoEmail(decoEmail: String): Boolean
   currentUser: User
-  emailAddressAvailable(email: String): Boolean
   getCurrentUserNotionIntegration: NotionIntegration
+  emailUsernameAvailable(username: String!): Boolean
 }
 
 type Mutation {
@@ -49,5 +47,5 @@ type Mutation {
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   updateDecoEmail(emailAddress: String): Boolean
-  addEmailToNotion(newEmail: NewEmailInput): String
+  addEmailToNotion(toAddress: String, newEmail: Email): AddEmailToNotionResult
 }

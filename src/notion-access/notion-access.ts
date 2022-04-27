@@ -141,7 +141,6 @@ export const formatNotionTable = async (userfrontID: string) => {
   return true
 }
 
-// TODO - pass in Email address
 export const addEmailToNotion = async ({
   newEmail,
   userfrontID,
@@ -149,8 +148,6 @@ export const addEmailToNotion = async ({
   newEmail: NewEmail
   userfrontID: string
 }) => {
-  // TODO - lookup userfrontID by email address
-
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )

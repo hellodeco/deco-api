@@ -32,12 +32,8 @@ interface NotionIntegration {
   email: string
 }
 
-export function getAllEmails() {
-  return dbConnection('emails').select('*')
-}
-
 enum Tables {
-  NOTION_INTEGRATIONS = 'notion_integrations'
+  NOTION_INTEGRATIONS = 'notion_integrations',
 }
 
 export function getAllThreadsByUserMetaID(userMetaID: string) {
@@ -101,19 +97,21 @@ export function getUserMetaByUserfrontID(userfrontID: string) {
     .first()
 }
 
-export async function createOrUpdateNotionIntegration(notionIntegration: NotionIntegration) {
-  const integration = await dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
+export async function createOrUpdateNotionIntegration(
+  notionIntegration: NotionIntegration,
+) {
+  const integration = await dbConnection<NotionIntegration>(
+    Tables.NOTION_INTEGRATIONS,
+  )
     .where('userfront_user_id', notionIntegration.userfrontUserId)
     .select('*')
     .first()
-  
-    if (integration) {
-      return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
-        .where('userfront_user_id', notionIntegration.userfrontUserId)
-        .update(
-          objectCamelToSnake(notionIntegration),
-        )
-    }
+
+  if (integration) {
+    return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
+      .where('userfront_user_id', notionIntegration.userfrontUserId)
+      .update(objectCamelToSnake(notionIntegration))
+  }
 
   return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS).insert(
     objectCamelToSnake(notionIntegration),

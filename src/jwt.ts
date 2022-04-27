@@ -8,7 +8,7 @@ export async function verifyJWT(token: string): Promise<User | null> {
       process.env.JWT_PUBLIC_KEY,
       (err: jwt.VerifyErrors, auth: jwt.JwtPayload) => {
         if (err) {
-          return reject(null)
+          return reject(err)
         }
 
         return resolve({ userfrontID: auth?.userUuid })
