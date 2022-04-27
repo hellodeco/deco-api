@@ -26,5 +26,16 @@ export const queryResolvers: QueryResolvers = {
     const email = `${username}@${EMAIL_DOMAIN}`
     const userMeta = await dbAccess.getUserMetaByDecoEmail(email)
     return userMeta ? false : true
-  }
+  },
+  getCurrentUserNotionIntegration: async (parent, args, { dbAccess, user }) => {
+    // omit the access token since it is a sensitive value and not needed for front end code
+    const { accessToken, ...integration } =
+      await dbAccess.getNotionIntegrationByUserfrontID(user.userfrontID)
+
+    if (!accessToken) {
+      return null
+    }
+
+    return integration
+  },
 }

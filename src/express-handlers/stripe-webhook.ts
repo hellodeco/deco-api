@@ -98,7 +98,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
     const date = new Date().toISOString()
 
-    // add deco db user_meta
+    // add deco db user
     await createUserMeta({
       userfrontUserId: createdUserUUID,
       fullName: name,

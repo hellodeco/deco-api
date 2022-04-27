@@ -2,16 +2,13 @@ import { MutationResolvers } from '../generated/resolvers-types'
 
 export const mutationResolvers: MutationResolvers = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
-    const archivedIDs = await notionAccess.wipeNotionDatabase(
-      user.userfrontID,
-    )
+    const archivedIDs = await notionAccess.wipeNotionDatabase(user.userfrontID)
     return archivedIDs
   },
   deleteNotionTableProperties: async (_, args, { notionAccess, user }) => {
-    const deletedProperties =
-      await notionAccess.deleteNotionTableProperties(
-        user.userfrontID,
-      )
+    const deletedProperties = await notionAccess.deleteNotionTableProperties(
+      user.userfrontID,
+    )
     return deletedProperties
   },
   formatNotionTable: async (_, args, { notionAccess, user }) => {
@@ -41,5 +38,13 @@ export const mutationResolvers: MutationResolvers = {
     return {
       success: true,
     }
+  },
+  updateDecoEmail: async (_, args, { dbAccess, user }) => {
+    const e = await dbAccess.updateDecoEmail(
+      user.userfrontID,
+      args.emailAddress,
+    )
+    console.log(e)
+    return true
   },
 }

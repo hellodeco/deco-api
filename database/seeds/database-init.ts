@@ -1,7 +1,7 @@
-import { Knex } from "knex";
+import { Knex } from 'knex'
 
 export async function seed(knex: Knex): Promise<void> {
-  const userMetaSeeds = [
+  const userSeeds = [
     {
       signup_email: 'ehlinger.matt@gmail.com',
       userfront_user_id: 'efd2954c-3493-4d3d-99ea-e25f82defd3f',
@@ -14,13 +14,13 @@ export async function seed(knex: Knex): Promise<void> {
     },
   ]
 
-  const promises = userMetaSeeds.map(async userMeta => {
+  const promises = userSeeds.map(async (user) => {
     try {
-      await knex('user_meta').insert(userMeta)
+      await knex('users').insert(user)
     } catch (err) {
       console.error(err)
     }
   })
 
   await Promise.all(promises)
-};
+}

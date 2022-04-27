@@ -6,9 +6,11 @@ import { rule, shield } from 'graphql-shield'
  * you only need to use the context (3rd) argument in the rule callback function.
  * @reference https://graphql-shield.vercel.app/docs/rules#cache
  */
-const isAuthenticated = rule({ cache: 'contextual' })((parent, args, { user }) => {
-  return Boolean(user?.userfrontID)
-})
+const isAuthenticated = rule({ cache: 'contextual' })(
+  (parent, args, { user }) => {
+    return Boolean(user?.userfrontID)
+  },
+)
 
 const isEmailAdaptor = rule()((parent, args, ctx, info) => {
   /**
@@ -20,14 +22,16 @@ const isEmailAdaptor = rule()((parent, args, ctx, info) => {
 const permissions = shield({
   Query: {
     currentUser: isAuthenticated,
+    getCurrentUserNotionIntegration: isAuthenticated,
     emailUsernameAvailable: isAuthenticated,
   },
   Mutation: {
     wipeNotionDatabase: isAuthenticated,
     deleteNotionTableProperties: isAuthenticated,
     formatNotionTable: isAuthenticated,
+    updateDecoEmail: isAuthenticated,
     addEmailToNotion: isEmailAdaptor,
-  }
+  },
 })
 
 export default permissions
