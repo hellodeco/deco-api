@@ -244,6 +244,20 @@ export async function up(knex: Knex): Promise<any> {
   })
 
   await Promise.all(promises)
+
+  await knex.schema.createTable('notion_databases', (table) => {
+    table.increments().primary()
+    table.timestamp('created_at', { useTz: false }).defaultTo(knex.fn.now())
+    table.timestamp('updated_at', { useTz: false }).defaultTo(knex.fn.now())
+    table.timestamp('deleted_at', { useTz: false })
+    table.string('notion_database_id')
+    table
+      .integer('notion_integration_id')
+      .notNullable()
+      .references('id')
+      .inTable('notion_integrations')
+      .onDelete('CASCADE')
+  })
 }
 
 export async function down(knex: Knex): Promise<void> {
