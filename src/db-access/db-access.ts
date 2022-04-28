@@ -17,7 +17,13 @@ interface UserMeta extends DBModel {
   emailAddress?: string
 }
 
+interface NotionDatabase {
+  notionDatabaseId: string
+  notionIntegrationId: number
+}
+
 interface NotionIntegration {
+  id?: number
   userfrontUserId: string
   accessToken: string
   tokenType: string
@@ -122,6 +128,12 @@ export function createUserMeta(userMeta: UserMeta) {
   return dbConnection<UserMeta>('users').insert(objectCamelToSnake(userMeta))
 }
 
+export function createNotionDatabase(notionDatabaseID: NotionDatabase) {
+  return dbConnection<NotionDatabase>('notion_databases').insert(
+    objectCamelToSnake(notionDatabaseID),
+  )
+}
+
 export function getUserMetaByDecoEmail(decoEmail: string) {
   return dbConnection<UserMeta>('users')
     .where('email_address', decoEmail)
@@ -132,6 +144,20 @@ export function getUserMetaByDecoEmail(decoEmail: string) {
 export function getNotionIntegrationByUserfrontID(userfrontID: string) {
   return dbConnection<NotionIntegration>('notion_integrations')
     .where('userfront_user_id', userfrontID)
+    .select('*')
+    .first()
+}
+
+export async function getNotionDatabaseIDByUsefrontID(userfrontID: string) {
+  const notionIntegration = await dbConnection<NotionIntegration>(
+    'notion_integrations',
+  )
+    .where('userfront_user_id', userfrontID)
+    .select('*')
+    .first()
+
+  return dbConnection<NotionDatabase>('notion_databases')
+    .where('notionIntegrationId', notionIntegration.id)
     .select('*')
     .first()
 }

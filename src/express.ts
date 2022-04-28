@@ -8,6 +8,8 @@ import Stripe from 'stripe'
 import {
   createOrUpdateNotionIntegration,
   getUserMetaByUserfrontID,
+  getNotionIntegrationByUserfrontID,
+  createNotionDatabase,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
 import {
@@ -20,6 +22,7 @@ import {
   getNotionRedirectURI,
   createNotionAuthFailedRedirectURL,
 } from './utils'
+import { setNotionDatabaseID } from './notion-access/notion-access'
 
 export const app = express()
 
@@ -75,9 +78,12 @@ app.get('/oauth/notion', async (req, res) => {
   const { authToken } = req.query
 
   if (!authToken) {
-    return res.redirect(createNotionAuthFailedRedirectURL({
-      message: 'error: unable to authenticate with notion. auth token not provided',
-    }))
+    return res.redirect(
+      createNotionAuthFailedRedirectURL({
+        message:
+          'error: unable to authenticate with notion. auth token not provided',
+      }),
+    )
   }
 
   const state = uuid()
@@ -116,10 +122,12 @@ app.get('/oauth/notion/callback', async (req, res) => {
    * @reference https://developers.notion.com/docs/authorization#user-authorization-failures
    * @reference https://developers.notion.com/docs/authorization#token-request-failures
    */
-  if (error || prevState !==  state) {
-    return res.redirect(createNotionAuthFailedRedirectURL({
-      message: 'access denied',
-    }))
+  if (error || prevState !== state) {
+    return res.redirect(
+      createNotionAuthFailedRedirectURL({
+        message: 'access denied',
+      }),
+    )
   }
 
   try {
@@ -127,9 +135,11 @@ app.get('/oauth/notion/callback', async (req, res) => {
     const userMeta = await getUserMetaByUserfrontID(userfrontID)
 
     if (!userMeta) {
-      return res.redirect(createNotionAuthFailedRedirectURL({
-        message: 'could not authenticate',
-      }))
+      return res.redirect(
+        createNotionAuthFailedRedirectURL({
+          message: 'could not authenticate',
+        }),
+      )
     }
 
     const tokenUrl = new URL(`${NOTION_BASE_URL}/v1/oauth/token`)
@@ -166,9 +176,11 @@ app.get('/oauth/notion/callback', async (req, res) => {
     } = json
 
     if (tokenError) {
-      return res.redirect(createNotionAuthFailedRedirectURL({
-        message: 'unable to authenticate with notion',
-      }))
+      return res.redirect(
+        createNotionAuthFailedRedirectURL({
+          message: 'unable to authenticate with notion',
+        }),
+      )
     }
 
     await createOrUpdateNotionIntegration({
@@ -186,12 +198,16 @@ app.get('/oauth/notion/callback', async (req, res) => {
       email: owner?.user?.person?.email,
     })
 
+    await setNotionDatabaseID(userMeta.userfrontUserId)
+
     return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
   } catch (err) {
     console.error(err)
-    return res.redirect(createNotionAuthFailedRedirectURL({
-      message: 'failed to connect to notion',
-    }))
+    return res.redirect(
+      createNotionAuthFailedRedirectURL({
+        message: 'failed to connect to notion',
+      }),
+    )
   }
 })
 
