@@ -1,6 +1,10 @@
 import { Client } from '@notionhq/client'
 import 'dotenv/config'
-import { getNotionIntegrationByUserfrontID } from '../db-access/db-access'
+import {
+  getNotionIntegrationByUserfrontID,
+  getNotionDatabaseIDByUsefrontID,
+  createNotionDatabase,
+} from '../db-access/db-access'
 
 export interface NewEmail {
   newEmail: {
@@ -13,11 +17,11 @@ export interface NewEmail {
 }
 
 export interface NotionConnectData {
-  notion: Client
-  notionDatabaseId: string
+  notion?: Client
+  notionDatabaseId?: string
 }
 
-const getClientAndWorkspaceID = async (
+export const setNotionDatabaseID = async (
   userfrontID: string,
 ): Promise<NotionConnectData> => {
   const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
@@ -36,7 +40,23 @@ const getClientAndWorkspaceID = async (
 
   const notionDatabaseId = searchResponse.results[0].id
 
-  return { notion: notion, notionDatabaseId: notionDatabaseId }
+  await createNotionDatabase({
+    notionIntegrationId: notionIntegration.id,
+    notionDatabaseId: notionDatabaseId,
+  })
+  return { notionDatabaseId: notionDatabaseId }
+}
+
+const getClientAndWorkspaceID = async (
+  userfrontID: string,
+): Promise<NotionConnectData> => {
+  const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
+
+  const notion = new Client({ auth: notionIntegration.accessToken })
+
+  const notionDB = await getNotionDatabaseIDByUsefrontID(userfrontID)
+
+  return { notion: notion, notionDatabaseId: notionDB.notionDatabaseId }
 }
 
 export const wipeNotionDatabase = async (userfrontID: string) => {
