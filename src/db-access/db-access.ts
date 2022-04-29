@@ -22,6 +22,20 @@ interface NotionDatabase {
   notionIntegrationId: number
 }
 
+interface Subscription {
+  id?: string
+  stripeCustomerId?: string
+  stripeSubscriptionId?: string
+  subscriptionStatus?: string
+  currentPeriodStart?: number
+  currentPeriodEnd?: number
+  canceledAt?: number
+  cancelAtPeriodEnd?: boolean
+  stripePriceId?: string
+  stripeProductId?: string
+  userfrontUserId?: number
+}
+
 interface NotionIntegration {
   id?: number
   userfrontUserId: string
@@ -40,6 +54,7 @@ interface NotionIntegration {
 
 enum Tables {
   NOTION_INTEGRATIONS = 'notion_integrations',
+  SUBSCRIPTIONS = 'subscriptions',
 }
 
 export function getAllThreadsByUserMetaID(userMetaID: string) {
@@ -121,6 +136,23 @@ export async function createOrUpdateNotionIntegration(
 
   return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS).insert(
     objectCamelToSnake(notionIntegration),
+  )
+}
+
+export async function createOrUpdateSubscription(subscription: Subscription) {
+  const existingSub = await dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
+    .where('stripe_subscription_id', subscription.stripeSubscriptionId)
+    .select('*')
+    .first()
+
+  if (existingSub) {
+    return dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
+      .where('stripe_subscription_id', subscription.stripeSubscriptionId)
+      .update(objectCamelToSnake(subscription))
+  }
+
+  return dbConnection<Subscription>(Tables.SUBSCRIPTIONS).insert(
+    objectCamelToSnake(subscription),
   )
 }
 

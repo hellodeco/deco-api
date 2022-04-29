@@ -2,7 +2,10 @@ import express, { Request, Response } from 'express'
 import dotenv from 'dotenv'
 import fetch from 'node-fetch'
 import Stripe from 'stripe'
-import { createUserMeta } from './../db-access/db-access'
+import {
+  createUserMeta,
+  createOrUpdateSubscription,
+} from './../db-access/db-access'
 import Userfront from '@userfront/core'
 Userfront.init('wn95p6n5')
 
@@ -52,60 +55,92 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
   // todo - write handlers for cancelation events (after we launch)
   // will also want to split into separate handlers per event type and extract to their own files
   if (event.type === 'checkout.session.completed') {
-    const session = event.data.object
-
-    const { email, name } = session.customer_details
-
-    // add userfront user
-    // this will also automatically send a login link to the cx
     try {
-      const res = await Userfront.signup({
-        method: 'passwordless',
-        email: email,
-        name: name,
-        redirect: false,
+      const session = event.data.object
+
+      const { email, name } = session.customer_details
+
+      // add userfront user
+      // this will also automatically send a login link to the cx
+      try {
+        const res = await Userfront.signup({
+          method: 'passwordless',
+          email: email,
+          name: name,
+          redirect: false,
+        })
+
+        /**
+         * @todo only log res in development mode
+         * "res" contains the token and uuid that we can use to exchange
+         * with Userfront for a valid login
+         */
+        console.log(res)
+      } catch (err) {
+        console.log(err)
+      }
+
+      // todo - swap out this Authorization header with a .env variable
+      // get userfront UUID from signup
+      const userfrontResponse = await fetch(
+        'https://api.userfront.com/v0/users/find',
+        {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization:
+              'Bearer uf_test_admin_wn95p6n5_35cde8ca99b2438107c4e77ab0fa8356',
+          },
+          body: JSON.stringify(generateUserfrontSearchPayload(email)),
+        },
+      )
+
+      const userfrontData = await userfrontResponse.json()
+
+      const createdUserUUID = userfrontData.results[0].userUuid
+
+      const date = new Date().toISOString()
+
+      // add deco db user
+      const createdUser = await createUserMeta({
+        userfrontUserId: createdUserUUID,
+        fullName: name,
+        signupEmail: email,
+        createdAt: date,
+        updatedAt: date,
       })
 
-      /**
-       * @todo only log res in development mode
-       * "res" contains the token and uuid that we can use to exchange
-       * with Userfront for a valid login
-       */
-      console.log(res)
+      // add initial deco db subscription
+      await createOrUpdateSubscription({
+        userfrontUserId: createdUserUUID,
+        stripeSubscriptionId: session.subscription,
+      })
     } catch (err) {
       console.log(err)
     }
+  }
 
-    // todo - swap out this Authorization header with a .env variable
-    // get userfront UUID from signup
-    const userfrontResponse = await fetch(
-      'https://api.userfront.com/v0/users/find',
-      {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-          Authorization:
-            'Bearer uf_test_admin_wn95p6n5_35cde8ca99b2438107c4e77ab0fa8356',
-        },
-        body: JSON.stringify(generateUserfrontSearchPayload(email)),
-      },
-    )
+  if (event.type === 'customer.subscription.updated') {
+    try {
+      const subscription = event.data.object
 
-    const userfrontData = await userfrontResponse.json()
+      const dataToUpdate = {
+        stripeCustomerId: subscription.customer,
+        stripeSubscriptionId: subscription.id,
+        subscriptionStatus: subscription.status,
+        currentPeriodStart: subscription.current_period_start,
+        currentPeriodEnd: subscription.current_period_end,
+        canceledAt: subscription.canceled_at,
+        cancelAtPeriodEnd: subscription.cancel_at_period_end,
+        stripePriceId: subscription.plan.id,
+        stripeProductId: subscription.plan.product,
+      }
 
-    const createdUserUUID = userfrontData.results[0].userUuid
-
-    const date = new Date().toISOString()
-
-    // add deco db user
-    await createUserMeta({
-      userfrontUserId: createdUserUUID,
-      fullName: name,
-      signupEmail: email,
-      createdAt: date,
-      updatedAt: date,
-    })
+      createOrUpdateSubscription(dataToUpdate)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   return res.status(200).end()

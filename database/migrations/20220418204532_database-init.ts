@@ -36,6 +36,7 @@ const tableConfigs: Array<TableConfig> = [
       {
         name: 'userfront_user_id',
         type: ColType.String,
+        unique: true,
       },
       {
         name: 'full_name',
@@ -256,6 +257,28 @@ export async function up(knex: Knex): Promise<any> {
       .notNullable()
       .references('id')
       .inTable('notion_integrations')
+      .onDelete('CASCADE')
+  })
+
+  await knex.schema.createTable('subscriptions', (table) => {
+    table.increments().primary()
+    table.timestamp('created_at', { useTz: false }).defaultTo(knex.fn.now())
+    table.timestamp('updated_at', { useTz: false }).defaultTo(knex.fn.now())
+    table.timestamp('deleted_at', { useTz: false })
+    table.string('stripe_customer_id')
+    table.string('stripe_subscription_id')
+    table.string('subscription_status')
+    table.integer('current_period_start')
+    table.integer('current_period_end')
+    table.integer('canceled_at')
+    table.boolean('cancel_at_period_end')
+    table.string('stripe_price_id')
+    table.string('stripe_product_id')
+    table
+      .string('userfront_user_id')
+      .notNullable()
+      .references('userfront_user_id')
+      .inTable('users')
       .onDelete('CASCADE')
   })
 }
