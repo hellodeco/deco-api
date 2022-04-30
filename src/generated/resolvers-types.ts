@@ -49,6 +49,13 @@ export type MutationUpdateDecoEmailArgs = {
   emailAddress?: InputMaybe<Scalars['String']>;
 };
 
+export type NotionDatabaseInfo = {
+  __typename?: 'NotionDatabaseInfo';
+  icon?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+  url?: Maybe<Scalars['String']>;
+};
+
 export type NotionIntegration = {
   __typename?: 'NotionIntegration';
   avatarURL?: Maybe<Scalars['String']>;
@@ -70,6 +77,7 @@ export type Query = {
   currentUser?: Maybe<User>;
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
+  getNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
   getUserMetaByDecoEmail?: Maybe<Scalars['Boolean']>;
 };
 
@@ -166,6 +174,7 @@ export type ResolversTypes = ResolversObject<{
   Email: Email;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
+  NotionDatabaseInfo: ResolverTypeWrapper<NotionDatabaseInfo>;
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
@@ -180,6 +189,7 @@ export type ResolversParentTypes = ResolversObject<{
   Email: Email;
   Int: Scalars['Int'];
   Mutation: {};
+  NotionDatabaseInfo: NotionDatabaseInfo;
   NotionIntegration: NotionIntegration;
   Query: {};
   String: Scalars['String'];
@@ -199,6 +209,13 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   updateDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationUpdateDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
+}>;
+
+export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionDatabaseInfo'] = ResolversParentTypes['NotionDatabaseInfo']> = ResolversObject<{
+  icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type NotionIntegrationResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionIntegration'] = ResolversParentTypes['NotionIntegration']> = ResolversObject<{
@@ -221,6 +238,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
+  getNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
   getUserMetaByDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryGetUserMetaByDecoEmailArgs>>;
 }>;
 
@@ -239,6 +257,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 export type Resolvers<ContextType = any> = ResolversObject<{
   AddEmailToNotionResult?: AddEmailToNotionResultResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  NotionDatabaseInfo?: NotionDatabaseInfoResolvers<ContextType>;
   NotionIntegration?: NotionIntegrationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   UUID?: GraphQLScalarType;

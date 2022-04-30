@@ -38,4 +38,8 @@ export const queryResolvers: QueryResolvers = {
 
     return integration
   },
+  getNotionDatabaseInfo: async (parent, args, { notionAccess, user }) => {
+    const notionDB = await notionAccess.getNotionDatabaseInfo(user.userfrontID)
+    return notionDB
+  },
 }

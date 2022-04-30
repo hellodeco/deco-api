@@ -57,13 +57,7 @@ enum Tables {
   SUBSCRIPTIONS = 'subscriptions',
 }
 
-export function getAllThreadsByUserMetaID(userMetaID: string) {
-  return dbConnection('email_threads').where('user_id', userMetaID)
-}
-
-export function getAllEmailsByThreadID(threadID: string) {
-  return dbConnection('emails').where('email_thread_id', threadID)
-}
+//  CREATE FUNCTIONS =================================================
 
 export function createNewThreadByUserMetaID(
   subject: string,
@@ -109,13 +103,6 @@ export async function createNewEmailByUserMetaID(args: {
     references: args.references,
     email_thread_id: args.emailThreadID,
   })
-}
-
-export function getUserMetaByUserfrontID(userfrontID: string) {
-  return dbConnection<UserMeta>('users')
-    .where('userfront_user_id', userfrontID)
-    .select('*')
-    .first()
 }
 
 export async function createOrUpdateNotionIntegration(
@@ -166,6 +153,23 @@ export function createNotionDatabase(notionDatabaseID: NotionDatabase) {
   )
 }
 
+//  GET FUNCTIONS =================================================
+
+export function getAllThreadsByUserMetaID(userMetaID: string) {
+  return dbConnection('email_threads').where('user_id', userMetaID)
+}
+
+export function getAllEmailsByThreadID(threadID: string) {
+  return dbConnection('emails').where('email_thread_id', threadID)
+}
+
+export function getUserMetaByUserfrontID(userfrontID: string) {
+  return dbConnection<UserMeta>('users')
+    .where('userfront_user_id', userfrontID)
+    .select('*')
+    .first()
+}
+
 export function getUserMetaByDecoEmail(decoEmail: string) {
   return dbConnection<UserMeta>('users')
     .where('email_address', decoEmail)
@@ -187,12 +191,13 @@ export async function getNotionDatabaseIDByUsefrontID(userfrontID: string) {
     .where('userfront_user_id', userfrontID)
     .select('*')
     .first()
-
   return dbConnection<NotionDatabase>('notion_databases')
-    .where('notionIntegrationId', notionIntegration.id)
+    .where('notion_integration_id', notionIntegration.id)
     .select('*')
     .first()
 }
+
+//  UPDATE FUNCTIONS =================================================
 
 export function updateDecoEmail(userfrontID: string, emailAddress: string) {
   return dbConnection<UserMeta>('users')
