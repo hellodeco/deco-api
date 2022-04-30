@@ -239,7 +239,7 @@ export const getNotionDatabaseInfo = async (userfrontID: string) => {
   const notionDatabaseInfo = {
     title: response.title[0].plain_text,
     url: response.url,
-    icon: response.icon,
+    icon: response.icon?.emoji,
   }
 
   return notionDatabaseInfo
