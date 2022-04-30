@@ -3,7 +3,7 @@ import 'dotenv/config'
 import {
   getNotionIntegrationByUserfrontID,
   getNotionDatabaseIDByUsefrontID,
-  createNotionDatabase,
+  createOrUpdateNotionDatabase,
 } from '../db-access/db-access'
 
 export interface NewEmail {
@@ -40,7 +40,7 @@ export const setNotionDatabaseID = async (
 
   const notionDatabaseId = searchResponse.results[0].id
 
-  await createNotionDatabase({
+  await createOrUpdateNotionDatabase({
     notionIntegrationId: notionIntegration.id,
     notionDatabaseId: notionDatabaseId,
   })

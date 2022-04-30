@@ -8,8 +8,6 @@ import Stripe from 'stripe'
 import {
   createOrUpdateNotionIntegration,
   getUserMetaByUserfrontID,
-  getNotionIntegrationByUserfrontID,
-  createNotionDatabase,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
 import {

@@ -147,9 +147,24 @@ export function createUserMeta(userMeta: UserMeta) {
   return dbConnection<UserMeta>('users').insert(objectCamelToSnake(userMeta))
 }
 
-export function createNotionDatabase(notionDatabaseID: NotionDatabase) {
+export async function createOrUpdateNotionDatabase(
+  notionDatabase: NotionDatabase,
+) {
+  const existingDatabase = await dbConnection<NotionDatabase>(
+    'notion_databases',
+  )
+    .where('notion_database_id', notionDatabase.notionDatabaseId)
+    .select('*')
+    .first()
+
+  if (existingDatabase) {
+    return dbConnection<NotionDatabase>('notion_databases')
+      .where('notion_database_id', notionDatabase.notionDatabaseId)
+      .update(objectCamelToSnake(notionDatabase))
+  }
+
   return dbConnection<NotionDatabase>('notion_databases').insert(
-    objectCamelToSnake(notionDatabaseID),
+    objectCamelToSnake(notionDatabase),
   )
 }
 
