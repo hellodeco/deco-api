@@ -22,6 +22,12 @@ type NotionIntegration {
   email: String
 }
 
+type NotionDatabaseInfo {
+  title: String
+  url: String
+  icon: String
+}
+
 input Email {
   subject: String
   from: String
@@ -40,6 +46,7 @@ type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
   emailUsernameAvailable(username: String!): Boolean
+  getNotionDatabaseInfo: NotionDatabaseInfo
 }
 
 type Mutation {

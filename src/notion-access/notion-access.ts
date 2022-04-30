@@ -226,3 +226,21 @@ export const addEmailToNotion = async ({
 
   return emailCreated.id
 }
+
+export const getNotionDatabaseInfo = async (userfrontID: string) => {
+  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
+    userfrontID,
+  )
+
+  const response: any = await notion.databases.retrieve({
+    database_id: notionDatabaseId,
+  })
+
+  const notionDatabaseInfo = {
+    title: response.title[0].plain_text,
+    url: response.url,
+    icon: response.icon,
+  }
+
+  return notionDatabaseInfo
+}
