@@ -58,14 +58,14 @@ export type NotionDatabaseInfo = {
 
 export type NotionIntegration = {
   __typename?: 'NotionIntegration';
-  avatarURL?: Maybe<Scalars['String']>;
-  botID?: Maybe<Scalars['String']>;
+  avatarUrl?: Maybe<Scalars['String']>;
+  botId?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['String']>;
   tokenType?: Maybe<Scalars['String']>;
   type?: Maybe<Scalars['String']>;
   userFullName?: Maybe<Scalars['String']>;
-  userID?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['String']>;
   userfrontUserId?: Maybe<Scalars['String']>;
   workspaceIcon?: Maybe<Scalars['String']>;
   workspaceId?: Maybe<Scalars['String']>;
@@ -219,14 +219,14 @@ export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends Re
 }>;
 
 export type NotionIntegrationResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionIntegration'] = ResolversParentTypes['NotionIntegration']> = ResolversObject<{
-  avatarURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  botID?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  avatarUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  botId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   email?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   tokenType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   userFullName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  userID?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  userId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   userfrontUserId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   workspaceIcon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   workspaceId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

@@ -14,10 +14,10 @@ type NotionIntegration {
   workspaceId: String
   workspaceName: String
   workspaceIcon: String
-  botID: String
-  userID: String
+  botId: String
+  userId: String
   userFullName: String
-  avatarURL: String
+  avatarUrl: String
   type: String
   email: String
 }
