@@ -52,6 +52,7 @@ export type MutationUpdateDecoEmailArgs = {
 export type NotionDatabaseInfo = {
   __typename?: 'NotionDatabaseInfo';
   icon?: Maybe<Scalars['String']>;
+  needsFormatting?: Maybe<Scalars['Boolean']>;
   title?: Maybe<Scalars['String']>;
   url?: Maybe<Scalars['String']>;
 };
@@ -213,6 +214,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 
 export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionDatabaseInfo'] = ResolversParentTypes['NotionDatabaseInfo']> = ResolversObject<{
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  needsFormatting?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

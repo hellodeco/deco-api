@@ -26,6 +26,7 @@ type NotionDatabaseInfo {
   title: String
   url: String
   icon: String
+  needsFormatting: Boolean
 }
 
 input Email {
