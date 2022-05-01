@@ -7,6 +7,7 @@
   "scripts": {
     "watch": "ts-node-dev --respawn --exit-child --watch src src/index.ts",
     "build": "yarn compile && yarn copy-schema",
+    "postinstall": "yarn build",
     "compile": "tsc",
     "copy-schema": "shx cp src/schema.graphql dist/schema.graphql",
     "start": "node ./dist/index.js",
