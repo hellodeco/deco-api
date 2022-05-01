@@ -6,7 +6,9 @@
   "private": true,
   "scripts": {
     "watch": "ts-node-dev --respawn --exit-child --watch src src/index.ts",
-    "build": "tsc",
+    "build": "yarn compile && yarn copy-schema",
+    "compile": "tsc",
+    "copy-schema": "shx cp src/schema.graphql dist/schema.graphql",
     "generate-graphql": "graphql-codegen",
     "format": "prettier --write src",
     "knex": "knex --knexfile src/knexfile.ts"
@@ -16,6 +18,7 @@
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.26.0",
     "prettier": "^2.5.1",
+    "shx": "^0.3.4",
     "ts-node-dev": "^1.1.8",
     "typescript": "^4.5.5"
   },
