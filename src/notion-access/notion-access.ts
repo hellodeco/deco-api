@@ -5,6 +5,7 @@ import {
   getNotionDatabaseIDByUsefrontID,
   createOrUpdateNotionDatabase,
 } from '../db-access/db-access'
+import { REQUIRED_NOTION_DATABASE_PROPERTIES } from '../constants'
 
 export interface NewEmail {
   newEmail: {
@@ -236,10 +237,20 @@ export const getNotionDatabaseInfo = async (userfrontID: string) => {
     database_id: notionDatabaseId,
   })
 
+  const dbProperties = Object.keys(response.properties)
+
+  // Check to see if the database has the correct properties required to receive emails
+  const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
+    return dbProperties.includes(propKey)
+  })
+
+  console.log(dbProperties, containsAll)
+
   const notionDatabaseInfo = {
     title: response.title[0].plain_text,
     url: response.url,
     icon: response.icon?.emoji,
+    needsFormatting: !containsAll,
   }
 
   return notionDatabaseInfo
