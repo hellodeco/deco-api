@@ -9,6 +9,7 @@
     "build": "yarn compile && yarn copy-schema",
     "compile": "tsc",
     "copy-schema": "shx cp src/schema.graphql dist/schema.graphql",
+    "start": "node ./dist/index.js",
     "generate-graphql": "graphql-codegen",
     "format": "prettier --write src",
     "knex": "knex --knexfile src/knexfile.ts"
