@@ -12,11 +12,12 @@ const isAuthenticated = rule({ cache: 'contextual' })(
   },
 )
 
-const isEmailAdaptor = rule()((parent, args, ctx, info) => {
-  /**
-   * @todo scope this to only allow requests originating from the email adaptor
-   */
-  return true
+const isEmailAdaptor = rule({ cache: 'contextual' })(
+  (parent, args, { emailAdaptorPassword, requestOrigin }, info) => {
+    return (
+      emailAdaptorPassword === process.env.EMAIL_ADAPTOR_PASSWORD &&
+      requestOrigin === process.env.EMAIL_ADAPTOR_DOMAIN
+    )
 })
 
 const permissions = shield({

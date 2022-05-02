@@ -32,12 +32,15 @@ export async function createServer({
       let user: User
       const authHeader = req.headers.authorization || ''
       const [, token] = authHeader.split(' ')
+      const emailAdaptorPassword = req.headers.password || ''
+      const requestOrigin = req.headers.origin || ''
 
       if (token) {
         try {
           user = await verifyJWT(token)
         } catch (err) {
-          console.error(err)
+          // no op because this is expected to fail anytime an invalid JWT is passed
+          // and we will catch this down the line with graphql-shield
         }
       }
 
@@ -45,6 +48,8 @@ export async function createServer({
         dbAccess,
         user,
         notionAccess,
+        emailAdaptorPassword,
+        requestOrigin,
       }
     },
   })
