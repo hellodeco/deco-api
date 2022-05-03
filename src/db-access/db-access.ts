@@ -159,7 +159,7 @@ export async function createOrUpdateNotionDatabase(
 
   if (existingDatabase) {
     return dbConnection<NotionDatabase>('notion_databases')
-      .where('notion_database_id', notionDatabase.notionDatabaseId)
+      .where('notion_integration_id', notionDatabase.notionIntegrationId)
       .update(objectCamelToSnake(notionDatabase))
   }
 
