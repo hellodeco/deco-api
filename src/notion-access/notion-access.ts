@@ -228,7 +228,7 @@ export const addEmailToNotion = async ({
   return emailCreated.id
 }
 
-export const getNotionDatabaseInfo = async (userfrontID: string) => {
+export const getCurrentUserNotionDatabaseInfo = async (userfrontID: string) => {
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )
@@ -243,8 +243,6 @@ export const getNotionDatabaseInfo = async (userfrontID: string) => {
   const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
     return dbProperties.includes(propKey)
   })
-
-  console.log(dbProperties, containsAll)
 
   const notionDatabaseInfo = {
     title: response.title[0].plain_text,

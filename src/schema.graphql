@@ -47,7 +47,7 @@ type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
   emailUsernameAvailable(username: String!): Boolean
-  getNotionDatabaseInfo: NotionDatabaseInfo
+  getCurrentUserNotionDatabaseInfo: NotionDatabaseInfo
 }
 
 type Mutation {
