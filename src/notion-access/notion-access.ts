@@ -39,7 +39,14 @@ export const setNotionDatabaseID = async (
     },
   })
 
-  const notionDatabaseId = searchResponse.results[0].id
+  const notionDatabaseId = searchResponse?.results[0]?.id
+
+  /**
+   * @todo do something better here. What this likely means is that the user has not yet formatted there page into a "full page database" and thus the database filter did not return anything
+   */
+  if (!notionDatabaseId) {
+    return null
+  }
 
   await createOrUpdateNotionDatabase({
     notionIntegrationId: notionIntegration.id,
