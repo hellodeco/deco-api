@@ -4,7 +4,8 @@ import { objectSnakeToCamel } from './utils'
 
 dotenv.config({ path: path.join(__dirname, '..', '.env' )})
 
-let ssl = false
+// let ssl = false
+// console.log('node env is: ', process.env.NODE_ENV);
 // if (['production', 'staging'].includes(process.env.NODE_ENV)) {
 //   ssl = true
 // }
@@ -18,7 +19,7 @@ export default {
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     port: Number(process.env.DATABASE_PORT),
-    ssl,
+    ssl: { rejectUnauthorized: false },
   },
   migrations: {
     extension: 'ts',
