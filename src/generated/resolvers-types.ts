@@ -77,8 +77,8 @@ export type Query = {
   __typename?: 'Query';
   currentUser?: Maybe<User>;
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
+  getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
   getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
-  getNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
   getUserMetaByDecoEmail?: Maybe<Scalars['Boolean']>;
 };
 
@@ -239,8 +239,8 @@ export type NotionIntegrationResolvers<ContextType = any, ParentType extends Res
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
+  getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
-  getNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
   getUserMetaByDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryGetUserMetaByDecoEmailArgs>>;
 }>;
 
