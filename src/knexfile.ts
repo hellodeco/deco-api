@@ -5,9 +5,9 @@ import { objectSnakeToCamel } from './utils'
 dotenv.config({ path: path.join(__dirname, '..', '.env' )})
 
 let ssl = false
-if (['production', 'staging'].includes(process.env.NODE_ENV)) {
-  ssl = true
-}
+// if (['production', 'staging'].includes(process.env.NODE_ENV)) {
+//   ssl = true
+// }
 
 export default {
   client: 'pg',
