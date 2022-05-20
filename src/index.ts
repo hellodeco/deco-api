@@ -15,8 +15,6 @@ getSecretFromEnvVarOrFile({
   fileName: 'userfront-public-key.crt',
 });
 
-console.log('jwt public key: ', process.env.JWT_PUBLIC_KEY)
-
 const typeDefs = fs
   .readFileSync(path.join(__dirname, 'schema.graphql'))
   .toString('utf-8')

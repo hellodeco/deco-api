@@ -37,7 +37,7 @@ export async function createServer({
         try {
           user = await verifyJWT(token)
         } catch (err) {
-          console.error('create-server.ts', err)
+          console.error(err)
         }
       }
 
