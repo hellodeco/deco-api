@@ -129,9 +129,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
   }
 
   try {
-    console.log('userfrontID verification');
     const { userfrontID } = await verifyJWT(authToken)
-    console.log('after userfrontID verification');
     const userMeta = await getUserMetaByUserfrontID(userfrontID)
 
     if (!userMeta) {
