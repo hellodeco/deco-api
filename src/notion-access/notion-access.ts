@@ -116,7 +116,6 @@ export const deleteNotionTableProperties = async (userfrontID: string) => {
           [p.id]: null,
         },
       })
-      console.log(res)
       deletedProperties.push(p.name)
     }
   }
