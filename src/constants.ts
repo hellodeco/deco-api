@@ -22,7 +22,6 @@ export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.so'
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
   'Delivered',
-  'Status',
   'Email_Thread_ID',
   'Email_ID',
   'Name',
