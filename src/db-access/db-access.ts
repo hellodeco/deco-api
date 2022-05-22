@@ -11,6 +11,7 @@ interface DBModel {
 }
 
 interface User {
+  id?: string
   userfrontUserId: string
   fullName: string
   signupEmail?: string
@@ -177,6 +178,17 @@ export function getAllEmailsByThreadID(threadID: string) {
   return dbConnection('emails').where('email_thread_id', threadID)
 }
 
+export function getEmailByMessageID(messageID: string) {
+  return dbConnection('emails')
+    .where('message_id', messageID)
+    .select('*')
+    .first()
+}
+
+export function getEmailThreadByID(threadID: string) {
+  return dbConnection('email_threads').where('id', threadID).select('*').first()
+}
+
 export function getUserMetaByUserfrontID(userfrontID: string) {
   return dbConnection<User>('users')
     .where('userfront_user_id', userfrontID)
@@ -217,7 +229,6 @@ export async function getSubscriptionByUserfrontUserId(userfrontID: string) {
     .select('*')
     .first()
 }
-
 
 //  UPDATE FUNCTIONS =================================================
 
