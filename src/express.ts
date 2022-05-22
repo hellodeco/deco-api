@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import fetch from 'node-fetch'
+import multer from 'multer'
 import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
 import {
@@ -12,6 +13,7 @@ import {
 import { verifyJWT } from './jwt'
 import { NOTION_BASE_URL, FRONTEND_BASE_URL } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
+import { createEmailReceiveHandler } from './express-handlers/sendgrid'
 import {
   getNotionRedirectURI,
   createNotionAuthFailedRedirectURL,
@@ -19,6 +21,8 @@ import {
 import { setNotionDatabaseID } from './notion-access/notion-access'
 
 export const app = express()
+
+const upload = multer()
 
 // this endpoint needs to run before other parsing middleware is run because Stripe is a huge diva and relies on raw body data
 app.post(
@@ -220,3 +224,9 @@ app.post('/stripe/checkout-session', async (req, res) => {
 
   return res.status(200).json({ sessionUrl: session.url })
 })
+
+app.post(
+  '/inbound',
+  upload.none(),
+  createEmailReceiveHandler,
+)
