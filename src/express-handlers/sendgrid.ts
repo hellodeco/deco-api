@@ -11,42 +11,75 @@ import {
 import Userfront from '@userfront/core'
 
 interface InboundSendgridParsedEmail {
-	Subject:          string,
-	PlainTextContent: string
-	From:             string
+  Subject:          string
+  PlainTextContent: string
+  From:             string
   UserMetaID: string
-	HTMLContent?:      string
-	/**
-	   * TODO: represent and enforce this on the DB side  by making this an enum
-		 * Status can be one of
-	   * - DELIVERED
-		 * - FAILED
-	*/
-	Status?:     string
-	MessageID?:     string
-	InReplyTo?:     string
-	References?:    string
-	EmailThreadID?: string
-	// EmailThread:   EmailThread
-	NotionPageID?: string
+  HTMLContent?:      string
+  /**
+     * TODO: represent and enforce this on the DB side  by making this an enum
+  	 * Status can be one of
+     * - DELIVERED
+  	 * - FAILED
+  */
+  Status?:     string
+  MessageID?:     string
+  InReplyTo?:     string
+  References?:    string
+  EmailThreadID?: string
+  // EmailThread:   EmailThread
+  NotionPageID?: string
 }
 
-const parseHeaderString = (headers: string) => {
+interface Header {
+  key: string
+  value: string
+  emailId: number
+}
+
+type HeaderMap = Record<string, Array<string>>
+
+function parseHeaderString(headers: string): HeaderMap {
   const headersArray = headers.split(/\n/);
-  const parsedHeaders = {};
+
+  const headerMap = {};
 
   headersArray.forEach((header) => {
-    if (header.indexOf(':')) {
-      const headerKey = header.slice(0, header.indexOf(':'));
-      const headerValue = header.slice(header.indexOf(':') + 1).trim();
-      parsedHeaders[headerKey] = headerValue;
+    if (header.indexOf(':') < 0) {
+      return
     }
+
+    const [key, val] = header.split(': ')
+
+    if (!key || !val) {
+      return
+    }
+
+    if (!headerMap[key]) {
+      headerMap[key] = []
+    }
+
+    headerMap[key].push(val)
   })
 
-  return parsedHeaders;
+  return headerMap;
 }
 
-export const createEmailReceiveHandler = async (req: Request, res: Response) => {
+function headerMapToArray(headerMap: HeaderMap, emailId: number): Array<Header> {
+  return Object.entries(headerMap).reduce((acc, [key, values]) => {
+    values.forEach(value => {
+      acc.push({
+        key,
+        value,
+        emailId
+      })
+    })
+
+    return acc
+  }, [] as Array<Header>)
+}
+
+export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req;
   const { headers, to, from, subject, text } = body;
 
@@ -59,11 +92,11 @@ export const createEmailReceiveHandler = async (req: Request, res: Response) => 
     return res.status(200).json({message: 'no email recipient found'});
   }
 
-  const headersArray = parseHeaderString(headers);
-  
-  const inReplyTo = headersArray['In-Reply-To'];
-  const references = headersArray['References'];
-  const messageID = headersArray['Message-ID'];
+  const headersMap = parseHeaderString(headers);
+ 
+  const inReplyTo = headersMap['In-Reply-To'];
+  const references = headersMap['References'];
+  const messageID = headersMap['Message-ID'];
 
   const newInboundEmail: InboundSendgridParsedEmail = {
     Subject: subject,
@@ -73,14 +106,14 @@ export const createEmailReceiveHandler = async (req: Request, res: Response) => 
   }
 
   if (references) {
-    newInboundEmail.References = references;
+    newInboundEmail.References = references[0];
   }
 
   if (messageID) {
-    newInboundEmail.MessageID = messageID;
+    newInboundEmail.MessageID = messageID[0];
     if (inReplyTo) {
-      newInboundEmail.InReplyTo = inReplyTo;
-      const originalEmail = await getEmailByMessageID(inReplyTo);
+      newInboundEmail.InReplyTo = inReplyTo[0];
+      const originalEmail = await getEmailByMessageID(inReplyTo[0]);
       console.log(originalEmail);
       const emailThread = await getEmailThreadByID(originalEmail.email_thread_id);
       console.log(emailThread);
