@@ -39,7 +39,7 @@ interface Header {
 
 type HeaderMap = Record<string, Array<string>>
 
-function parseHeaderString(headers: string): HeaderMap {
+export function parseHeaderString(headers: string): HeaderMap {
   const headersArray = headers.split(/\n/);
 
   const headerMap = {};
@@ -65,7 +65,7 @@ function parseHeaderString(headers: string): HeaderMap {
   return headerMap;
 }
 
-function headerMapToArray(headerMap: HeaderMap, emailId: number): Array<Header> {
+export function headerMapToArray(headerMap: HeaderMap, emailId: number): Array<Header> {
   return Object.entries(headerMap).reduce((acc, [key, values]) => {
     values.forEach(value => {
       acc.push({
