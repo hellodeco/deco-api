@@ -13,7 +13,7 @@ import {
 import { verifyJWT } from './jwt'
 import { NOTION_BASE_URL, FRONTEND_BASE_URL } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
-import { createEmailReceiveHandler } from './express-handlers/sendgrid'
+import { emailReceiveHandler } from './express-handlers/sendgrid'
 import {
   getNotionRedirectURI,
   createNotionAuthFailedRedirectURL,
@@ -228,5 +228,5 @@ app.post('/stripe/checkout-session', async (req, res) => {
 app.post(
   '/inbound',
   upload.none(),
-  createEmailReceiveHandler,
+  emailReceiveHandler,
 )
