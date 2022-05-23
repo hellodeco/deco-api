@@ -114,9 +114,9 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     if (inReplyTo) {
       newInboundEmail.InReplyTo = inReplyTo[0];
       const originalEmail = await getEmailByMessageID(inReplyTo[0]);
-      console.log(originalEmail);
-      const emailThread = await getEmailThreadByID(originalEmail.email_thread_id);
-      console.log(emailThread);
+      console.log('original email:', originalEmail);
+      const emailThread = await getEmailThreadByID(originalEmail.emailThreadId);
+      console.log('email thread:', emailThread);
 
       if (emailThread.userId === emailRecipient.id) {
         newInboundEmail.EmailThreadID = emailThread.id;
