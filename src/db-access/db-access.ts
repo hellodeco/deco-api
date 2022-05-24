@@ -53,6 +53,12 @@ interface NotionIntegration {
   email: string
 }
 
+interface EmailThread {
+  id?: number
+  subject?: string
+  user_id?: string
+}
+
 enum Tables {
   NOTION_INTEGRATIONS = 'notion_integrations',
   SUBSCRIPTIONS = 'subscriptions',
@@ -60,31 +66,31 @@ enum Tables {
 
 //  CREATE FUNCTIONS =================================================
 
-export function createNewThreadByUserMetaID(
+export async function createNewEmailThreadByUserID(
   subject: string,
-  userMetaID: string,
-) {
-  return dbConnection('email_threads').insert({
+  userMetaId: string,
+): Promise<EmailThread> {
+  return await dbConnection('email_threads').returning('*').insert({
     subject: subject,
-    user_id: userMetaID,
+    user_id: userMetaId,
   })
 }
 
-export async function createNewEmailByUserMetaID(args: {
+export async function createNewEmailByUserID(args: {
+  userId: string
+  emailThreadId?: number
   plainTextContent: string
   htmlContent?: string
-  userMetaID: string
   messageID?: string
   inReplyTo?: string
   references?: string
-  emailThreadID: string
 }) {
   const thread = await dbConnection('email_threads').where(
     'id',
-    args.emailThreadID,
+    args.emailThreadId,
   )
 
-  const user = await dbConnection('users').where('id', args.userMetaID)
+  const user = await dbConnection('users').where('id', args.userId)
 
   return dbConnection('emails').insert({
     subject: thread[0].subject,
@@ -92,11 +98,11 @@ export async function createNewEmailByUserMetaID(args: {
     html_content: args.htmlContent,
     from: user[0].emailAddress,
     status: 'DRAFT',
-    user_id: args.userMetaID,
+    user_id: args.userId,
     message_id: args.messageID,
     in_reply_to: args.inReplyTo,
     references: args.references,
-    email_thread_id: args.emailThreadID,
+    email_thread_id: args.emailThreadId,
   })
 }
 
@@ -187,6 +193,13 @@ export function getEmailByMessageID(messageID: string) {
 
 export function getEmailThreadByID(threadID: string) {
   return dbConnection('email_threads').where('id', threadID).select('*').first()
+}
+
+export function getEmailThreadBySubject(subject: string) {
+  return dbConnection('email_threads')
+    .where('subject', subject)
+    .select('*')
+    .first()
 }
 
 export function getUserMetaByUserfrontID(userfrontID: string) {

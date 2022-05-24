@@ -5,36 +5,45 @@ import {
   getUserMetaByDecoEmail,
   getEmailByMessageID,
   getEmailThreadByID,
+  createNewEmailThreadByUserID,
+  getEmailThreadBySubject,
+  createNewEmailByUserID,
   createUserMeta,
   createOrUpdateSubscription,
 } from '../db-access/db-access'
+import { addEmailToNotion } from '../notion-access/notion-access'
 import Userfront from '@userfront/core'
 
 interface InboundSendgridParsedEmail {
-  Subject:          string
-  PlainTextContent: string
-  From:             string
-  UserMetaID: string
-  HTMLContent?:      string
+  userId: string
+  subject:          string
+  plainTextContent: string
+  from:             string
+  emailThreadId?: number
+  htmlContent?:      string
   /**
      * TODO: represent and enforce this on the DB side  by making this an enum
   	 * Status can be one of
      * - DELIVERED
   	 * - FAILED
   */
-  Status?:     string
-  MessageID?:     string
-  InReplyTo?:     string
-  References?:    string
-  EmailThreadID?: string
-  // EmailThread:   EmailThread
-  NotionPageID?: string
+  status?:     string
+  notionPageId?: string
+  messageId?: string
+  inReplyTo?: string
+  references?: string
 }
 
 interface Header {
   key: string
   value: string
   emailId: number
+}
+
+interface EmailThread {
+  id?: number
+  subject?: string
+  user_id?: string
 }
 
 type HeaderMap = Record<string, Array<string>>
@@ -99,30 +108,42 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   const messageID = headersMap['Message-ID'];
 
   const newInboundEmail: InboundSendgridParsedEmail = {
-    Subject: subject,
-    PlainTextContent: text,
-    From: from,
-    UserMetaID: emailRecipient.id
+    subject: subject,
+    plainTextContent: text,
+    from: from,
+    userId: emailRecipient.id
   }
 
   if (references) {
-    newInboundEmail.References = references[0];
+    newInboundEmail.references = references[0];
   }
 
   if (messageID) {
-    newInboundEmail.MessageID = messageID[0];
+    newInboundEmail.messageId = messageID[0];
     if (inReplyTo) {
-      newInboundEmail.InReplyTo = inReplyTo[0];
+      newInboundEmail.inReplyTo = inReplyTo[0];
       const originalEmail = await getEmailByMessageID(inReplyTo[0]);
       console.log('original email:', originalEmail);
       const emailThread = await getEmailThreadByID(originalEmail.emailThreadId);
       console.log('email thread:', emailThread);
 
       if (emailThread.userId === emailRecipient.id) {
-        newInboundEmail.EmailThreadID = emailThread.id;
+        newInboundEmail.emailThreadId = emailThread.id;
       }
+    } else {
+      const newEmailThread: EmailThread = await createNewEmailThreadByUserID(subject, emailRecipient.id);
+      newInboundEmail.emailThreadId = newEmailThread.id;
     }
   }
+
+  await createNewEmailByUserID(newInboundEmail)
+
+  await addEmailToNotion({ newEmail: newInboundEmail, userfrontID: emailRecipient.id})
+  // updateEmailWithNotionPageID
+  
+  //
+
+
 
   // if okMessageID {
   //   // if we have an In Reply To header
