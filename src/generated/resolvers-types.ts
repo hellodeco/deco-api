@@ -34,7 +34,7 @@ export type Mutation = {
   addEmailToNotion?: Maybe<AddEmailToNotionResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
-  updateDecoEmail?: Maybe<UpdateDecoEmailErrorReasons>;
+  updateDecoEmail?: Maybe<UpdateDecoEmailResult>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
 
@@ -101,7 +101,7 @@ export enum UpdateDecoEmailErrorReasons {
 export type UpdateDecoEmailResult = {
   __typename?: 'UpdateDecoEmailResult';
   errorReason?: Maybe<UpdateDecoEmailErrorReasons>;
-  success?: Maybe<Scalars['Boolean']>;
+  success: Scalars['Boolean'];
 };
 
 export type User = {
@@ -223,7 +223,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   addEmailToNotion?: Resolver<Maybe<ResolversTypes['AddEmailToNotionResult']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  updateDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailErrorReasons']>, ParentType, ContextType, Partial<MutationUpdateDecoEmailArgs>>;
+  updateDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationUpdateDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
 
@@ -265,7 +265,7 @@ export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes
 
 export type UpdateDecoEmailResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['UpdateDecoEmailResult'] = ResolversParentTypes['UpdateDecoEmailResult']> = ResolversObject<{
   errorReason?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailErrorReasons']>, ParentType, ContextType>;
-  success?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

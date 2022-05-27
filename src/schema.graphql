@@ -49,7 +49,7 @@ enum UpdateDecoEmailErrorReasons {
 }
 
 type UpdateDecoEmailResult {
-  success: Boolean
+  success: Boolean!
   errorReason: UpdateDecoEmailErrorReasons
 }
 
@@ -65,6 +65,6 @@ type Mutation {
   wipeNotionDatabase: [String]
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
-  updateDecoEmail(emailHandle: String): UpdateDecoEmailErrorReasons
+  updateDecoEmail(emailHandle: String): UpdateDecoEmailResult
   addEmailToNotion(toAddress: String, newEmail: Email): AddEmailToNotionResult
 }
