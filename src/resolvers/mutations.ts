@@ -1,4 +1,4 @@
-import { MutationResolvers } from '../generated/resolvers-types'
+import { MutationResolvers, UpdateDecoEmailErrorReasons } from '../generated/resolvers-types'
 
 export const mutationResolvers: MutationResolvers = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -39,12 +39,48 @@ export const mutationResolvers: MutationResolvers = {
       success: true,
     }
   },
-  updateDecoEmail: async (_, args, { dbAccess, user }) => {
-    const e = await dbAccess.updateDecoEmail(
-      user.userfrontID,
-      args.emailAddress,
+  updateDecoEmail: async (_, { emailHandle }, { dbAccess, user: { userfrontID } }) => {
+    const user = dbAccess.getUserMetaByUserfrontID(userfrontID)
+
+    // We do not allow users to change their email after setting it
+    if (user.decoEmail) {
+      return {
+        success: false,
+        errorReason: UpdateDecoEmailErrorReasons.CannotChangeEmail,
+      }
+    }
+
+    const emailAddress = `${emailHandle}@deco.co`
+
+    const existingUser = await dbAccess.getUserMetaByDecoEmail(emailAddress)
+
+    if (existingUser) {
+      return {
+        success: false,
+        errorReason: UpdateDecoEmailErrorReasons.AlreadyTaken,
+      }
+    }
+
+    /**
+     * @todo do character validation in emailHandle
+     * Useful reference: https://stackoverflow.com/a/2049510
+     */
+    let invalidChars = false
+
+    if (invalidChars) {
+      return {
+        success: false,
+        errorReason: UpdateDecoEmailErrorReasons.InvalidCharacters,
+      }
+    }
+
+    await dbAccess.updateDecoEmail(
+      userfrontID,
+      emailAddress,
     )
-    console.log(e)
-    return true
+
+    return {
+      success: true,
+    }
   },
 }
