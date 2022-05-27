@@ -71,8 +71,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       })
 
       if (process.env.NODE_ENV !== 'production') {
-        // @ts-ignore
-        const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp.result.url}`
+        const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp?.result?.url}`
         console.log(`Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`)
       }
 

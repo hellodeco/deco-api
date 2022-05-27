@@ -1171,10 +1171,10 @@
   resolved "https://registry.yarnpkg.com/@types/yup/-/yup-0.29.11.tgz#d654a112973f5e004bf8438122bd7e56a8e5cd7e"
   integrity sha512-9cwk3c87qQKZrT251EDoibiYRILjCmxBvvcb4meofCmx1vdnNcR9gyildy5vOHASpOKMsn42CugxUvcwK5eu1g==
 
-"@userfront/core@^0.3.1":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@userfront/core/-/core-0.3.1.tgz#4fc28513eb0710e300765fad606550a549125a38"
-  integrity sha512-5yP0iUkwo65/QdsRLuK9lY5cV0pEt3sDOK64nUoqTrU85arHbpP/dQafeBmXqS3EolPs/62GVV+Kk2xnA7n4Uw==
+"@userfront/core@^0.3.5":
+  version "0.3.5"
+  resolved "https://registry.yarnpkg.com/@userfront/core/-/core-0.3.5.tgz#f51ff44daae3e3b29aed4abc0617045d63b82b53"
+  integrity sha512-EO80N3n1MPoTrx61xKKOraTV6A7YwOODeBNl26nmpIBr2+d1xzhiPOCYI99dc6IVXNz97S7UCA/YU6B/fd+xNw==
   dependencies:
     axios "^0.21.1"
     js-cookie "^2.2.1"
