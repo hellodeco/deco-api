@@ -63,10 +63,7 @@ export function createNewThreadByUserMetaID(
   subject: string,
   userMetaID: string,
 ) {
-  const date = new Date().toISOString()
   return dbConnection('email_threads').insert({
-    created_at: date,
-    updated_at: date,
     subject: subject,
     user_id: userMetaID,
   })
@@ -88,10 +85,7 @@ export async function createNewEmailByUserMetaID(args: {
 
   const user = await dbConnection('users').where('id', args.userMetaID)
 
-  const date = new Date().toISOString()
   return dbConnection('emails').insert({
-    created_at: date,
-    updated_at: date,
     subject: thread[0].subject,
     plain_text_content: args.plainTextContent,
     html_content: args.htmlContent,
