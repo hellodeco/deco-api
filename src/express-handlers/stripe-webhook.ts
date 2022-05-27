@@ -3,10 +3,11 @@ import dotenv from 'dotenv'
 import fetch from 'node-fetch'
 import Stripe from 'stripe'
 import {
-  createUserMeta,
+  createUser,
   createOrUpdateSubscription,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
+import { FRONTEND_BASE_URL } from '../constants'
 Userfront.init('wn95p6n5')
 
 dotenv.config()
@@ -62,22 +63,17 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
       // add userfront user
       // this will also automatically send a login link to the cx
-      try {
-        const res = await Userfront.signup({
-          method: 'passwordless',
-          email: email,
-          name: name,
-          redirect: false,
-        })
+      const signupResp = await Userfront.signup({
+        method: 'passwordless',
+        email: email,
+        name: name,
+        redirect: false,
+      })
 
-        /**
-         * @todo only log res in development mode
-         * "res" contains the token and uuid that we can use to exchange
-         * with Userfront for a valid login
-         */
-        console.log(res)
-      } catch (err) {
-        console.log(err)
+      if (process.env.NODE_ENV !== 'production') {
+        // @ts-ignore
+        const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp.result.url}`
+        console.log(`Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`)
       }
 
       // todo - swap out this Authorization header with a .env variable
@@ -97,25 +93,26 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       )
 
       const userfrontData = await userfrontResponse.json()
+      const createdUserUUID = userfrontData?.results?.[0]?.userUuid
 
-      const createdUserUUID = userfrontData.results[0].userUuid
+      // todo: We should handle this case better
+      // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
+      // value for userfront_user_id.
+      if (!createdUserUUID) {
+        res.status(500).end()
+      }
 
-      const date = new Date().toISOString()
-
-      // add deco db user
-      const createdUser = await createUserMeta({
-        userfrontUserId: createdUserUUID,
-        fullName: name,
-        signupEmail: email,
-        createdAt: date,
-        updatedAt: date,
-      })
-
-      // add initial deco db subscription
-      await createOrUpdateSubscription({
-        userfrontUserId: createdUserUUID,
-        stripeSubscriptionId: session.subscription,
-      })
+      await Promise.all([
+        createUser({
+          userfrontUserId: createdUserUUID,
+          fullName: name,
+          signupEmail: email,
+        }),
+        createOrUpdateSubscription({
+          userfrontUserId: createdUserUUID,
+          stripeSubscriptionId: session.subscription,
+        }),
+      ])
     } catch (err) {
       console.log(err)
     }
