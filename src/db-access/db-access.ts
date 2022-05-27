@@ -10,7 +10,7 @@ interface DBModel {
   updatedAt: string
 }
 
-interface UserMeta extends DBModel {
+interface User {
   userfrontUserId: string
   fullName: string
   signupEmail?: string
@@ -137,8 +137,8 @@ export async function createOrUpdateSubscription(subscription: Subscription) {
   )
 }
 
-export function createUserMeta(userMeta: UserMeta) {
-  return dbConnection<UserMeta>('users').insert(objectCamelToSnake(userMeta))
+export function createUser(userMeta: User) {
+  return dbConnection<User>('users').insert(objectCamelToSnake(userMeta))
 }
 
 export async function createOrUpdateNotionDatabase(
@@ -173,14 +173,14 @@ export function getAllEmailsByThreadID(threadID: string) {
 }
 
 export function getUserMetaByUserfrontID(userfrontID: string) {
-  return dbConnection<UserMeta>('users')
+  return dbConnection<User>('users')
     .where('userfront_user_id', userfrontID)
     .select('*')
     .first()
 }
 
 export function getUserMetaByDecoEmail(decoEmail: string) {
-  return dbConnection<UserMeta>('users')
+  return dbConnection<User>('users')
     .where('email_address', decoEmail)
     .select('*')
     .first()
@@ -209,7 +209,7 @@ export async function getNotionDatabaseIDByUsefrontID(userfrontID: string) {
 //  UPDATE FUNCTIONS =================================================
 
 export function updateDecoEmail(userfrontID: string, emailAddress: string) {
-  return dbConnection<UserMeta>('users')
+  return dbConnection<User>('users')
     .where('userfront_user_id', userfrontID)
     .update(objectCamelToSnake({ email_address: emailAddress }))
 }
