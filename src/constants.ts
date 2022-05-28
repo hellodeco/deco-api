@@ -17,7 +17,7 @@ export const FRONTEND_BASE_URL =
 
 export const NOTION_BASE_URL = 'https://api.notion.com'
 
-export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.so'
+export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.co'
 
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
