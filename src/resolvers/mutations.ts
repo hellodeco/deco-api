@@ -39,7 +39,7 @@ export const mutationResolvers: MutationResolvers = {
       success: true,
     }
   },
-  updateDecoEmail: async (_, { emailHandle }, { dbAccess, user: { userfrontID } }) => {
+  updateDecoEmail: async (_, { username }, { dbAccess, user: { userfrontID } }) => {
     const user = dbAccess.getUserMetaByUserfrontID(userfrontID)
 
     // We do not allow users to change their email after setting it
@@ -50,7 +50,7 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
-    const emailAddress = `${emailHandle}@deco.co`
+    const emailAddress = `${username}@deco.co`
 
     const existingUser = await dbAccess.getUserMetaByDecoEmail(emailAddress)
 
