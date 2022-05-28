@@ -132,6 +132,11 @@ export async function createOrUpdateSubscription(subscription: Subscription) {
       .update(objectCamelToSnake(subscription))
   }
 
+  // userfront_user_id is a non-null field so we can't store anything if this doesn't exist
+  if (!subscription.userfrontUserId) {
+    return null
+  }
+
   return dbConnection<Subscription>(Tables.SUBSCRIPTIONS).insert(
     objectCamelToSnake(subscription),
   )
