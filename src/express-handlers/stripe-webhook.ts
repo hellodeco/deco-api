@@ -8,6 +8,7 @@ import {
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
 import { FRONTEND_BASE_URL } from '../constants'
+
 Userfront.init('wn95p6n5')
 
 dotenv.config()
@@ -121,6 +122,9 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     try {
       const subscription = event.data.object
 
+      /**
+       * @todo this breaks on update if the sub has not been created yet because userfront uuid is not present and that is a non-null field
+       */
       const dataToUpdate = {
         stripeCustomerId: subscription.customer,
         stripeSubscriptionId: subscription.id,

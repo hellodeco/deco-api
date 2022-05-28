@@ -10,11 +10,7 @@ import {
   getUserMetaByUserfrontID,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
-import {
-  SERVER_BASE_URL,
-  NOTION_BASE_URL,
-  FRONTEND_BASE_URL,
-} from './constants'
+import { NOTION_BASE_URL, FRONTEND_BASE_URL } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import {
   getNotionRedirectURI,
@@ -218,8 +214,8 @@ app.post('/stripe/checkout-session', async (req, res) => {
       },
     ],
     mode: 'subscription',
-    success_url: `${process.env.FRONTEND_URL}/post-checkout`,
-    cancel_url: `${process.env.FRONTEND_URL}/checkout-failed`,
+    success_url: `${process.env.FRONTEND_BASE_URL}/post-checkout`,
+    cancel_url: `${process.env.FRONTEND_BASE_URL}/checkout-failed`,
   })
 
   return res.status(200).json({ sessionUrl: session.url })
