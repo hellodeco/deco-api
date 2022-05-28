@@ -2,6 +2,7 @@ import { Knex } from 'knex'
 
 enum ColType {
   String = 'string',
+  Text = 'text',
   Int = 'integer',
 }
 
@@ -119,11 +120,11 @@ const tableConfigs: Array<TableConfig> = [
       },
       {
         name: 'plain_text_content',
-        type: ColType.String,
+        type: ColType.Text,
       },
       {
         name: 'html_content',
-        type: ColType.String,
+        type: ColType.Text,
       },
       {
         name: 'from',
