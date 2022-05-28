@@ -63,7 +63,8 @@ export const mutationResolvers: MutationResolvers = {
 
     const subscription = await dbAccess.getSubscriptionByUserfrontUserId(userfrontID)
 
-    if (!subscription) {
+
+    if (!subscription || subscription.subscriptionStatus !== 'active') {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.NoSubscription,
