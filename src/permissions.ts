@@ -30,7 +30,7 @@ const permissions = shield({
     wipeNotionDatabase: isAuthenticated,
     deleteNotionTableProperties: isAuthenticated,
     formatNotionTable: isAuthenticated,
-    updateDecoEmail: isAuthenticated,
+    setDecoEmail: isAuthenticated,
     addEmailToNotion: isEmailAdaptor,
   },
 })

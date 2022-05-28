@@ -34,7 +34,7 @@ export type Mutation = {
   addEmailToNotion?: Maybe<AddEmailToNotionResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
-  updateDecoEmail?: Maybe<UpdateDecoEmailResult>;
+  setDecoEmail?: Maybe<UpdateDecoEmailResult>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
 
@@ -45,7 +45,7 @@ export type MutationAddEmailToNotionArgs = {
 };
 
 
-export type MutationUpdateDecoEmailArgs = {
+export type MutationSetDecoEmailArgs = {
   username?: InputMaybe<Scalars['String']>;
 };
 
@@ -95,7 +95,7 @@ export type QueryGetUserMetaByDecoEmailArgs = {
 export enum UpdateDecoEmailErrorReasons {
   AlreadyTaken = 'ALREADY_TAKEN',
   CannotChangeEmail = 'CANNOT_CHANGE_EMAIL',
-  InvalidCharacters = 'INVALID_CHARACTERS'
+  InvalidFormat = 'INVALID_FORMAT'
 }
 
 export type UpdateDecoEmailResult = {
@@ -223,7 +223,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   addEmailToNotion?: Resolver<Maybe<ResolversTypes['AddEmailToNotionResult']>, ParentType, ContextType, Partial<MutationAddEmailToNotionArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  updateDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationUpdateDecoEmailArgs>>;
+  setDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationSetDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
 

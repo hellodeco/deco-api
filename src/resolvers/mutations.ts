@@ -1,3 +1,4 @@
+import { EMAIL_DOMAIN } from '../constants'
 import { MutationResolvers, UpdateDecoEmailErrorReasons } from '../generated/resolvers-types'
 
 export const mutationResolvers: MutationResolvers = {
@@ -39,18 +40,17 @@ export const mutationResolvers: MutationResolvers = {
       success: true,
     }
   },
-  updateDecoEmail: async (_, { username }, { dbAccess, user: { userfrontID } }) => {
-    const user = dbAccess.getUserMetaByUserfrontID(userfrontID)
+  setDecoEmail: async (_, { username }, { dbAccess, user: { userfrontID } }) => {
+    const user = await dbAccess.getUserMetaByUserfrontID(userfrontID)
 
-    // We do not allow users to change their email after setting it
-    if (user.decoEmail) {
+    if (user.emailAddress) {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.CannotChangeEmail,
       }
     }
 
-    const emailAddress = `${username}@deco.co`
+    const emailAddress = `${username}@${EMAIL_DOMAIN}`
 
     const existingUser = await dbAccess.getUserMetaByDecoEmail(emailAddress)
 
@@ -62,15 +62,14 @@ export const mutationResolvers: MutationResolvers = {
     }
 
     /**
-     * @todo do character validation in emailHandle
-     * Useful reference: https://stackoverflow.com/a/2049510
+     * @reference for valid email username format: https://stackoverflow.com/a/2049510
      */
-    let invalidChars = false
+    const validEmailUsername = /^\w+([\.-]?\w+)*$/
 
-    if (invalidChars) {
+    if (!validEmailUsername.test(username)) {
       return {
         success: false,
-        errorReason: UpdateDecoEmailErrorReasons.InvalidCharacters,
+        errorReason: UpdateDecoEmailErrorReasons.InvalidFormat
       }
     }
 
@@ -81,6 +80,7 @@ export const mutationResolvers: MutationResolvers = {
 
     return {
       success: true,
+      errorReason: null,
     }
   },
 }
