@@ -46,7 +46,7 @@ export type MutationAddEmailToNotionArgs = {
 
 
 export type MutationUpdateDecoEmailArgs = {
-  emailHandle?: InputMaybe<Scalars['String']>;
+  username?: InputMaybe<Scalars['String']>;
 };
 
 export type NotionDatabaseInfo = {
