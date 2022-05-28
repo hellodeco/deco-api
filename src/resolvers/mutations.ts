@@ -63,8 +63,6 @@ export const mutationResolvers: MutationResolvers = {
 
     const subscription = await dbAccess.getSubscriptionByUserfrontUserId(userfrontID)
 
-    console.log('--------------', subscription)
-
     if (!subscription) {
       return {
         success: false,
