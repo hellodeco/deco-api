@@ -61,6 +61,17 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
+    const subscription = await dbAccess.getSubscriptionByUserfrontUserId(userfrontID)
+
+    console.log('--------------', subscription)
+
+    if (!subscription) {
+      return {
+        success: false,
+        errorReason: UpdateDecoEmailErrorReasons.NoSubscription,
+      }
+    }
+
     /**
      * @reference for valid email username format: https://stackoverflow.com/a/2049510
      */

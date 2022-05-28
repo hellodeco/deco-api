@@ -95,7 +95,8 @@ export type QueryGetUserMetaByDecoEmailArgs = {
 export enum UpdateDecoEmailErrorReasons {
   AlreadyTaken = 'ALREADY_TAKEN',
   CannotChangeEmail = 'CANNOT_CHANGE_EMAIL',
-  InvalidFormat = 'INVALID_FORMAT'
+  InvalidFormat = 'INVALID_FORMAT',
+  NoSubscription = 'NO_SUBSCRIPTION'
 }
 
 export type UpdateDecoEmailResult = {

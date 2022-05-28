@@ -211,6 +211,14 @@ export async function getNotionDatabaseIDByUsefrontID(userfrontID: string) {
     .first()
 }
 
+export async function getSubscriptionByUserfrontUserId(userfrontID: string) {
+  return dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
+    .where('userfront_user_id', userfrontID)
+    .select('*')
+    .first()
+}
+
+
 //  UPDATE FUNCTIONS =================================================
 
 export function updateDecoEmail(userfrontID: string, emailAddress: string) {
