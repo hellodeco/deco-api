@@ -73,7 +73,9 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
       if (process.env.NODE_ENV !== 'production') {
         const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp?.result?.url}`
-        console.log(`Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`)
+        console.log(
+          `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
+        )
       }
 
       // todo - swap out this Authorization header with a .env variable

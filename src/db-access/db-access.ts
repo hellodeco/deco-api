@@ -93,7 +93,7 @@ export async function createNewEmailThreadByUserID(
   })
 }
 
-export async function createNewEmailByUserID(args: {
+export async function createNewEmail(emailData: {
   userId?: string
   subject: string
   from: string
@@ -105,18 +105,9 @@ export async function createNewEmailByUserID(args: {
   inReplyTo?: string
   references?: string
 }): Promise<DecoDBEmail[]> {
-  return dbConnection('emails').returning('*').insert({
-    subject: args.subject,
-    plain_text_content: args.plainTextContent,
-    html_content: args.htmlContent,
-    from: args.from,
-    user_id: args.userId,
-    message_id: args.messageId,
-    in_reply_to: args.inReplyTo,
-    references: args.references,
-    email_thread_id: args.emailThreadId,
-    status: args.status,
-  })
+  return dbConnection('emails')
+    .returning('*')
+    .insert(objectCamelToSnake(emailData))
 }
 
 export async function createOrUpdateNotionIntegration(
@@ -187,10 +178,12 @@ export async function createOrUpdateNotionDatabase(
   )
 }
 
-export async function createNewEmailHeadersByEmailId(headerMap: Array<Header>) {
-  headerMap.forEach(async (header) => {
-    await dbConnection('email_headers').insert(objectCamelToSnake(header))
-  })
+export async function createNewEmailHeadersByEmailId(
+  emailHeaders: Array<Header>,
+) {
+  return await dbConnection('email_headers').insert(
+    emailHeaders.map((header) => objectCamelToSnake(header)),
+  )
 }
 
 //  GET FUNCTIONS =================================================
