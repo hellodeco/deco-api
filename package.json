@@ -4,7 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "private": true,
-  "type": "module",
   "scripts": {
     "watch": "ts-node-dev --respawn --exit-child --watch src src/index.ts",
     "build": "yarn compile && yarn copy-schema",
