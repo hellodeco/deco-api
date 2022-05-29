@@ -224,6 +224,9 @@ export async function up(knex: Knex): Promise<any> {
           case ColType.Int:
             table.integer(name, charLimit)
             break
+          case ColType.Text:
+            table.text(name)
+            break
           default:
             console.warn(
               `Column not created for ${name} because no "type" was provided`,
