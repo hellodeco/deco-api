@@ -1,22 +1,14 @@
-import express, { Request, Response } from 'express'
-import dotenv from 'dotenv'
-import fetch from 'node-fetch'
+import { Request, Response } from 'express'
 import {
   getUserMetaByDecoEmail,
-  getEmailByMessageID,
-  getEmailThreadByID,
   createNewEmailThreadByUserID,
-  getEmailThreadBySubject,
-  createNewEmailByUserID,
-  createUserMeta,
-  createOrUpdateSubscription,
+  createNewEmail,
   updateDeliveredEmailStatus,
   updateDeliveredEmailNotionPage,
   createNewEmailHeadersByEmailId,
 } from '../db-access/db-access'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion-access/notion-access'
-import Userfront from '@userfront/core'
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -51,11 +43,13 @@ export function parseHeaderString(headers: string): HeaderMap {
       return
     }
 
-    const [key, val] = header.split(': ')
+    let [key, val] = header.split(': ')
 
     if (!key || !val) {
       return
     }
+
+    key = key.toLowerCase()
 
     if (!headerMap[key]) {
       headerMap[key] = []
@@ -91,14 +85,36 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     const headersMap = parseHeaderString(headers)
 
-    const inReplyTo = headersMap['In-Reply-To']
-    const references = headersMap['References']
-    const messageID = headersMap['Message-ID']
+    const inReplyTo = headersMap['in-reply-to']
+    const references = headersMap['references']
+    const messageID = headersMap['message-id']
 
     const emailRecipient = await getUserMetaByDecoEmail(to)
 
     if (!emailRecipient) {
       console.log('No user found for email')
+
+      const orphanedEmail: InboundSendgridParsedEmail = {
+        subject: subject,
+        plainTextContent: text,
+        from: from,
+        status: EmailStatus.TO_ADDRESS_NOT_FOUND,
+      }
+
+      if (references) {
+        orphanedEmail.references = references[0]
+      }
+
+      if (inReplyTo) {
+        orphanedEmail.references = inReplyTo[0]
+      }
+
+      if (messageID) {
+        orphanedEmail.messageId = messageID[0]
+      }
+
+      await createNewEmail(orphanedEmail)
+
       return res.status(200).json({ message: 'no email recipient found' })
     }
 
@@ -128,7 +144,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     )
 
     newInboundEmail.emailThreadId = newEmailThread.id
-    const [newEmail] = await createNewEmailByUserID(newInboundEmail)
+    const [newEmail] = await createNewEmail(newInboundEmail)
+
     newInboundEmail.emailId = newEmail.id
 
     const notionEmailId = await addEmailToNotion({
@@ -136,17 +153,16 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       userfrontID: emailRecipient.userfrontUserId,
     })
 
-    const headerSetup = headerMapToArray(headersMap, newEmail.id)
-
-    await createNewEmailHeadersByEmailId(headerSetup)
+    await createNewEmailHeadersByEmailId(
+      headerMapToArray(headersMap, newEmail.id),
+    )
 
     await updateDeliveredEmailStatus(
       newEmail.id,
       EmailStatus.RECEIVED_TO_NOTION,
     )
-    await updateDeliveredEmailNotionPage(newEmail.id, notionEmailId)
 
-    // save headers
+    await updateDeliveredEmailNotionPage(newEmail.id, notionEmailId)
 
     res.status(200).json({ message: 'success' })
   } catch (err) {
