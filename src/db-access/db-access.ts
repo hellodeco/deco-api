@@ -18,6 +18,19 @@ interface User {
   emailAddress?: string
 }
 
+interface DecoDBEmail {
+  id: number
+  subject: string
+  plainTextContent: string
+  from: string
+  emailThreadId?: number
+  htmlContent?: string
+  status?: string
+  notionPageId?: string
+  messageId?: string
+  inReplyTo?: string
+  references?: string
+}
 interface NotionDatabase {
   notionDatabaseId: string
   notionIntegrationId: number
@@ -59,6 +72,8 @@ interface EmailThread {
   user_id?: string
 }
 
+type EmailThreadArray = EmailThread[]
+
 enum Tables {
   NOTION_INTEGRATIONS = 'notion_integrations',
   SUBSCRIPTIONS = 'subscriptions',
@@ -69,7 +84,7 @@ enum Tables {
 export async function createNewEmailThreadByUserID(
   subject: string,
   userMetaId: string,
-): Promise<EmailThread> {
+): Promise<EmailThreadArray> {
   return await dbConnection('email_threads').returning('*').insert({
     subject: subject,
     user_id: userMetaId,
@@ -78,28 +93,22 @@ export async function createNewEmailThreadByUserID(
 
 export async function createNewEmailByUserID(args: {
   userId: string
+  subject: string
+  from: string
   emailThreadId?: number
   plainTextContent: string
   htmlContent?: string
-  messageID?: string
+  messageId?: string
   inReplyTo?: string
   references?: string
-}) {
-  const thread = await dbConnection('email_threads').where(
-    'id',
-    args.emailThreadId,
-  )
-
-  const user = await dbConnection('users').where('id', args.userId)
-
-  return dbConnection('emails').insert({
-    subject: thread[0].subject,
+}): Promise<DecoDBEmail[]> {
+  return dbConnection('emails').returning('*').insert({
+    subject: args.subject,
     plain_text_content: args.plainTextContent,
     html_content: args.htmlContent,
-    from: user[0].emailAddress,
-    status: 'DRAFT',
+    from: args.from,
     user_id: args.userId,
-    message_id: args.messageID,
+    message_id: args.messageId,
     in_reply_to: args.inReplyTo,
     references: args.references,
     email_thread_id: args.emailThreadId,
@@ -217,6 +226,7 @@ export function getUserMetaByDecoEmail(decoEmail: string) {
 }
 
 export function getNotionIntegrationByUserfrontID(userfrontID: string) {
+  console.log('userfront id', userfrontID)
   return dbConnection<NotionIntegration>('notion_integrations')
     .where('userfront_user_id', userfrontID)
     .select('*')
