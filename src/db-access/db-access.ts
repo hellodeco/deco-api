@@ -18,6 +18,7 @@ interface User {
   fullName: string
   signupEmail?: string
   emailAddress?: string
+  stripeCustomerId?: string
 }
 
 interface DecoDBEmail {
@@ -214,7 +215,7 @@ export function getEmailThreadBySubject(subject: string) {
     .first()
 }
 
-export function getUserMetaByUserfrontID(userfrontID: string) {
+export function getUserByUserfrontID(userfrontID: string) {
   return dbConnection<User>('users')
     .where('userfront_user_id', userfrontID)
     .select('*')

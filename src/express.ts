@@ -8,7 +8,8 @@ import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
 import {
   createOrUpdateNotionIntegration,
-  getUserMetaByUserfrontID,
+  getUserByUserfrontID,
+  getSubscriptionByUserfrontUserId,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
 import { NOTION_BASE_URL, FRONTEND_BASE_URL } from './constants'
@@ -130,7 +131,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
 
   try {
     const { userfrontID } = await verifyJWT(authToken)
-    const userMeta = await getUserMetaByUserfrontID(userfrontID)
+    const userMeta = await getUserByUserfrontID(userfrontID)
 
     if (!userMeta) {
       return res.redirect(
@@ -218,15 +219,28 @@ app.post('/stripe/checkout-session', async (req, res) => {
       },
     ],
     mode: 'subscription',
-    success_url: `${process.env.FRONTEND_BASE_URL}/post-checkout`,
-    cancel_url: `${process.env.FRONTEND_BASE_URL}/checkout-failed`,
+    success_url: `${FRONTEND_BASE_URL}/post-checkout`,
+    cancel_url: `${FRONTEND_BASE_URL}/checkout-failed`,
   })
 
   return res.status(200).json({ sessionUrl: session.url })
 })
 
-app.post(
-  '/inbound',
-  upload.none(),
-  emailReceiveHandler,
-)
+app.post('/stripe/billing-portal', async (req, res) => {
+  const { userfrontUserId } = req.body
+
+  const subscription = await getSubscriptionByUserfrontUserId(userfrontUserId)
+
+  if (!subscription) {
+    return res.status(400).json({ message: 'user not found' })
+  }
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: subscription.stripeCustomerId,
+    return_url: `${FRONTEND_BASE_URL}/account`,
+  })
+
+  return res.status(200).json({ sessionUrl: session.url })
+})
+
+app.post('/inbound', upload.none(), emailReceiveHandler)

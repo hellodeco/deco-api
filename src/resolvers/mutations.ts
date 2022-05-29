@@ -1,5 +1,8 @@
 import { EMAIL_DOMAIN } from '../constants'
-import { MutationResolvers, UpdateDecoEmailErrorReasons } from '../generated/resolvers-types'
+import {
+  MutationResolvers,
+  UpdateDecoEmailErrorReasons,
+} from '../generated/resolvers-types'
 
 export const mutationResolvers: MutationResolvers = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -40,8 +43,12 @@ export const mutationResolvers: MutationResolvers = {
       success: true,
     }
   },
-  setDecoEmail: async (_, { username }, { dbAccess, user: { userfrontID } }) => {
-    const user = await dbAccess.getUserMetaByUserfrontID(userfrontID)
+  setDecoEmail: async (
+    _,
+    { username },
+    { dbAccess, user: { userfrontID } },
+  ) => {
+    const user = await dbAccess.getUserByUserfrontID(userfrontID)
 
     if (user.emailAddress) {
       return {
@@ -61,8 +68,9 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
-    const subscription = await dbAccess.getSubscriptionByUserfrontUserId(userfrontID)
-
+    const subscription = await dbAccess.getSubscriptionByUserfrontUserId(
+      userfrontID,
+    )
 
     if (!subscription || subscription.subscriptionStatus !== 'active') {
       return {
@@ -79,14 +87,11 @@ export const mutationResolvers: MutationResolvers = {
     if (!validEmailUsername.test(username)) {
       return {
         success: false,
-        errorReason: UpdateDecoEmailErrorReasons.InvalidFormat
+        errorReason: UpdateDecoEmailErrorReasons.InvalidFormat,
       }
     }
 
-    await dbAccess.updateDecoEmail(
-      userfrontID,
-      emailAddress,
-    )
+    await dbAccess.updateDecoEmail(userfrontID, emailAddress)
 
     return {
       success: true,
