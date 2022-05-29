@@ -14,7 +14,7 @@ export const queryResolvers: QueryResolvers = {
     return false
   },
   currentUser: async (parent, args, { dbAccess, user }) => {
-    const userMeta = await dbAccess.getUserMetaByUserfrontID(user.userfrontID)
+    const userMeta = await dbAccess.getUserByUserfrontID(user.userfrontID)
     return {
       fullName: userMeta.fullName,
       emailAddress: userMeta.emailAddress,

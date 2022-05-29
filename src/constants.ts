@@ -13,7 +13,7 @@ export const SERVER_BASE_URL =
   process.env.SERVER_BASE_URL || `http://localhost:${PORT}`
 
 export const FRONTEND_BASE_URL =
-  process.env.FRONTEND_BASE_URL || 'http://localhost:3000'
+  process.env.FRONTEND_URL || 'http://localhost:3000'
 
 export const NOTION_BASE_URL = 'https://api.notion.com'
 
