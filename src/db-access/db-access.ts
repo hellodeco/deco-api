@@ -1,5 +1,7 @@
 import dbConnection from '../db-connection'
 import { objectCamelToSnake } from '../utils'
+import { EmailStatus } from '../constants'
+import { Header } from '../express-handlers/sendgrid'
 
 /**
  * @todo type these return values
@@ -92,9 +94,10 @@ export async function createNewEmailThreadByUserID(
 }
 
 export async function createNewEmailByUserID(args: {
-  userId: string
+  userId?: string
   subject: string
   from: string
+  status?: string
   emailThreadId?: number
   plainTextContent: string
   htmlContent?: string
@@ -112,6 +115,7 @@ export async function createNewEmailByUserID(args: {
     in_reply_to: args.inReplyTo,
     references: args.references,
     email_thread_id: args.emailThreadId,
+    status: args.status,
   })
 }
 
@@ -183,6 +187,12 @@ export async function createOrUpdateNotionDatabase(
   )
 }
 
+export async function createNewEmailHeadersByEmailId(headerMap: Array<Header>) {
+  headerMap.forEach(async (header) => {
+    await dbConnection('email_headers').insert(objectCamelToSnake(header))
+  })
+}
+
 //  GET FUNCTIONS =================================================
 
 export function getAllThreadsByUserMetaID(userMetaID: string) {
@@ -226,7 +236,6 @@ export function getUserMetaByDecoEmail(decoEmail: string) {
 }
 
 export function getNotionIntegrationByUserfrontID(userfrontID: string) {
-  console.log('userfront id', userfrontID)
   return dbConnection<NotionIntegration>('notion_integrations')
     .where('userfront_user_id', userfrontID)
     .select('*')
@@ -255,8 +264,27 @@ export async function getSubscriptionByUserfrontUserId(userfrontID: string) {
 
 //  UPDATE FUNCTIONS =================================================
 
-export function updateDecoEmail(userfrontID: string, emailAddress: string) {
+export function updateUsersDecoEmailAddress(
+  userfrontID: string,
+  emailAddress: string,
+) {
   return dbConnection<User>('users')
     .where('userfront_user_id', userfrontID)
     .update(objectCamelToSnake({ email_address: emailAddress }))
+}
+
+export async function updateDeliveredEmailStatus(
+  emailId: number,
+  status: EmailStatus,
+) {
+  return dbConnection('emails').where('id', emailId).update({ status: status })
+}
+
+export async function updateDeliveredEmailNotionPage(
+  emailId: number,
+  notionPageId: string,
+) {
+  return dbConnection('emails')
+    .where('id', emailId)
+    .update({ notion_page_id: notionPageId })
 }

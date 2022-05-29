@@ -8,11 +8,11 @@ import {
 import { REQUIRED_NOTION_DATABASE_PROPERTIES } from '../constants'
 
 export interface NewEmail {
-    subject: string
-    from: string
-    emailId?: number
-    emailThreadId?: number
-    plainTextContent: string
+  subject: string
+  from: string
+  emailId?: number
+  emailThreadId?: number
+  plainTextContent: string
 }
 
 export interface NotionConnectData {
@@ -177,7 +177,7 @@ export const addEmailToNotion = async ({
     userfrontID,
   )
 
-  const { subject, from, emailId, emailThreadId, plainTextContent } = newEmail;
+  const { subject, from, emailId, emailThreadId, plainTextContent } = newEmail
 
   const time = Date.now()
   const deliveryDate = new Date(time)
@@ -205,9 +205,6 @@ export const addEmailToNotion = async ({
       },
       Email_ID: {
         number: emailId,
-      },
-      Email_Thread_ID: {
-        number: emailThreadId,
       },
     },
     children: [

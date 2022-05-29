@@ -22,7 +22,13 @@ export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.co'
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
   'Delivered',
-  'Email_Thread_ID',
   'Email_ID',
   'Name',
 ]
+
+export enum EmailStatus {
+  TO_ADDRESS_NOT_FOUND = 'TO_ADDRESS_NOT_FOUND',
+  RECEIVED_TO_DECO = 'RECEIVED_TO_DECO',
+  RECEIVED_TO_NOTION = 'RECEIVED_TO_NOTION',
+  NOTION_FAILED = 'NOTION_FAILED',
+}
