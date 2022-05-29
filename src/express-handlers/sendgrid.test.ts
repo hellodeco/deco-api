@@ -20,7 +20,7 @@ describe('parseHeaderString', () => {
   it('parses things correctly', () => {
     const headersMap = parseHeaderString(rawHeaders)
 
-    expect(headersMap.Received).toEqual(
+    expect(headersMap.received).toEqual(
       expect.arrayContaining([
         'by mx0148p1mdw1.sendgrid.net with SMTP id nxZhrfOoV0 Mon, 23 May 2022 08:57:24 +0000 (UTC)',
         'from mail-yw1-f169.google.com (unknown [209.85.128.169]) by mx0148p1mdw1.sendgrid.net (Postfix) with ESMTPS id 1F2561209A5 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 08:57:24 +0000 (UTC)',
@@ -28,11 +28,11 @@ describe('parseHeaderString', () => {
       ])
     )
 
-    expect(headersMap.References).toEqual([
+    expect(headersMap.references).toEqual([
       '<CAFgx2peBGTVYEz-TT7vhjuPGASaDcPN3aou+rx3+G3f-dk+XMg@mail.gmail.com> <CAFgx2pfbdK4yp1Fu5ke1OjCok_RXjRCRVOja6PvmzSfcFzSsiw@mail.gmail.com> <CAFgx2pfW60FK3iUmn1d_tCatoOTGTsGeKQRz8Mf0xSVgE=eDow@mail.gmail.com> <CAFgx2pdfxyptx8bwwn6H=5Z+vvs-OC=Te0cfQEhz1R7wq5GVTg@mail.gmail.com> <CAFgx2pfDeh-H+HtRKjSpYQfpQP6jVPa5LYT9t_0djMgb+ZDeZw@mail.gmail.com>',
     ])
 
-    expect(headersMap['In-Reply-To']).toEqual([
+    expect(headersMap['in-reply-to']).toEqual([
       '<CAFgx2pfDeh-H+HtRKjSpYQfpQP6jVPa5LYT9t_0djMgb+ZDeZw@mail.gmail.com>',
     ])
   })
@@ -42,12 +42,12 @@ describe('parseHeaderString', () => {
 describe('headerMapToArray', () => {
   it('converts a map to an array as expected', () => {
     const headerMap = {
-      Received: [
+      received: [
         'by mx0148p1mdw1.sendgrid.net with SMTP id nxZhrfOoV0 Mon, 23 May 2022 08:57:24 +0000 (UTC)',
         'from mail-yw1-f169.google.com (unknown [209.85.128.169]) by mx0148p1mdw1.sendgrid.net (Postfix) with ESMTPS id 1F2561209A5 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 08:57:24 +0000 (UTC)',
         'by mail-yw1-f169.google.com with SMTP id 00721157ae682-2fed823dd32so139749927b3.12 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 01:57:24 -0700 (PDT)',
       ],
-      From: ['Matt Ehlinger <matt@hellodeco.so>'],
+      from: ['Matt Ehlinger <matt@hellodeco.so>'],
     }
 
     const headers = headerMapToArray(headerMap, 1)
@@ -55,22 +55,22 @@ describe('headerMapToArray', () => {
     expect(headers).toEqual(
       expect.arrayContaining([
         {
-          key: 'Received',
+          key: 'received',
           value: 'by mx0148p1mdw1.sendgrid.net with SMTP id nxZhrfOoV0 Mon, 23 May 2022 08:57:24 +0000 (UTC)',
           emailId: 1,
         },
         {
-          key: 'Received',
+          key: 'received',
           value: 'from mail-yw1-f169.google.com (unknown [209.85.128.169]) by mx0148p1mdw1.sendgrid.net (Postfix) with ESMTPS id 1F2561209A5 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 08:57:24 +0000 (UTC)',
           emailId: 1,
         },
         {
-          key: 'Received',
+          key: 'received',
           value: 'by mail-yw1-f169.google.com with SMTP id 00721157ae682-2fed823dd32so139749927b3.12 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 01:57:24 -0700 (PDT)',
           emailId: 1,
         },
         {
-          key: 'From',
+          key: 'from',
           value: 'Matt Ehlinger <matt@hellodeco.so>',
           emailId: 1,
         },
