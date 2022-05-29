@@ -155,10 +155,6 @@ const tableConfigs: Array<TableConfig> = [
         type: ColType.Int,
       },
       {
-        name: 'email_thread',
-        type: ColType.String,
-      },
-      {
         name: 'notion_page_id',
         type: ColType.String,
       },

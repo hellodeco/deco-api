@@ -19,14 +19,9 @@ interface InboundSendgridParsedEmail {
   subject:          string
   plainTextContent: string
   from:             string
+  emailId?: number
   emailThreadId?: number
   htmlContent?:      string
-  /**
-     * TODO: represent and enforce this on the DB side  by making this an enum
-  	 * Status can be one of
-     * - DELIVERED
-  	 * - FAILED
-  */
   status?:     string
   notionPageId?: string
   messageId?: string
@@ -38,12 +33,6 @@ interface Header {
   key: string
   value: string
   emailId: number
-}
-
-interface EmailThread {
-  id?: number
-  subject?: string
-  user_id?: string
 }
 
 type HeaderMap = Record<string, Array<string>>
@@ -89,6 +78,7 @@ export function headerMapToArray(headerMap: HeaderMap, emailId: number): Array<H
 }
 
 export async function emailReceiveHandler(req: Request, res: Response) {
+  try {
   const { body } = req;
   const { headers, to, from, subject, text } = body;
 
@@ -123,23 +113,23 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     if (inReplyTo) {
       newInboundEmail.inReplyTo = inReplyTo[0];
       const originalEmail = await getEmailByMessageID(inReplyTo[0]);
-      console.log('original email:', originalEmail);
       const emailThread = await getEmailThreadByID(originalEmail.emailThreadId);
-      console.log('email thread:', emailThread);
 
       if (emailThread.userId === emailRecipient.id) {
         newInboundEmail.emailThreadId = emailThread.id;
       }
     } else {
-      const newEmailThread: EmailThread = await createNewEmailThreadByUserID(subject, emailRecipient.id);
+      const [newEmailThread] = await createNewEmailThreadByUserID(subject, emailRecipient.id);
       newInboundEmail.emailThreadId = newEmailThread.id;
     }
   }
 
-  await createNewEmailByUserID(newInboundEmail)
+  const [newEmail] = await createNewEmailByUserID(newInboundEmail)
 
-  await addEmailToNotion({ newEmail: newInboundEmail, userfrontID: emailRecipient.id})
-  // updateEmailWithNotionPageID
+  newInboundEmail.emailId = newEmail.id;
+
+  await addEmailToNotion({ newEmail: newInboundEmail, userfrontID: emailRecipient.userfrontUserId})
+  // updateEmailWithNotionPageID and status success
   
   //
 
@@ -184,4 +174,9 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
 
   res.status(200).json({message: 'success'});
+} catch(err) {
+  console.log(err);
+  // sendgrid requires a 200 response regardless of success or failure
+  res.status(200).json({message: 'failed'});
+}
 }
