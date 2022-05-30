@@ -65,6 +65,8 @@ export const mutationResolvers: MutationResolvers = {
       'thaddeus',
       'jules',
       'deco',
+      'xyz',
+      'abc',
     ])
 
     const emailAddress = `${username}@${EMAIL_DOMAIN}`
