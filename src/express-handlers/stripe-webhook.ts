@@ -1,11 +1,10 @@
-import express, { Request, Response } from 'express'
+import { Request, Response } from 'express'
 import dotenv from 'dotenv'
 import fetch from 'node-fetch'
 import Stripe from 'stripe'
 import {
   createUser,
   createOrUpdateSubscription,
-  getUserByUserfrontID,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
 import { FRONTEND_BASE_URL } from '../constants'
