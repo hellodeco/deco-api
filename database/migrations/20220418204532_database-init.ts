@@ -274,12 +274,7 @@ export async function up(knex: Knex): Promise<any> {
     table.boolean('cancel_at_period_end')
     table.string('stripe_price_id')
     table.string('stripe_product_id')
-    table
-      .string('userfront_user_id')
-      .notNullable()
-      .references('userfront_user_id')
-      .inTable('users')
-      .onDelete('CASCADE')
+    table.string('userfront_user_id')
   })
 }
 
