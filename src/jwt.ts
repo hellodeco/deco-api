@@ -1,17 +1,13 @@
 import jwt from 'jsonwebtoken'
 import type { User } from './resolvers/resolvers'
 import { getSecretFromEnvVarOrFile } from './utils'
-
-const jwtPublicKey = getSecretFromEnvVarOrFile({
-  envVarName: 'JWT_PUBLIC_KEY',
-  fileName: 'userfront-public-key.crt',
-});
+import { JWT_PUBLIC_KEY } from './constants'
 
 export async function verifyJWT(token: string): Promise<User | null> {
   return new Promise((resolve, reject) => {
     jwt.verify(
       token,
-      jwtPublicKey,
+      JWT_PUBLIC_KEY,
       (err: jwt.VerifyErrors, auth: jwt.JwtPayload) => {
         if (err) {
           return reject(err)

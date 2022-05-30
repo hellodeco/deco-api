@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { getSecretFromEnvVarOrFile } from './utils'
 
 function getPort() {
   const defaultPort = 4000
@@ -18,6 +19,11 @@ export const FRONTEND_BASE_URL =
 export const NOTION_BASE_URL = 'https://api.notion.com'
 
 export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.co'
+
+export const JWT_PUBLIC_KEY = getSecretFromEnvVarOrFile({
+  envVarName: 'JWT_PUBLIC_KEY',
+  fileName: 'userfront-public-key.crt',
+});
 
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
