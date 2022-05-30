@@ -26,7 +26,7 @@ export const mutationResolvers: MutationResolvers = {
     { toAddress, newEmail },
     { notionAccess, dbAccess },
   ) => {
-    const userMeta = dbAccess.getUserMetaByDecoEmail(toAddress)
+    const userMeta = dbAccess.getUserByDecoEmail(toAddress)
 
     if (!userMeta) {
       return {
@@ -49,7 +49,6 @@ export const mutationResolvers: MutationResolvers = {
     { dbAccess, user: { userfrontID } },
   ) => {
     const user = await dbAccess.getUserByUserfrontID(userfrontID)
-
     if (user.emailAddress) {
       return {
         success: false,
@@ -59,8 +58,7 @@ export const mutationResolvers: MutationResolvers = {
 
     const emailAddress = `${username}@${EMAIL_DOMAIN}`
 
-    const existingUser = await dbAccess.getUserMetaByDecoEmail(emailAddress)
-
+    const existingUser = await dbAccess.getUserByDecoEmail(emailAddress)
     if (existingUser) {
       return {
         success: false,
@@ -78,7 +76,6 @@ export const mutationResolvers: MutationResolvers = {
         errorReason: UpdateDecoEmailErrorReasons.NoSubscription,
       }
     }
-
     /**
      * @reference for valid email username format: https://stackoverflow.com/a/2049510
      */
@@ -91,7 +88,7 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
-    await dbAccess.updateDecoEmail(userfrontID, emailAddress)
+    await dbAccess.updateUsersDecoEmailAddress(userfrontID, emailAddress)
 
     return {
       success: true,

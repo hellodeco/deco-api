@@ -156,10 +156,6 @@ export const formatNotionTable = async (userfrontID: string) => {
         type: 'number',
         number: {},
       },
-      Email_Thread_ID: {
-        type: 'number',
-        number: {},
-      },
     },
   })
 
