@@ -89,7 +89,9 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     const references = headersMap['references']
     const messageID = headersMap['message-id']
 
-    const emailRecipient = await getUserByDecoEmail(to)
+    const emailRecipient = await getUserByDecoEmail(
+      to.toLowerCase(),
+    )
 
     if (!emailRecipient) {
       console.log('No user found for email')
