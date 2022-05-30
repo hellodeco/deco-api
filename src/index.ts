@@ -6,14 +6,8 @@ import permissions from './permissions'
 import resolvers from './resolvers/resolvers'
 import { createServer } from './create-server'
 import { app } from './express'
-import { getSecretFromEnvVarOrFile } from './utils'
 
 import 'dotenv/config'
-
-getSecretFromEnvVarOrFile({
-  envVarName: 'JWT_PUBLIC_KEY',
-  fileName: 'userfront-public-key.crt',
-});
 
 const typeDefs = fs
   .readFileSync(path.join(__dirname, 'schema.graphql'))
