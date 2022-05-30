@@ -229,6 +229,13 @@ export function getUserByDecoEmail(decoEmail: string) {
     .first()
 }
 
+export function getUserBySignupEmail(signupEmail: string) {
+  return dbConnection<User>('users')
+    .where('signup_email', signupEmail)
+    .select('*')
+    .first()
+}
+
 export function getNotionIntegrationByUserfrontID(userfrontID: string) {
   return dbConnection<NotionIntegration>('notion_integrations')
     .where('userfront_user_id', userfrontID)
