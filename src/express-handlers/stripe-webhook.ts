@@ -104,17 +104,20 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         res.status(500).end()
       }
 
-      await Promise.all([
-        createUser({
-          userfrontUserId: createdUserUUID,
-          fullName: name,
-          signupEmail: email,
-        }),
-        createOrUpdateSubscription({
-          userfrontUserId: createdUserUUID,
-          stripeSubscriptionId: session.subscription,
-        }),
-      ])
+      /**
+       * This must happen before creating the subscription in the database or else Postgres will error
+       * and complain about a foreign key for the user not existing in the database
+       */
+      await createUser({
+        userfrontUserId: createdUserUUID,
+        fullName: name,
+        signupEmail: email,
+      }),
+
+      await createOrUpdateSubscription({
+        userfrontUserId: createdUserUUID,
+        stripeSubscriptionId: session.subscription,
+      }),
     } catch (err) {
       console.log(err)
     }
