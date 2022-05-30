@@ -5,6 +5,7 @@ import Stripe from 'stripe'
 import {
   createUser,
   createOrUpdateSubscription,
+  getUserBySignupEmail,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
 import { FRONTEND_BASE_URL } from '../constants'
@@ -62,20 +63,24 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
       const { email, name } = session.customer_details
 
-      // add userfront user
-      // this will also automatically send a login link to the cx
-      const signupResp = await Userfront.signup({
-        method: 'passwordless',
-        email: email,
-        name: name,
-        redirect: false,
-      })
+      const existingUser = getUserBySignupEmail(email)
 
-      if (process.env.NODE_ENV !== 'production') {
-        const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp?.result?.url}`
-        console.log(
-          `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
-        )
+      if (!existingUser) {
+        // add userfront user
+        // this will also automatically send a login link to the cx
+        const signupResp = await Userfront.signup({
+          method: 'passwordless',
+          email: email,
+          name: name,
+          redirect: false,
+        })
+
+        if (process.env.NODE_ENV !== 'production') {
+          const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp?.result?.url}`
+          console.log(
+            `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
+          )
+        }
       }
 
       // todo - swap out this Authorization header with a .env variable
