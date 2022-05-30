@@ -45,10 +45,11 @@ export const mutationResolvers: MutationResolvers = {
   },
   setDecoEmail: async (
     _,
-    { username },
+    { username: unNormalizedUsername },
     { dbAccess, user: { userfrontID } },
   ) => {
     const user = await dbAccess.getUserByUserfrontID(userfrontID)
+    const username = unNormalizedUsername.toLowerCase()
     if (user.emailAddress) {
       return {
         success: false,
@@ -56,10 +57,21 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
+    const reservedUsernames = new Set<string>([
+      'jack',
+      'tyler',
+      'matt',
+      'kat',
+      'thaddeus',
+      'jules',
+      'deco',
+    ])
+
     const emailAddress = `${username}@${EMAIL_DOMAIN}`
 
     const existingUser = await dbAccess.getUserByDecoEmail(emailAddress)
-    if (existingUser) {
+
+    if (reservedUsernames.has(username) || existingUser) {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.AlreadyTaken,
@@ -81,7 +93,10 @@ export const mutationResolvers: MutationResolvers = {
      */
     const validEmailUsername = /^\w+([\.-]?\w+)*$/
 
-    if (!validEmailUsername.test(username)) {
+    if (
+      username.length < 3 ||
+      !validEmailUsername.test(username)
+    ) {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.InvalidFormat,
