@@ -112,12 +112,12 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         userfrontUserId: createdUserUUID,
         fullName: name,
         signupEmail: email,
-      }),
+      })
 
       await createOrUpdateSubscription({
         userfrontUserId: createdUserUUID,
         stripeSubscriptionId: session.subscription,
-      }),
+      })
     } catch (err) {
       console.log(err)
     }
