@@ -5,6 +5,7 @@ import Stripe from 'stripe'
 import {
   createUser,
   createOrUpdateSubscription,
+  getUserByUserfrontID,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
 import { FRONTEND_BASE_URL } from '../constants'
@@ -104,10 +105,6 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         res.status(500).end()
       }
 
-      /**
-       * This must happen before creating the subscription in the database or else Postgres will error
-       * and complain about a foreign key for the user not existing in the database
-       */
       await createUser({
         userfrontUserId: createdUserUUID,
         fullName: name,
@@ -127,9 +124,6 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     try {
       const subscription = event.data.object
 
-      /**
-       * @todo this breaks on update if the sub has not been created yet because userfront uuid is not present and that is a non-null field
-       */
       const dataToUpdate = {
         stripeCustomerId: subscription.customer,
         stripeSubscriptionId: subscription.id,
