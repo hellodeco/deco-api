@@ -81,7 +81,9 @@ export function headerMapToArray(
 export async function emailReceiveHandler(req: Request, res: Response) {
   try {
     const { body } = req
-    const { headers, to, from, subject, text } = body
+    const { headers, from, subject, text } = body
+    let { to } = body
+    to = to.toLowerCase()
 
     const headersMap = parseHeaderString(headers)
 
@@ -89,13 +91,14 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     const references = headersMap['references']
     const messageID = headersMap['message-id']
 
-    const emailRecipient = await getUserByDecoEmail(
-      to.toLowerCase(),
-    )
+    const emailRecipient = await getUserByDecoEmail(to)
 
     if (!emailRecipient) {
       console.log('No user found for email')
 
+      /**
+       * @todo persist the "to" address for these
+       */
       const orphanedEmail: InboundSendgridParsedEmail = {
         subject: subject,
         plainTextContent: text,
