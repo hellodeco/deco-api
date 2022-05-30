@@ -24,7 +24,7 @@ export const queryResolvers: QueryResolvers = {
   },
   emailUsernameAvailable: async (parent, { username }, { dbAccess }) => {
     const email = `${username}@${EMAIL_DOMAIN}`
-    const userMeta = await dbAccess.getUserMetaByDecoEmail(email)
+    const userMeta = await dbAccess.getUserByDecoEmail(email)
     return userMeta ? false : true
   },
   getCurrentUserNotionIntegration: async (parent, args, { dbAccess, user }) => {

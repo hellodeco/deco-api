@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import {
-  getUserMetaByDecoEmail,
+  getUserByDecoEmail,
   createNewEmailThreadByUserID,
   createNewEmail,
   updateDeliveredEmailStatus,
@@ -89,7 +89,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     const references = headersMap['references']
     const messageID = headersMap['message-id']
 
-    const emailRecipient = await getUserMetaByDecoEmail(to)
+    const emailRecipient = await getUserByDecoEmail(to)
 
     if (!emailRecipient) {
       console.log('No user found for email')

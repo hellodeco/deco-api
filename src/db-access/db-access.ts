@@ -222,7 +222,7 @@ export function getUserByUserfrontID(userfrontID: string) {
     .first()
 }
 
-export function getUserMetaByDecoEmail(decoEmail: string) {
+export function getUserByDecoEmail(decoEmail: string) {
   return dbConnection<User>('users')
     .where('email_address', decoEmail)
     .select('*')
@@ -262,9 +262,9 @@ export function updateUsersDecoEmailAddress(
   userfrontID: string,
   emailAddress: string,
 ) {
-  return dbConnection<User>('users')
+  return dbConnection('users')
     .where('userfront_user_id', userfrontID)
-    .update(objectCamelToSnake({ email_address: emailAddress }))
+    .update({ email_address: emailAddress })
 }
 
 export async function updateDeliveredEmailStatus(
