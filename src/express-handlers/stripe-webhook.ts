@@ -109,11 +109,13 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         res.status(500).end()
       }
 
-      await createUser({
-        userfrontUserId: createdUserUUID,
-        fullName: name,
-        signupEmail: email,
-      })
+      if (existingUser) {
+        await createUser({
+          userfrontUserId: createdUserUUID,
+          fullName: name,
+          signupEmail: email,
+        })
+      }
 
       await createOrUpdateSubscription({
         userfrontUserId: createdUserUUID,
