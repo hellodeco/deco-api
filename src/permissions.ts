@@ -19,20 +19,26 @@ const isEmailAdaptor = rule()((parent, args, ctx, info) => {
   return true
 })
 
-const permissions = shield({
-  Query: {
-    currentUser: isAuthenticated,
-    getCurrentUserNotionIntegration: isAuthenticated,
-    emailUsernameAvailable: isAuthenticated,
-    getCurrentUserNotionDatabaseInfo: isAuthenticated,
+const permissions = shield(
+  {
+    Query: {
+      getUserMetaByDecoEmail: isAuthenticated,
+      currentUser: isAuthenticated,
+      getCurrentUserNotionIntegration: isAuthenticated,
+      emailUsernameAvailable: isAuthenticated,
+      getCurrentUserNotionDatabaseInfo: isAuthenticated,
+    },
+    Mutation: {
+      wipeNotionDatabase: isAuthenticated,
+      deleteNotionTableProperties: isAuthenticated,
+      formatNotionTable: isAuthenticated,
+      setDecoEmail: isAuthenticated,
+      addEmailToNotion: isEmailAdaptor,
+    },
   },
-  Mutation: {
-    wipeNotionDatabase: isAuthenticated,
-    deleteNotionTableProperties: isAuthenticated,
-    formatNotionTable: isAuthenticated,
-    setDecoEmail: isAuthenticated,
-    addEmailToNotion: isEmailAdaptor,
-  },
-})
+  {
+    fallbackRule: isAuthenticated,
+  }
+)
 
 export default permissions
