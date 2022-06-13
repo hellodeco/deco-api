@@ -287,5 +287,10 @@ export async function down(knex: Knex): Promise<void> {
     return knex.schema.dropTableIfExists(name)
   })
 
+  promises.push(
+    knex.schema.dropSchemaIfExists('subscriptions'),
+    knex.schema.dropTableIfExists('notion_databases'),
+  )
+
   await Promise.all(promises)
 }
