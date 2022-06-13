@@ -63,7 +63,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
 
       const { email, name } = session.customer_details
 
-      const existingUser = getUserBySignupEmail(email)
+      const existingUser = await getUserBySignupEmail(email)
 
       if (!existingUser) {
         // add userfront user
@@ -106,10 +106,10 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
       // value for userfront_user_id.
       if (!createdUserUUID) {
-        res.status(500).end()
+        return res.status(500).end()
       }
 
-      if (existingUser) {
+      if (!existingUser) {
         await createUser({
           userfrontUserId: createdUserUUID,
           fullName: name,

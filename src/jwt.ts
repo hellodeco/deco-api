@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
 import type { User } from './resolvers/resolvers'
-import { getSecretFromEnvVarOrFile } from './utils'
 import { JWT_PUBLIC_KEY } from './constants'
 
 export async function verifyJWT(token: string): Promise<User | null> {
