@@ -2,6 +2,9 @@ import { QueryResolvers } from '../generated/resolvers-types'
 import { EMAIL_DOMAIN } from '../constants'
 
 export const queryResolvers: QueryResolvers = {
+  /**
+   * @todo remove this if we do not use it!
+   */
   getUserMetaByDecoEmail: async (parent, args, context) => {
     const existingUser = await context.dbAccess.getUserMetaByDecoEmail(
       args.decoEmail,

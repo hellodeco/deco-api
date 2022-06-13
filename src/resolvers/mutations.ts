@@ -21,6 +21,9 @@ export const mutationResolvers: MutationResolvers = {
     )
     return formattedTable
   },
+  /**
+   * @todo remove this!
+   */
   addEmailToNotion: async (
     _,
     { toAddress, newEmail },
@@ -50,7 +53,7 @@ export const mutationResolvers: MutationResolvers = {
   ) => {
     const user = await dbAccess.getUserByUserfrontID(userfrontID)
     const username = unNormalizedUsername.toLowerCase()
-    if (user.emailAddress) {
+    if (user?.emailAddress) {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.CannotChangeEmail,
@@ -84,7 +87,7 @@ export const mutationResolvers: MutationResolvers = {
       userfrontID,
     )
 
-    if (!subscription || subscription.subscriptionStatus !== 'active') {
+    if (!subscription || subscription?.subscriptionStatus !== 'active') {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.NoSubscription,
