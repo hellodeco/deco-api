@@ -43,3 +43,5 @@ export enum EmailStatus {
   RECEIVED_TO_NOTION = 'RECEIVED_TO_NOTION',
   NOTION_FAILED = 'NOTION_FAILED',
 }
+
+export const IS_LOCAL = !['production', 'staging'].includes(process.env.NODE_ENV)
