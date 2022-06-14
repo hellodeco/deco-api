@@ -46,6 +46,13 @@ export const queryResolvers: QueryResolvers = {
     args,
     { notionAccess, user },
   ) => {
-    return await notionAccess.getCurrentUserNotionDatabaseInfo(user.userfrontID)
+    console.log('hitting the info endpoint...')
+    try {
+
+      return await notionAccess.getCurrentUserNotionDatabaseInfo(user.userfrontID)
+    } catch (err) {
+      console.error(err)
+      return null
+    }
   },
 }

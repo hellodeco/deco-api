@@ -248,8 +248,9 @@ export async function getNotionDatabaseIDByUsefrontID(userfrontID: string) {
     'notion_integrations',
   )
     .where('userfront_user_id', userfrontID)
-    .select('*')
+    .select('id')
     .first()
+
   return dbConnection<NotionDatabase>('notion_databases')
     .where('notion_integration_id', notionIntegration.id)
     .select('*')

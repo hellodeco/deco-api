@@ -27,6 +27,11 @@ export const setNotionDatabaseID = async (
 
   const notion = new Client({ auth: notionIntegration.accessToken })
 
+  /**
+   * @todo if the notion page shared is ***not*** a database type than this will not return anything
+   * and then future stuff will error because we won't save a new entry in table notion_databases table.
+   * This fails silently and is very confusing so we should make this process smoother for the user
+   */
   // this returns ALL databases that the user has shared with us
   // because they _should_ only be sharing one DB to start, we can take the first result
   // HOWEVER we will have to figure out a better solution once we allow multiple integrations.
@@ -62,7 +67,10 @@ const getClientAndWorkspaceID = async (
 
   const notionDB = await getNotionDatabaseIDByUsefrontID(userfrontID)
 
-  return { notion: notion, notionDatabaseId: notionDB.notionDatabaseId }
+  return {
+    notion,
+    notionDatabaseId: notionDB?.notionDatabaseId,
+  }
 }
 
 export const wipeNotionDatabase = async (userfrontID: string) => {
@@ -225,26 +233,34 @@ export const addEmailToNotion = async ({
 }
 
 export const getCurrentUserNotionDatabaseInfo = async (userfrontID: string) => {
-  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
-    userfrontID,
-  )
+  let notionDatabaseInfo = null
+  try {
 
-  const response: any = await notion.databases.retrieve({
-    database_id: notionDatabaseId,
-  })
+    const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
+      userfrontID,
+    )
 
-  const dbProperties = Object.keys(response.properties)
+    const response: any = await notion.databases.retrieve({
+      database_id: notionDatabaseId,
+    })
 
-  // Check to see if the database has the correct properties required to receive emails
-  const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
-    return dbProperties.includes(propKey)
-  })
+    const dbProperties = Object.keys(response.properties)
 
-  const notionDatabaseInfo = {
-    title: response.title[0].plain_text,
-    url: response.url,
-    icon: response.icon?.emoji,
-    needsFormatting: !containsAll,
+    // Check to see if the database has the correct properties required to receive emails
+    const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
+      return dbProperties.includes(propKey)
+    })
+
+    console.log('contains all?', containsAll)
+
+    notionDatabaseInfo = {
+      title: response?.title?.[0]?.plain_text,
+      url: response?.url,
+      icon: response?.icon?.emoji,
+      needsFormatting: !containsAll,
+    }
+  } catch(err) {
+    console.error(err)
   }
 
   return notionDatabaseInfo
