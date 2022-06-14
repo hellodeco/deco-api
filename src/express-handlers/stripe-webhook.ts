@@ -8,9 +8,12 @@ import {
   getUserBySignupEmail,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
-import { FRONTEND_BASE_URL } from '../constants'
+import { FRONTEND_DOMAIN, FRONTEND_BASE_URL } from '../constants'
 
-Userfront.init('wn95p6n5')
+Userfront.init('wn95p6n5', {
+  // Setting this tells the Userfront API to create login links, etc using the frontend domain
+  domain: FRONTEND_DOMAIN,
+})
 
 dotenv.config()
 
