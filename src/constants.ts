@@ -13,8 +13,13 @@ export const PORT = getPort()
 export const SERVER_BASE_URL =
   process.env.SERVER_BASE_URL || `http://localhost:${PORT}`
 
-export const FRONTEND_BASE_URL =
-  process.env.FRONTEND_URL || 'http://localhost:3000'
+export const FRONTEND_DOMAIN = process.env.FRONTEND_DOMAIN || 'localhost:3000'
+
+const frontEndProtocol = ['production', 'staging'].includes(process.env.NODE_ENV)
+  ? 'https://'
+  : 'http://'
+
+export const FRONTEND_BASE_URL = `${frontEndProtocol}${FRONTEND_DOMAIN}`
 
 export const NOTION_BASE_URL = 'https://api.notion.com'
 
