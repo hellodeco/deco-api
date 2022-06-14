@@ -8,11 +8,11 @@ import {
   getUserBySignupEmail,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
-import { FRONTEND_DOMAIN, FRONTEND_BASE_URL } from '../constants'
+import { FRONTEND_DOMAIN, FRONTEND_BASE_URL, IS_LOCAL } from '../constants'
 
 Userfront.init('wn95p6n5', {
   // Setting this tells the Userfront API to create login links, etc using the frontend domain
-  domain: FRONTEND_DOMAIN,
+  domain: IS_LOCAL ? null : FRONTEND_DOMAIN,
 })
 
 dotenv.config()
@@ -78,8 +78,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
           redirect: false,
         })
 
-        if (process.env.NODE_ENV !== 'production') {
-          const loginLink = `${FRONTEND_BASE_URL}/magic-link-login${signupResp?.result?.url}`
+        if (IS_LOCAL) {
+          const loginLink = `${FRONTEND_BASE_URL}${signupResp?.result?.url}`
           console.log(
             `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
           )
