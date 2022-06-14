@@ -12,7 +12,7 @@ import {
   getSubscriptionByUserfrontUserId,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
-import { NOTION_BASE_URL, FRONTEND_BASE_URL } from './constants'
+import { NOTION_BASE_URL, FRONTEND_BASE_URL, IS_LOCAL } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import {
@@ -98,11 +98,11 @@ app.get('/oauth/notion', async (req, res) => {
   reqUrl.search = params.toString()
 
   res.cookie(AUTH_TOKEN_COOKIE_STATE_KEY, authToken, {
-    httpOnly: process.env.NODE_ENV === 'production',
+    httpOnly: !IS_LOCAL,
   })
 
   res.cookie(NOTION_AUTH_COOKIE_STATE_KEY, state, {
-    httpOnly: process.env.NODE_ENV === 'production',
+    httpOnly: !IS_LOCAL,
   })
 
   res.redirect(reqUrl.toString())
