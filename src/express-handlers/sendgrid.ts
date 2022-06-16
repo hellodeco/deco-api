@@ -85,6 +85,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let { to } = body
     to = to.toLowerCase()
 
+    console.info(`{new email} [sender]: ${from} [receiver]: ${to} [subject]: ${subject}`)
+
     const headersMap = parseHeaderString(headers)
 
     const inReplyTo = headersMap['in-reply-to']
