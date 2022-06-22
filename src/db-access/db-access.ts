@@ -34,6 +34,7 @@ interface DecoDBEmail {
   inReplyTo?: string
   references?: string
 }
+
 interface NotionDatabase {
   notionDatabaseId: string
   notionIntegrationId: number
@@ -53,7 +54,7 @@ interface Subscription {
   userfrontUserId?: number
 }
 
-interface NotionIntegration {
+export interface NotionIntegration {
   id?: number
   userfrontUserId: string
   accessToken: string

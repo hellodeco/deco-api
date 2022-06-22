@@ -10,6 +10,8 @@ import {
   createOrUpdateNotionIntegration,
   getUserByUserfrontID,
   getSubscriptionByUserfrontUserId,
+  getNotionIntegrationByUserfrontID,
+  createOrUpdateNotionDatabase,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
 import { NOTION_BASE_URL, FRONTEND_BASE_URL, IS_LOCAL } from './constants'
@@ -197,7 +199,20 @@ app.get('/oauth/notion/callback', async (req, res) => {
       email: owner?.user?.person?.email,
     })
 
-    await setNotionDatabaseID(userMeta.userfrontUserId)
+    const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
+    // await setNotionDatabaseID(userMeta.userfrontUserId)
+    const { notionDatabaseId } = await setNotionDatabaseID({ notionIntegration })
+
+    if (!notionDatabaseId) {
+      /**
+       * @todo do something better here. What this likely means is that the user has not yet formatted there page into a "full page database" and thus the database filter did not return anything
+       */
+    }
+
+    await createOrUpdateNotionDatabase({
+      notionIntegrationId: notionIntegration.id,
+      notionDatabaseId: notionDatabaseId,
+    })
 
     return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
   } catch (err) {
@@ -244,3 +259,23 @@ app.post('/stripe/billing-portal', async (req, res) => {
 })
 
 app.post('/inbound', upload.none(), emailReceiveHandler)
+
+
+/**
+
+
+curl 'https://api.notion.com/v1/databases/6332ddc8-07e2-4bdd-8c9c-497cac1dbd1c' \
+  -H 'Authorization: Bearer secret_BwRXpPK7seYgbPnbTaoLukSTFp7mWOXwcZrthPslXlq' \
+  -H 'Notion-Version: 2022-02-22'
+
+
+curl 'https://api.notion.com/v1/databases/74021834c7c8461db658ee0cfdf594c4' \
+  -H 'Authorization: Bearer secret_BwRXpPK7seYgbPnbTaoLukSTFp7mWOXwcZrthPslXlq' \
+  -H 'Notion-Version: 2022-02-22'
+
+
+
+
+
+
+ */
