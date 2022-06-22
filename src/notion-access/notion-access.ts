@@ -5,6 +5,7 @@ import {
   getNotionDatabaseIDByUsefrontID,
   createOrUpdateNotionDatabase,
 } from '../db-access/db-access'
+import type { NotionIntegration } from '../db-access/db-access'
 import { REQUIRED_NOTION_DATABASE_PROPERTIES } from '../constants'
 
 export interface NewEmail {
@@ -15,47 +16,50 @@ export interface NewEmail {
   plainTextContent: string
 }
 
-export interface NotionConnectData {
+interface NotionConnectData {
   notion?: Client
   notionDatabaseId?: string
 }
 
-export const setNotionDatabaseID = async (
-  userfrontID: string,
-): Promise<NotionConnectData> => {
-  const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
-
+export const setNotionDatabaseID = async ({
+  notionIntegration,
+}: {
+  notionIntegration: NotionIntegration
+}): Promise<{ notionDatabaseId?: string }> => {
   const notion = new Client({ auth: notionIntegration.accessToken })
+  let notionDatabaseId = null
 
-  /**
-   * @todo if the notion page shared is ***not*** a database type than this will not return anything
-   * and then future stuff will error because we won't save a new entry in table notion_databases table.
-   * This fails silently and is very confusing so we should make this process smoother for the user
-   */
-  // this returns ALL databases that the user has shared with us
-  // because they _should_ only be sharing one DB to start, we can take the first result
-  // HOWEVER we will have to figure out a better solution once we allow multiple integrations.
-  const searchResponse = await notion.search({
-    filter: {
-      property: 'object',
-      value: 'database',
-    },
-  })
+  try {
+    /**
+     * @todo if the notion page shared is ***not*** a full page database type than this will not return anything
+     * and then future stuff will error because we won't save a new entry in table notion_databases table.
+     * This fails silently and is very confusing so we should make this process smoother for the user
+     * 
+     * ***** Notion imposed limits *****
+     * - Only top level Notion pages are allowed
+     * - 
+     * 
+     * ***** Ideas *****
+     * - store a "health" field in the notion_database table and if this is "false" then we can tell the user to self troubleshoot common problems
+     */
+    // this returns ALL databases that the user has shared with us
+    // because they _should_ only be sharing one DB to start, we can take the first result
+    // HOWEVER we will have to figure out a better solution once we allow multiple integrations.
+    const searchResponse = await notion.search({
+      filter: {
+        property: 'object',
+        value: 'database',
+      },
+    })
 
-  const notionDatabaseId = searchResponse?.results[0]?.id
+    notionDatabaseId = searchResponse?.results[0]?.id
 
-  /**
-   * @todo do something better here. What this likely means is that the user has not yet formatted there page into a "full page database" and thus the database filter did not return anything
-   */
-  if (!notionDatabaseId) {
-    return null
+    console.log('search resp', searchResponse, notionDatabaseId)
+  } catch (err) {
+    console.error(err)
   }
 
-  await createOrUpdateNotionDatabase({
-    notionIntegrationId: notionIntegration.id,
-    notionDatabaseId: notionDatabaseId,
-  })
-  return { notionDatabaseId: notionDatabaseId }
+  return { notionDatabaseId }
 }
 
 const getClientAndWorkspaceID = async (
@@ -250,8 +254,6 @@ export const getCurrentUserNotionDatabaseInfo = async (userfrontID: string) => {
     const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
       return dbProperties.includes(propKey)
     })
-
-    console.log('contains all?', containsAll)
 
     notionDatabaseInfo = {
       title: response?.title?.[0]?.plain_text,
