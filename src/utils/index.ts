@@ -17,10 +17,6 @@ export function objectCamelToSnake(o: { [key: string]: any}) {
   }, {})
 }
 
-export function getNotionRedirectURI() {
-  return `${SERVER_BASE_URL}/oauth/notion/callback`
-}
-
 export function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
   params.append('message', message)

@@ -25,6 +25,7 @@ export const NOTION_BASE_URL = 'https://api.notion.com'
 
 export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.co'
 
+
 export const JWT_PUBLIC_KEY = getSecretFromEnvVarOrFile({
   envVarName: 'JWT_PUBLIC_KEY',
   fileName: 'userfront-public-key.crt',
@@ -47,3 +48,5 @@ export enum EmailStatus {
 export const IS_LOCAL = !['production', 'staging'].includes(process.env.NODE_ENV)
 
 export const USERFRONT_READONLY_API_KEY = process.env.USERFRONT_READONLY_API_KEY
+
+export const NOTION_REDIRECT_URI = `${SERVER_BASE_URL}/oauth/notion/callback`
