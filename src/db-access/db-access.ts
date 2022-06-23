@@ -119,18 +119,22 @@ export async function createOrUpdateNotionIntegration(
     Tables.NOTION_INTEGRATIONS,
   )
     .where('userfront_user_id', notionIntegration.userfrontUserId)
-    .select('*')
+    .select('id')
     .first()
 
   if (integration) {
     return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
       .where('userfront_user_id', notionIntegration.userfrontUserId)
       .update(objectCamelToSnake(notionIntegration))
+      .returning('*')
+      .first()
   }
 
-  return dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS).insert(
-    objectCamelToSnake(notionIntegration),
-  )
+  const [newIntegration] = await dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
+    .insert(objectCamelToSnake(notionIntegration))
+    .returning('*')
+
+  return newIntegration
 }
 
 export async function createOrUpdateSubscription(subscription: Subscription) {

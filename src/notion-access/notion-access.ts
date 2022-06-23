@@ -21,12 +21,12 @@ interface NotionConnectData {
   notionDatabaseId?: string
 }
 
-export const setNotionDatabaseID = async ({
-  notionIntegration,
+export const getNotionDatabaseID = async ({
+  accessToken,
 }: {
-  notionIntegration: NotionIntegration
+  accessToken: string
 }): Promise<{ notionDatabaseId?: string }> => {
-  const notion = new Client({ auth: notionIntegration.accessToken })
+  const notion = new Client({ auth: accessToken })
   let notionDatabaseId = null
 
   try {
