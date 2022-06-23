@@ -96,6 +96,7 @@ export enum UpdateDecoEmailErrorReasons {
   AlreadyTaken = 'ALREADY_TAKEN',
   CannotChangeEmail = 'CANNOT_CHANGE_EMAIL',
   InvalidFormat = 'INVALID_FORMAT',
+  NotEnoughChars = 'NOT_ENOUGH_CHARS',
   NoSubscription = 'NO_SUBSCRIPTION'
 }
 
