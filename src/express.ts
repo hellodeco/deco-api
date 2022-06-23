@@ -14,11 +14,10 @@ import {
   createOrUpdateNotionDatabase,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
-import { NOTION_BASE_URL, FRONTEND_BASE_URL, IS_LOCAL } from './constants'
+import { NOTION_BASE_URL, FRONTEND_BASE_URL, IS_LOCAL, NOTION_REDIRECT_URI } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import {
-  getNotionRedirectURI,
   createNotionAuthFailedRedirectURL,
 } from './utils'
 import { setNotionDatabaseID } from './notion-access/notion-access'
@@ -90,7 +89,7 @@ app.get('/oauth/notion', async (req, res) => {
   const state = uuid()
   const params = new URLSearchParams({
     client_id: process.env.NOTION_CLIENT_ID,
-    redirect_uri: getNotionRedirectURI(),
+    redirect_uri: NOTION_REDIRECT_URI,
     response_type: 'code',
     owner: 'user',
     state,
@@ -151,7 +150,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
     const tokenReqBody = {
       code,
       grant_type: 'authorization_code',
-      redirect_uri: getNotionRedirectURI(),
+      redirect_uri: NOTION_REDIRECT_URI,
     }
 
     const tokenRes = await fetch(tokenUrl.toString(), {
@@ -184,6 +183,17 @@ app.get('/oauth/notion/callback', async (req, res) => {
       )
     }
 
+    const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
+    const { notionDatabaseId } = await setNotionDatabaseID({ notionIntegration })
+
+    if (!notionDatabaseId) {
+      return res.redirect(
+        createNotionAuthFailedRedirectURL({
+          message: 'It seems that the Notion page shared was not formatted as a full page database',
+        }),
+      )
+    }
+
     await createOrUpdateNotionIntegration({
       userfrontUserId: userMeta.userfrontUserId,
       accessToken: access_token,
@@ -198,16 +208,6 @@ app.get('/oauth/notion/callback', async (req, res) => {
       type: owner?.user?.type,
       email: owner?.user?.person?.email,
     })
-
-    const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
-    // await setNotionDatabaseID(userMeta.userfrontUserId)
-    const { notionDatabaseId } = await setNotionDatabaseID({ notionIntegration })
-
-    if (!notionDatabaseId) {
-      /**
-       * @todo do something better here. What this likely means is that the user has not yet formatted there page into a "full page database" and thus the database filter did not return anything
-       */
-    }
 
     await createOrUpdateNotionDatabase({
       notionIntegrationId: notionIntegration.id,
