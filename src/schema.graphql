@@ -45,6 +45,7 @@ type AddEmailToNotionResult {
 enum UpdateDecoEmailErrorReasons {
   ALREADY_TAKEN
   INVALID_FORMAT
+  NOT_ENOUGH_CHARS
   CANNOT_CHANGE_EMAIL
   NO_SUBSCRIPTION
 }

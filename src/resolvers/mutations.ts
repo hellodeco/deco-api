@@ -70,6 +70,7 @@ export const mutationResolvers: MutationResolvers = {
       'deco',
       'xyz',
       'abc',
+      'veryspry',
     ])
 
     const emailAddress = `${username}@${EMAIL_DOMAIN}`
@@ -93,15 +94,20 @@ export const mutationResolvers: MutationResolvers = {
         errorReason: UpdateDecoEmailErrorReasons.NoSubscription,
       }
     }
+
+    if(username.length < 3) {
+      return {
+        success: false,
+        errorReason: UpdateDecoEmailErrorReasons.NotEnoughChars,
+      }
+    }
+
     /**
      * @reference for valid email username format: https://stackoverflow.com/a/2049510
      */
     const validEmailUsername = /^\w+([\.-]?\w+)*$/
 
-    if (
-      username.length < 3 ||
-      !validEmailUsername.test(username)
-    ) {
+    if (!validEmailUsername.test(username)) {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.InvalidFormat,
