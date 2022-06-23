@@ -20,7 +20,7 @@ import { emailReceiveHandler } from './express-handlers/sendgrid'
 import {
   createNotionAuthFailedRedirectURL,
 } from './utils'
-import { setNotionDatabaseID } from './notion-access/notion-access'
+import { getNotionDatabaseID } from './notion-access/notion-access'
 
 export const app = express()
 
@@ -183,8 +183,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
       )
     }
 
-    const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
-    const { notionDatabaseId } = await setNotionDatabaseID({ notionIntegration })
+    const { notionDatabaseId } = await getNotionDatabaseID({ accessToken: access_token })
 
     if (!notionDatabaseId) {
       return res.redirect(
@@ -194,7 +193,7 @@ app.get('/oauth/notion/callback', async (req, res) => {
       )
     }
 
-    await createOrUpdateNotionIntegration({
+    const notionIntegration = await createOrUpdateNotionIntegration({
       userfrontUserId: userMeta.userfrontUserId,
       accessToken: access_token,
       tokenType: token_type,
