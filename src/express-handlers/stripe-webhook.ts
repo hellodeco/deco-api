@@ -8,7 +8,12 @@ import {
   getUserBySignupEmail,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
-import { FRONTEND_DOMAIN, FRONTEND_BASE_URL, IS_LOCAL } from '../constants'
+import {
+  FRONTEND_DOMAIN,
+  FRONTEND_BASE_URL,
+  IS_LOCAL,
+  USERFRONT_READONLY_API_KEY,
+} from '../constants'
 
 Userfront.init('wn95p6n5', {
   // Setting this tells the Userfront API to create login links, etc using the frontend domain
@@ -86,7 +91,6 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         }
       }
 
-      // todo - swap out this Authorization header with a .env variable
       // get userfront UUID from signup
       const userfrontResponse = await fetch(
         'https://api.userfront.com/v0/users/find',
@@ -95,8 +99,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
           headers: {
             Accept: 'application/json',
             'Content-Type': 'application/json',
-            Authorization:
-              'Bearer uf_test_admin_wn95p6n5_35cde8ca99b2438107c4e77ab0fa8356',
+            Authorization: USERFRONT_READONLY_API_KEY,
           },
           body: JSON.stringify(generateUserfrontSearchPayload(email)),
         },
