@@ -45,3 +45,5 @@ export enum EmailStatus {
 }
 
 export const IS_LOCAL = !['production', 'staging'].includes(process.env.NODE_ENV)
+
+export const USERFRONT_READONLY_API_KEY = process.env.USERFRONT_READONLY_API_KEY
