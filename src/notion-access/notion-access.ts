@@ -52,8 +52,6 @@ export const getNotionDatabaseID = async ({
     })
 
     notionDatabaseId = searchResponse?.results[0]?.id
-
-    console.log('search resp', searchResponse, notionDatabaseId)
   } catch (err) {
     console.error(err)
   }
