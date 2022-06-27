@@ -1,0 +1,12 @@
+export const reservedUsernames = new Set<string>([
+  'jack',
+  'tyler',
+  'matt',
+  'kat',
+  'thaddeus',
+  'jules',
+  'deco',
+  'xyz',
+  'abc',
+  'veryspry',
+])

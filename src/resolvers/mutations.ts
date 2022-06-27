@@ -3,6 +3,7 @@ import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
 } from '../generated/resolvers-types'
+import { reservedUsernames } from '../reservedUsernames'
 
 export const mutationResolvers: MutationResolvers = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -59,19 +60,6 @@ export const mutationResolvers: MutationResolvers = {
         errorReason: UpdateDecoEmailErrorReasons.CannotChangeEmail,
       }
     }
-
-    const reservedUsernames = new Set<string>([
-      'jack',
-      'tyler',
-      'matt',
-      'kat',
-      'thaddeus',
-      'jules',
-      'deco',
-      'xyz',
-      'abc',
-      'veryspry',
-    ])
 
     const emailAddress = `${username}@${EMAIL_DOMAIN}`
 
