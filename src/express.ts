@@ -235,6 +235,7 @@ app.post('/stripe/checkout-session', async (req, res) => {
     mode: 'subscription',
     success_url: `${FRONTEND_BASE_URL}/post-checkout`,
     cancel_url: `${FRONTEND_BASE_URL}/checkout-failed`,
+    allow_promotion_codes: true,
   })
 
   return res.status(200).json({ sessionUrl: session.url })
