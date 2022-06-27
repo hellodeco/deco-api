@@ -35,9 +35,8 @@ export const getNotionDatabaseID = async ({
      * and then future stuff will error because we won't save a new entry in table notion_databases table.
      * This fails silently and is very confusing so we should make this process smoother for the user
      * 
-     * ***** Notion imposed limits *****
+     * ***** Notion imposed limit *****
      * - Only top level Notion pages are allowed
-     * - 
      * 
      * ***** Ideas *****
      * - store a "health" field in the notion_database table and if this is "false" then we can tell the user to self troubleshoot common problems
