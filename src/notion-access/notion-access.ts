@@ -236,10 +236,15 @@ export const addEmailToNotion = async ({
 export const getCurrentUserNotionDatabaseInfo = async (userfrontID: string) => {
   let notionDatabaseInfo = null
   try {
+    const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
 
-    const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
-      userfrontID,
-    )
+    if (!notionIntegration) {
+      return null
+    }
+
+    const notion = new Client({ auth: notionIntegration.accessToken })
+    const notionDB = await getNotionDatabaseIDByUsefrontID(userfrontID)
+    const notionDatabaseId = notionDB?.notionDatabaseId
 
     const response: any = await notion.databases.retrieve({
       database_id: notionDatabaseId,
