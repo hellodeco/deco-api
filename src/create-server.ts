@@ -6,6 +6,7 @@ import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/t
 import { PORT } from './constants'
 import resolvers, { User } from './resolvers/resolvers'
 import * as dbAccess from './db-access/db-access'
+import dbConnection from './db-connection'
 import * as notionAccess from './notion-access/notion-access'
 import { verifyJWT } from './jwt'
 
@@ -47,6 +48,11 @@ export async function createServer({
 
       return {
         dbAccess,
+        // this will eventually replace dbAccess
+        db: {
+          users: () => dbConnection('users'),
+          subscriptions: () => dbConnection('subscriptions'),
+        },
         user,
         notionAccess,
       }

@@ -50,7 +50,7 @@ export const mutationResolvers: MutationResolvers = {
   setDecoEmail: async (
     _,
     { username: unNormalizedUsername },
-    { dbAccess, user: { userfrontID } },
+    { dbAccess, db, user: { userfrontID } },
   ) => {
     const user = await dbAccess.getUserByUserfrontID(userfrontID)
     const username = unNormalizedUsername.toLowerCase()
@@ -72,9 +72,13 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
-    const subscription = await dbAccess.getSubscriptionByUserfrontUserId(
-      userfrontID,
-    )
+    const subscription = await db.subscriptions()
+      .where({
+        userfront_user_id: userfrontID,
+        subscription_status: 'active',
+      })
+      .select('*')
+      .first()
 
     if (!subscription || subscription?.subscriptionStatus !== 'active') {
       return {
