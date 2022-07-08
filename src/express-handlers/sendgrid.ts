@@ -86,6 +86,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     to = to.toLowerCase()
 
     console.info(`{new email} [sender]: ${from} [receiver]: ${to} [subject]: ${subject}`)
+    console.info(`body keys:`, ...Object.keys(body))
+    console.info(`body`, body)
 
     const headersMap = parseHeaderString(headers)
 
