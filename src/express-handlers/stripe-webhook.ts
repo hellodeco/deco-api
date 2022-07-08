@@ -50,7 +50,7 @@ const generateUserfrontSearchPayload = (email: string) => ({
   },
 })
 
-export const handleStripeWebhook = async (req: Request, res: Response) => {
+export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature']
   let event
   try {
