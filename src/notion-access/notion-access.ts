@@ -3,9 +3,7 @@ import 'dotenv/config'
 import {
   getNotionIntegrationByUserfrontID,
   getNotionDatabaseIDByUsefrontID,
-  createOrUpdateNotionDatabase,
 } from '../db-access/db-access'
-import type { NotionIntegration } from '../db-access/db-access'
 import { REQUIRED_NOTION_DATABASE_PROPERTIES } from '../constants'
 
 export interface NewEmail {
