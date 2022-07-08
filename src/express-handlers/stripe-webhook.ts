@@ -108,6 +108,9 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
       const userfrontData = await userfrontResponse.json()
       const createdUserUUID = userfrontData?.results?.[0]?.userUuid
 
+      console.log('userfront status:', userfrontResponse.status)
+      console.log('userfront user data:', createdUserUUID)
+
       // todo: We should handle this case better
       // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
       // value for userfront_user_id.
