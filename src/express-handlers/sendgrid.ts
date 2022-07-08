@@ -90,10 +90,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     // since it's likely not a deco email address. We'll need to figure out what emails like this look like and then
     // handle them correctly
 
-    console.info(`{new email} [sender]: ${from} [receiver]: ${to} [subject]: ${subject}`)
-    console.info(`body keys:`, ...Object.keys(body))
-    console.info(`body`, body)
-
     const headersMap = parseHeaderString(headers)
 
     const inReplyTo = headersMap['in-reply-to']
@@ -103,8 +99,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     const emailRecipient = await getUserByDecoEmail(to)
 
     if (!emailRecipient) {
-      console.log('No user found for email')
-
       /**
        * @todo persist the "to" address for these
        */
