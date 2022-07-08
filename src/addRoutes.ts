@@ -19,6 +19,7 @@ import {
   FRONTEND_BASE_URL,
   IS_LOCAL,
   NOTION_REDIRECT_URI,
+  USERFRONT_READONLY_API_KEY,
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
@@ -81,10 +82,12 @@ export function addRoutes(app: Express) {
   app.get('/healthz', async (req, res) => {
     let status = 200
     let body: {
-      userMessage?: string
-    } = {}
-
-    // TODO: add check to ensure that userfront api can be called
+      databaseMessage?: string
+      userfronAPIMessage?: string
+    } = {
+      databaseMessage: 'database is alive and responding',
+      userfronAPIMessage: 'userfront API is alive and responding',
+    }
 
     const user = db.users()
       .select('id')
@@ -92,7 +95,28 @@ export function addRoutes(app: Express) {
 
     if (!user) {
       status = 500
-      body.userMessage = 'Database is not connected'
+      body.databaseMessage = 'Database is not connected'
+    }
+
+    const userfrontResp = await fetch(
+      'https://api.userfront.com/v0/users/find',
+      {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${USERFRONT_READONLY_API_KEY}`,
+        },
+        body: JSON.stringify({
+          order: 'lastActiveAt_ASC',
+          page: 1,
+        }),
+      },
+    )
+
+    if (userfrontResp.status !== 200) {
+      status = 500
+      body.userfronAPIMessage = 'Userfront API is not responding'
     }
 
     res.status(status).json(body)
