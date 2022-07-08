@@ -52,13 +52,6 @@ export const JWT_PUBLIC_KEY = getSecretFromEnvVarOrFile({
   fileName: 'userfront-public-key.crt',
 });
 
-export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
-  'From',
-  'Delivered',
-  'Email_ID',
-  'Name',
-]
-
 export enum EmailStatus {
   TO_ADDRESS_NOT_FOUND = 'TO_ADDRESS_NOT_FOUND',
   RECEIVED_TO_DECO = 'RECEIVED_TO_DECO',

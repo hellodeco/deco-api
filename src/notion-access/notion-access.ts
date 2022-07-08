@@ -4,7 +4,13 @@ import {
   getNotionIntegrationByUserfrontID,
   getNotionDatabaseIDByUsefrontID,
 } from '../db-access/db-access'
-import { REQUIRED_NOTION_DATABASE_PROPERTIES } from '../constants'
+
+export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
+  'From',
+  'Delivered',
+  'Email_ID',
+  'Name',
+]
 
 export interface NewEmail {
   subject: string
@@ -19,11 +25,11 @@ interface NotionConnectData {
   notionDatabaseId?: string
 }
 
-export const getNotionDatabaseID = async ({
+export async function getNotionDatabaseID({
   accessToken,
 }: {
   accessToken: string
-}): Promise<{ notionDatabaseId?: string }> => {
+}): Promise<{ notionDatabaseId?: string }> {
   const notion = new Client({ auth: accessToken })
   let notionDatabaseId = null
 
@@ -57,9 +63,9 @@ export const getNotionDatabaseID = async ({
   return { notionDatabaseId }
 }
 
-const getClientAndWorkspaceID = async (
+async function getClientAndWorkspaceID(
   userfrontID: string,
-): Promise<NotionConnectData> => {
+): Promise<NotionConnectData> {
   const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
 
   const notion = new Client({ auth: notionIntegration.accessToken })
@@ -72,7 +78,7 @@ const getClientAndWorkspaceID = async (
   }
 }
 
-export const wipeNotionDatabase = async (userfrontID: string) => {
+export async function wipeNotionDatabase(userfrontID: string) {
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )
@@ -98,7 +104,7 @@ export const wipeNotionDatabase = async (userfrontID: string) => {
   return archivedPageTitles
 }
 
-export const deleteNotionTableProperties = async (userfrontID: string) => {
+export async function deleteNotionTableProperties(userfrontID: string) {
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )
@@ -128,7 +134,7 @@ export const deleteNotionTableProperties = async (userfrontID: string) => {
   return deletedProperties
 }
 
-export const formatNotionTable = async (userfrontID: string) => {
+export async function formatNotionTable(userfrontID: string){
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )
@@ -169,13 +175,13 @@ export const formatNotionTable = async (userfrontID: string) => {
   return true
 }
 
-export const addEmailToNotion = async ({
+export async function addEmailToNotion({
   newEmail,
   userfrontID,
 }: {
   newEmail: NewEmail
   userfrontID: string
-}) => {
+}) {
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )
@@ -231,7 +237,7 @@ export const addEmailToNotion = async ({
   return emailCreated.id
 }
 
-export const getCurrentUserNotionDatabaseInfo = async (userfrontID: string) => {
+export async function getCurrentUserNotionDatabaseInfo(userfrontID: string) {
   let notionDatabaseInfo = null
   try {
     const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
