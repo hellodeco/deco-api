@@ -11,17 +11,23 @@ import {
   createOrUpdateNotionIntegration,
   getUserByUserfrontID,
   getSubscriptionByUserfrontUserId,
-  getNotionIntegrationByUserfrontID,
   createOrUpdateNotionDatabase,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
-import { NOTION_BASE_URL, FRONTEND_BASE_URL, IS_LOCAL, NOTION_REDIRECT_URI } from './constants'
+import {
+  NOTION_BASE_URL,
+  FRONTEND_BASE_URL,
+  IS_LOCAL,
+  NOTION_REDIRECT_URI,
+  JWT_PUBLIC_KEY,
+} from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import {
   createNotionAuthFailedRedirectURL,
 } from './utils'
 import { getNotionDatabaseID } from './notion-access/notion-access'
+import { db } from './db-connection'
 
 export function addRoutes(app: Express) {
   const upload = multer()
@@ -71,8 +77,23 @@ export function addRoutes(app: Express) {
    * can be configured in the Render settings for this deployed service
    */
   app.get('/healthz', async (req, res) => {
-    // TODO: add checks to ensure that database is connected and working, userfront api can be called, etc
-    res.status(200).json({ message: 'success' })
+    let status = 200
+    let body: {
+      userMessage?: string
+    } = {}
+
+    // TODO: add check to ensure that userfront api can be called
+
+    const user = db.users()
+      .select('id')
+      .first()
+
+    if (!user) {
+      status = 500
+      body.userMessage = 'Database is not connected'
+    }
+
+    res.status(status).json(body)
   })
   
   app.get('/oauth/notion', async (req, res) => {
