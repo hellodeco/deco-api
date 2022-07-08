@@ -1,5 +1,26 @@
+import fs from 'fs'
 import 'dotenv/config'
-import { getSecretFromEnvVarOrFile } from './utils'
+
+/**
+ * Reads a secret from a given file if it exists and otherwise defaults to the given
+ * environment variable.
+ *
+ * Render does not handle newline characters correctly when setting them in env vars.
+ * If a secret needs newlines, the workaround is to set a secret file and read the secret
+ * from that file.
+ */
+export function getSecretFromEnvVarOrFile({ envVarName, fileName }) {
+  let secret = process.env[envVarName];
+
+  const renderDBCertPath = `/etc/secrets/${fileName}`;
+  if (fs.existsSync(renderDBCertPath)) {
+    secret = fs.readFileSync(renderDBCertPath, 'utf-8');
+  }
+
+  process.env[envVarName] = secret
+
+  return secret;
+}
 
 function getPort() {
   const defaultPort = 4000

@@ -19,15 +19,17 @@ import {
   FRONTEND_BASE_URL,
   IS_LOCAL,
   NOTION_REDIRECT_URI,
-  JWT_PUBLIC_KEY,
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
-import {
-  createNotionAuthFailedRedirectURL,
-} from './utils'
 import { getNotionDatabaseID } from './notion-access/notion-access'
 import { db } from './db-connection'
+
+function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
+  const params = new URLSearchParams()
+  params.append('message', message)
+  return `${FRONTEND_BASE_URL}/oauth/notion/fail?${params.toString()}`
+}
 
 export function addRoutes(app: Express) {
   const upload = multer()
