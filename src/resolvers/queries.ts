@@ -59,4 +59,7 @@ export const queryResolvers: QueryResolvers = {
       return null
     }
   },
+  emailDomain: async () => {
+    return EMAIL_DOMAIN
+  }
 }
