@@ -60,6 +60,7 @@ export const queryResolvers: QueryResolvers = {
     }
   },
   emailDomain: async () => {
+    console.log(EMAIL_DOMAIN)
     return EMAIL_DOMAIN
   }
 }

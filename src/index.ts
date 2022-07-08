@@ -1,11 +1,11 @@
 import fs from 'fs'
 import path from 'path'
+import express from 'express'
 import { applyMiddleware } from 'graphql-middleware'
 import { makeExecutableSchema } from '@graphql-tools/schema'
 import permissions from './permissions'
 import resolvers from './resolvers/resolvers'
 import { createServer } from './create-server'
-import { app } from './express'
 
 import 'dotenv/config'
 
@@ -20,6 +20,8 @@ const schema = applyMiddleware(
   }),
   permissions,
 )
+
+const app = express()
 
 createServer({
   typeDefs,

@@ -9,6 +9,7 @@ import * as dbAccess from './db-access/db-access'
 import dbConnection from './db-connection'
 import * as notionAccess from './notion-access/notion-access'
 import { verifyJWT } from './jwt'
+import { addRoutes } from './addRoutes'
 
 interface StartApolloServerOpts {
   typeDefs: string
@@ -23,6 +24,7 @@ export async function createServer({
   schema,
   app,
 }: StartApolloServerOpts) {
+  addRoutes(app)
   const httpServer = http.createServer(app)
   const server = new ApolloServer({
     typeDefs,
