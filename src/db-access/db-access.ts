@@ -2,74 +2,14 @@ import dbConnection from '../db-connection'
 import { objectCamelToSnake } from '../utils'
 import { EmailStatus } from '../constants'
 import { Header } from '../express-handlers/sendgrid'
-
-
-/**
- * @todo type these return values
- */
-
-interface DBModel {
-  createdAt: string
-  updatedAt: string
-}
-
-interface User {
-  id?: string
-  userfrontUserId: string
-  fullName: string
-  signupEmail?: string
-  emailAddress?: string
-  stripeCustomerId?: string
-}
-
-interface DecoDBEmail {
-  id: number
-  subject: string
-  plainTextContent: string
-  from: string
-  emailThreadId?: number
-  htmlContent?: string
-  status?: string
-  notionPageId?: string
-  messageId?: string
-  inReplyTo?: string
-  references?: string
-}
-
-interface NotionDatabase {
-  notionDatabaseId: string
-  notionIntegrationId: number
-}
-
-interface Subscription {
-  id?: string
-  stripeCustomerId?: string
-  stripeSubscriptionId?: string
-  subscriptionStatus?: string
-  currentPeriodStart?: number
-  currentPeriodEnd?: number
-  canceledAt?: number
-  cancelAtPeriodEnd?: boolean
-  stripePriceId?: string
-  stripeProductId?: string
-  userfrontUserId?: number
-}
-
-export interface NotionIntegration {
-  id?: number
-  userfrontUserId: string
-  accessToken: string
-  tokenType: string
-  workspaceId: string
-  workspaceName: string
-  workspaceIcon: string
-  botId: string
-  userId: string
-  userFullName: string
-  avatarURL: string
-  type: string
-  email: string
-}
+import { Tables } from '../types/database'
+import type {
+  User,
+  DecoDBEmail,
+  NotionDatabase,
+  Subscription,
+  NotionIntegration,
+} from '../types/database'
 
 interface EmailThread {
   id?: number
@@ -78,11 +18,6 @@ interface EmailThread {
 }
 
 type EmailThreadArray = EmailThread[]
-
-enum Tables {
-  NOTION_INTEGRATIONS = 'notion_integrations',
-  SUBSCRIPTIONS = 'subscriptions',
-}
 
 //  CREATE FUNCTIONS =================================================
 
