@@ -71,6 +71,7 @@ app.use(cors(corsOpts))
  * can be configured in the Render settings for this deployed service
  */
 app.get('/healthz', async (req, res) => {
+  // TODO: add checks to ensure that database is connected and working, userfront api can be called, etc
   res.status(200).json({ message: 'success' })
 })
 

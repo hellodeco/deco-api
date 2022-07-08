@@ -63,11 +63,6 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
-  console.log('event type......', event.type)
-  console.log(event)
-  console.log(event.data)
-  console.log(event.data.object)
-
   // todo - write handlers for cancelation events (after we launch)
   // will also want to split into separate handlers per event type and extract to their own files
   switch (event.type) {
@@ -114,9 +109,6 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
         const userfrontData = await userfrontResponse.json()
         const createdUserUUID = userfrontData?.results?.[0]?.userUuid
 
-        console.log('userfront status:', userfrontResponse.status)
-        console.log('userfront user data:', createdUserUUID)
-
         // todo: We should handle this case better
         // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
         // value for userfront_user_id.
@@ -150,11 +142,8 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     case 'customer.subscription.created': {
     // TODO: we should also make sure that we dedupe any duplicate subscriptions for
     // a given userfrontUserId
-      console.log('inside of the created/updaed handler...')
       try {
         const subscription = event.data.object
-
-        console.log('subscription:', subscription)
 
         const dataToUpdate = {
           stripeCustomerId: subscription.customer,
