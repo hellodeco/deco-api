@@ -63,99 +63,119 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
+  console.log('event type......', event.type)
+  console.log(event)
+  console.log(event.data)
+  console.log(event.data.object)
+
   // todo - write handlers for cancelation events (after we launch)
   // will also want to split into separate handlers per event type and extract to their own files
-  if (event.type === 'checkout.session.completed') {
-    try {
-      const session = event.data.object
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      try {
+        const session = event.data.object
 
-      const { email, name } = session.customer_details
+        const { email, name } = session.customer_details
 
-      const existingUser = await getUserBySignupEmail(email)
+        const existingUser = await getUserBySignupEmail(email)
 
-      if (!existingUser) {
-        // add userfront user
-        // this will also automatically send a login link to the cx
-        const signupResp = await Userfront.signup({
-          method: 'passwordless',
-          email: email,
-          name: name,
-          redirect: false,
-        })
+        if (!existingUser) {
+          // add userfront user
+          // this will also automatically send a login link to the cx
+          const signupResp = await Userfront.signup({
+            method: 'passwordless',
+            email: email,
+            name: name,
+            redirect: false,
+          })
 
-        if (IS_LOCAL) {
-          const loginLink = `${FRONTEND_BASE_URL}${signupResp?.result?.url}`
-          console.log(
-            `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
-          )
+          if (IS_LOCAL) {
+            const loginLink = `${FRONTEND_BASE_URL}${signupResp?.result?.url}`
+            console.log(
+              `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
+            )
+          }
         }
-      }
 
-      // get userfront UUID from signup
-      const userfrontResponse = await fetch(
-        'https://api.userfront.com/v0/users/find',
-        {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: USERFRONT_READONLY_API_KEY,
+        // get userfront UUID from signup
+        const userfrontResponse = await fetch(
+          'https://api.userfront.com/v0/users/find',
+          {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${USERFRONT_READONLY_API_KEY}`,
+            },
+            body: JSON.stringify(generateUserfrontSearchPayload(email)),
           },
-          body: JSON.stringify(generateUserfrontSearchPayload(email)),
-        },
-      )
+        )
 
-      const userfrontData = await userfrontResponse.json()
-      const createdUserUUID = userfrontData?.results?.[0]?.userUuid
+        const userfrontData = await userfrontResponse.json()
+        const createdUserUUID = userfrontData?.results?.[0]?.userUuid
 
-      console.log('userfront status:', userfrontResponse.status)
-      console.log('userfront user data:', createdUserUUID)
+        console.log('userfront status:', userfrontResponse.status)
+        console.log('userfront user data:', createdUserUUID)
 
-      // todo: We should handle this case better
-      // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
-      // value for userfront_user_id.
-      if (!createdUserUUID) {
-        return res.status(500).end()
-      }
+        // todo: We should handle this case better
+        // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
+        // value for userfront_user_id.
+        if (!createdUserUUID) {
+          return res.status(500).json({
+            userfrontResponseStatusCode: userfrontResponse.status,
+            message: `no userfront user found for ${email}`,
+          }).end()
+        }
 
-      if (!existingUser) {
-        await createUser({
+        if (!existingUser) {
+          await createUser({
+            userfrontUserId: createdUserUUID,
+            fullName: name,
+            signupEmail: email,
+          })
+        }
+
+        await createOrUpdateSubscription({
           userfrontUserId: createdUserUUID,
-          fullName: name,
-          signupEmail: email,
+          stripeSubscriptionId: session.subscription,
         })
+      } catch (err) {
+        console.log(err)
       }
 
-      await createOrUpdateSubscription({
-        userfrontUserId: createdUserUUID,
-        stripeSubscriptionId: session.subscription,
-      })
-    } catch (err) {
-      console.log(err)
+      break
     }
-  }
 
-  if (event.type === 'customer.subscription.updated') {
-    try {
-      const subscription = event.data.object
+    case 'customer.subscription.updated':
+    case 'customer.subscription.created': {
+    // TODO: we should also make sure that we dedupe any duplicate subscriptions for
+    // a given userfrontUserId
+      console.log('inside of the created/updaed handler...')
+      try {
+        const subscription = event.data.object
 
-      const dataToUpdate = {
-        stripeCustomerId: subscription.customer,
-        stripeSubscriptionId: subscription.id,
-        subscriptionStatus: subscription.status,
-        currentPeriodStart: subscription.current_period_start,
-        currentPeriodEnd: subscription.current_period_end,
-        canceledAt: subscription.canceled_at,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end,
-        stripePriceId: subscription.plan.id,
-        stripeProductId: subscription.plan.product,
+        console.log('subscription:', subscription)
+
+        const dataToUpdate = {
+          stripeCustomerId: subscription.customer,
+          stripeSubscriptionId: subscription.id,
+          subscriptionStatus: subscription.status,
+          currentPeriodStart: subscription.current_period_start,
+          currentPeriodEnd: subscription.current_period_end,
+          canceledAt: subscription.canceled_at,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          stripePriceId: subscription.plan.id,
+          stripeProductId: subscription.plan.product,
+        }
+
+        createOrUpdateSubscription(dataToUpdate)
+      } catch (err) {
+        console.log(err)
       }
 
-      createOrUpdateSubscription(dataToUpdate)
-    } catch (err) {
-      console.log(err)
+      break
     }
   }
-
+  
   return res.status(200).end()
 }

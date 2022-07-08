@@ -33,6 +33,8 @@ export async function createServer({
       const authHeader = req.headers.authorization || ''
       const [, token] = authHeader.split(' ')
 
+      console.log('auth header info', authHeader, token)
+
       if (token) {
         try {
           user = await verifyJWT(token)
@@ -40,6 +42,8 @@ export async function createServer({
           // console.error(err)
         }
       }
+
+      console.log('user', user)
 
       return {
         dbAccess,
