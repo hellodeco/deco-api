@@ -23,7 +23,7 @@ export const FRONTEND_BASE_URL = `${frontEndProtocol}${FRONTEND_DOMAIN}`
 
 export const NOTION_BASE_URL = 'https://api.notion.com'
 
-export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.co'
+export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.so'
 
 
 export const JWT_PUBLIC_KEY = getSecretFromEnvVarOrFile({
