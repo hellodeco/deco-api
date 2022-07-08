@@ -85,6 +85,11 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let { to } = body
     to = to.toLowerCase()
 
+    // TODO: messages that are forwarded from another email seem to retain the same "to" address on the body object
+    // this is problematic because we try and look up the original receiver in our DB which probably doesn't exist
+    // since it's likely not a deco email address. We'll need to figure out what emails like this look like and then
+    // handle them correctly
+
     console.info(`{new email} [sender]: ${from} [receiver]: ${to} [subject]: ${subject}`)
     console.info(`body keys:`, ...Object.keys(body))
     console.info(`body`, body)
