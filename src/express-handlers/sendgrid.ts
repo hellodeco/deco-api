@@ -8,7 +8,7 @@ import {
   createNewEmailHeadersByEmailId,
 } from '../db-access/db-access'
 import { EmailStatus } from '../constants'
-import { addEmailToNotion } from '../notion-access/notion-access'
+import { addEmailToNotion } from '../notion/notion'
 
 interface InboundSendgridParsedEmail {
   userId?: string
