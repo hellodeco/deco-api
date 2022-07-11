@@ -66,7 +66,9 @@ export async function createOrUpdateNotionIntegration(
       .first()
   }
 
-  const [newIntegration] = await dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS)
+  const [newIntegration] = await dbConnection<NotionIntegration>(
+    Tables.NOTION_INTEGRATIONS,
+  )
     .insert(objectCamelToSnake(notionIntegration))
     .returning('*')
 

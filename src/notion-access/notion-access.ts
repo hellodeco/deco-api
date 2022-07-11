@@ -38,10 +38,10 @@ export async function getNotionDatabaseID({
      * @todo if the notion page shared is ***not*** a full page database type than this will not return anything
      * and then future stuff will error because we won't save a new entry in table notion_databases table.
      * This fails silently and is very confusing so we should make this process smoother for the user
-     * 
+     *
      * ***** Notion imposed limit *****
      * - Only top level Notion pages are allowed
-     * 
+     *
      * ***** Ideas *****
      * - store a "health" field in the notion_database table and if this is "false" then we can tell the user to self troubleshoot common problems
      */
@@ -134,7 +134,7 @@ export async function deleteNotionTableProperties(userfrontID: string) {
   return deletedProperties
 }
 
-export async function formatNotionTable(userfrontID: string){
+export async function formatNotionTable(userfrontID: string) {
   const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
     userfrontID,
   )
@@ -240,7 +240,9 @@ export async function addEmailToNotion({
 export async function getCurrentUserNotionDatabaseInfo(userfrontID: string) {
   let notionDatabaseInfo = null
   try {
-    const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
+    const notionIntegration = await getNotionIntegrationByUserfrontID(
+      userfrontID,
+    )
 
     if (!notionIntegration) {
       return null
@@ -267,7 +269,7 @@ export async function getCurrentUserNotionDatabaseInfo(userfrontID: string) {
       icon: response?.icon?.emoji,
       needsFormatting: !containsAll,
     }
-  } catch(err) {
+  } catch (err) {
     console.error(err)
   }
 

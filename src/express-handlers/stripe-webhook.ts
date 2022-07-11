@@ -113,10 +113,13 @@ export async function handleStripeWebhook(req: Request, res: Response) {
         // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
         // value for userfront_user_id.
         if (!createdUserUUID) {
-          return res.status(500).json({
-            userfrontResponseStatusCode: userfrontResponse.status,
-            message: `no userfront user found for ${email}`,
-          }).end()
+          return res
+            .status(500)
+            .json({
+              userfrontResponseStatusCode: userfrontResponse.status,
+              message: `no userfront user found for ${email}`,
+            })
+            .end()
         }
 
         if (!existingUser) {
@@ -140,8 +143,8 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
     case 'customer.subscription.updated':
     case 'customer.subscription.created': {
-    // TODO: we should also make sure that we dedupe any duplicate subscriptions for
-    // a given userfrontUserId
+      // TODO: we should also make sure that we dedupe any duplicate subscriptions for
+      // a given userfrontUserId
       try {
         const subscription = event.data.object
 
@@ -165,6 +168,6 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       break
     }
   }
-  
+
   return res.status(200).end()
 }

@@ -72,7 +72,8 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
-    const subscription = await db.subscriptions()
+    const subscription = await db
+      .subscriptions()
       .where({
         userfront_user_id: userfrontID,
         subscription_status: 'active',
@@ -87,7 +88,7 @@ export const mutationResolvers: MutationResolvers = {
       }
     }
 
-    if(username.length < 3) {
+    if (username.length < 3) {
       return {
         success: false,
         errorReason: UpdateDecoEmailErrorReasons.NotEnoughChars,

@@ -10,16 +10,16 @@ import 'dotenv/config'
  * from that file.
  */
 export function getSecretFromEnvVarOrFile({ envVarName, fileName }) {
-  let secret = process.env[envVarName];
+  let secret = process.env[envVarName]
 
-  const renderDBCertPath = `/etc/secrets/${fileName}`;
+  const renderDBCertPath = `/etc/secrets/${fileName}`
   if (fs.existsSync(renderDBCertPath)) {
-    secret = fs.readFileSync(renderDBCertPath, 'utf-8');
+    secret = fs.readFileSync(renderDBCertPath, 'utf-8')
   }
 
   process.env[envVarName] = secret
 
-  return secret;
+  return secret
 }
 
 function getPort() {
@@ -36,7 +36,9 @@ export const SERVER_BASE_URL =
 
 export const FRONTEND_DOMAIN = process.env.FRONTEND_DOMAIN || 'localhost:3000'
 
-const frontEndProtocol = ['production', 'staging'].includes(process.env.NODE_ENV)
+const frontEndProtocol = ['production', 'staging'].includes(
+  process.env.NODE_ENV,
+)
   ? 'https://'
   : 'http://'
 
@@ -46,11 +48,10 @@ export const NOTION_BASE_URL = 'https://api.notion.com'
 
 export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN || 'deco.so'
 
-
 export const JWT_PUBLIC_KEY = getSecretFromEnvVarOrFile({
   envVarName: 'JWT_PUBLIC_KEY',
   fileName: 'userfront-public-key.crt',
-});
+})
 
 export enum EmailStatus {
   TO_ADDRESS_NOT_FOUND = 'TO_ADDRESS_NOT_FOUND',
@@ -59,7 +60,9 @@ export enum EmailStatus {
   NOTION_FAILED = 'NOTION_FAILED',
 }
 
-export const IS_LOCAL = !['production', 'staging'].includes(process.env.NODE_ENV)
+export const IS_LOCAL = !['production', 'staging'].includes(
+  process.env.NODE_ENV,
+)
 
 export const USERFRONT_READONLY_API_KEY = process.env.USERFRONT_READONLY_API_KEY
 
