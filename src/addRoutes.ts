@@ -23,7 +23,7 @@ import {
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
-import { getNotionDatabaseID } from './notion-access/notion-access'
+import { getNotionDatabaseID } from './notion/notion'
 import { db } from './db-connection'
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {

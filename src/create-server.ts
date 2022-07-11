@@ -7,7 +7,7 @@ import { PORT } from './constants'
 import resolvers, { User } from './resolvers/resolvers'
 import * as dbAccess from './db-access/db-access'
 import { db } from './db-connection'
-import * as notionAccess from './notion-access/notion-access'
+import * as notionAccess from './notion/notion'
 import { verifyJWT } from './jwt'
 import { addRoutes } from './addRoutes'
 
