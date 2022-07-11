@@ -1,5 +1,6 @@
 export enum Tables {
   NOTION_INTEGRATIONS = 'notion_integrations',
+  NOTION_DATABASES = 'notion_databases',
   SUBSCRIPTIONS = 'subscriptions',
   USERS = 'users',
 }
@@ -28,6 +29,7 @@ export interface DecoDBEmail {
 }
 
 export interface NotionDatabase {
+  id: number
   notionDatabaseId: string
   notionIntegrationId: number
 }

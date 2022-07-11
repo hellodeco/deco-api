@@ -23,7 +23,7 @@ import {
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
-import { getNotionDatabaseID } from './notion/notion'
+import { getNotionDatabaseIdFromNotion } from './notion/notion'
 import { db } from './db-connection'
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
@@ -229,7 +229,7 @@ export function addRoutes(app: Express) {
         )
       }
 
-      const { notionDatabaseId } = await getNotionDatabaseID({
+      const { notionDatabaseId } = await getNotionDatabaseIdFromNotion({
         accessToken: access_token,
       })
 

@@ -1,9 +1,6 @@
 import { Client } from '@notionhq/client'
 import 'dotenv/config'
-import {
-  getNotionIntegrationByUserfrontID,
-  getNotionDatabaseIDByUsefrontID,
-} from '../db-access/db-access'
+import { db } from '../db-connection'
 
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
@@ -20,12 +17,7 @@ export interface NewEmail {
   plainTextContent: string
 }
 
-interface NotionConnectData {
-  notion?: Client
-  notionDatabaseId?: string
-}
-
-export async function getNotionDatabaseID({
+export async function getNotionDatabaseIdFromNotion({
   accessToken,
 }: {
   accessToken: string
@@ -63,25 +55,34 @@ export async function getNotionDatabaseID({
   return { notionDatabaseId }
 }
 
-async function getClientAndWorkspaceID(
-  userfrontID: string,
-): Promise<NotionConnectData> {
-  const notionIntegration = await getNotionIntegrationByUserfrontID(userfrontID)
+async function notionClient(userfrontID: string): Promise<Client> {
+  const notionIntegration = await db.notionIntegrations()
+    .where('userfront_user_id', userfrontID)
+    .select('accessToken')
+    .first()
 
   const notion = new Client({ auth: notionIntegration.accessToken })
 
-  const notionDB = await getNotionDatabaseIDByUsefrontID(userfrontID)
+  return notion
+}
 
-  return {
-    notion,
-    notionDatabaseId: notionDB?.notionDatabaseId,
-  }
+async function getNotionDatabaseId(userfrontID: string): Promise<string | null> {
+  const notionIntegration = await db.notionIntegrations()
+    .where('userfront_user_id', userfrontID)
+    .select('id')
+    .first()
+
+  const notionDB = await db.notionDatabases()
+    .where('notion_integration_id', notionIntegration.id)
+    .select('notionDatabaseId')
+    .first()
+
+  return notionDB?.notionDatabaseId || null
 }
 
 export async function wipeNotionDatabase(userfrontID: string) {
-  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
-    userfrontID,
-  )
+  const notion = await notionClient(userfrontID)
+  const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
   const response = await notion.databases.query({
     database_id: notionDatabaseId,
@@ -105,9 +106,8 @@ export async function wipeNotionDatabase(userfrontID: string) {
 }
 
 export async function deleteNotionTableProperties(userfrontID: string) {
-  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
-    userfrontID,
-  )
+  const notion = await notionClient(userfrontID)
+  const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
   const response = await notion.databases.retrieve({
     database_id: notionDatabaseId,
@@ -135,9 +135,8 @@ export async function deleteNotionTableProperties(userfrontID: string) {
 }
 
 export async function formatNotionTable(userfrontID: string) {
-  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
-    userfrontID,
-  )
+  const notion = await notionClient(userfrontID)
+  const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
   const response = await notion.databases.retrieve({
     database_id: notionDatabaseId,
@@ -182,9 +181,8 @@ export async function addEmailToNotion({
   newEmail: NewEmail
   userfrontID: string
 }) {
-  const { notion, notionDatabaseId } = await getClientAndWorkspaceID(
-    userfrontID,
-  )
+  const notion = await notionClient(userfrontID)
+  const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
   const { subject, from, emailId, emailThreadId, plainTextContent } = newEmail
 
@@ -240,16 +238,22 @@ export async function addEmailToNotion({
 export async function getCurrentUserNotionDatabaseInfo(userfrontID: string) {
   let notionDatabaseInfo = null
   try {
-    const notionIntegration = await getNotionIntegrationByUserfrontID(
-      userfrontID,
-    )
+    const notionIntegration = await db.notionIntegrations()
+      .where('userfront_user_id', userfrontID)
+      .select('id accessToken')
+      .first()
 
     if (!notionIntegration) {
       return null
     }
 
     const notion = new Client({ auth: notionIntegration.accessToken })
-    const notionDB = await getNotionDatabaseIDByUsefrontID(userfrontID)
+
+    const notionDB = await db.notionDatabases()
+      .where('notion_integration_id', notionIntegration.id)
+      .select('notionDatabaseId')
+      .first()
+
     const notionDatabaseId = notionDB?.notionDatabaseId
 
     const response: any = await notion.databases.retrieve({
