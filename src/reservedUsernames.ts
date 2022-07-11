@@ -9,4 +9,7 @@ export const reservedUsernames = new Set<string>([
   'xyz',
   'abc',
   'veryspry',
+  'sellwood',
+  'ehlinger',
+  'eric',
 ])
