@@ -15,7 +15,6 @@ const rawHeaders = [
   'Content-Type: multipart/alternative; boundary="0000000000004f834f05dfaa0749"',
 ].join('\n')
 
-
 describe('parseHeaderString', () => {
   it('parses things correctly', () => {
     const headersMap = parseHeaderString(rawHeaders)
@@ -25,7 +24,7 @@ describe('parseHeaderString', () => {
         'by mx0148p1mdw1.sendgrid.net with SMTP id nxZhrfOoV0 Mon, 23 May 2022 08:57:24 +0000 (UTC)',
         'from mail-yw1-f169.google.com (unknown [209.85.128.169]) by mx0148p1mdw1.sendgrid.net (Postfix) with ESMTPS id 1F2561209A5 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 08:57:24 +0000 (UTC)',
         'by mail-yw1-f169.google.com with SMTP id 00721157ae682-2fed823dd32so139749927b3.12 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 01:57:24 -0700 (PDT)',
-      ])
+      ]),
     )
 
     expect(headersMap.references).toEqual([
@@ -37,7 +36,6 @@ describe('parseHeaderString', () => {
     ])
   })
 })
-
 
 describe('headerMapToArray', () => {
   it('converts a map to an array as expected', () => {
@@ -56,17 +54,20 @@ describe('headerMapToArray', () => {
       expect.arrayContaining([
         {
           key: 'received',
-          value: 'by mx0148p1mdw1.sendgrid.net with SMTP id nxZhrfOoV0 Mon, 23 May 2022 08:57:24 +0000 (UTC)',
+          value:
+            'by mx0148p1mdw1.sendgrid.net with SMTP id nxZhrfOoV0 Mon, 23 May 2022 08:57:24 +0000 (UTC)',
           emailId: 1,
         },
         {
           key: 'received',
-          value: 'from mail-yw1-f169.google.com (unknown [209.85.128.169]) by mx0148p1mdw1.sendgrid.net (Postfix) with ESMTPS id 1F2561209A5 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 08:57:24 +0000 (UTC)',
+          value:
+            'from mail-yw1-f169.google.com (unknown [209.85.128.169]) by mx0148p1mdw1.sendgrid.net (Postfix) with ESMTPS id 1F2561209A5 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 08:57:24 +0000 (UTC)',
           emailId: 1,
         },
         {
           key: 'received',
-          value: 'by mail-yw1-f169.google.com with SMTP id 00721157ae682-2fed823dd32so139749927b3.12 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 01:57:24 -0700 (PDT)',
+          value:
+            'by mail-yw1-f169.google.com with SMTP id 00721157ae682-2fed823dd32so139749927b3.12 for <matt@mail.crankywidgets.com>; Mon, 23 May 2022 01:57:24 -0700 (PDT)',
           emailId: 1,
         },
         {
@@ -74,7 +75,7 @@ describe('headerMapToArray', () => {
           value: 'Matt Ehlinger <matt@hellodeco.so>',
           emailId: 1,
         },
-      ])
+      ]),
     )
   })
 })

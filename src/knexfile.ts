@@ -2,7 +2,7 @@ import path from 'path'
 import dotenv from 'dotenv'
 import { objectSnakeToCamel } from './utils'
 
-dotenv.config({ path: path.join(__dirname, '..', '.env' )})
+dotenv.config({ path: path.join(__dirname, '..', '.env') })
 
 export default {
   client: 'pg',
@@ -13,23 +13,25 @@ export default {
     password: process.env.DATABASE_PASSWORD,
     database: process.env.DATABASE_NAME,
     port: Number(process.env.DATABASE_PORT),
-    ssl: ['production', 'staging'].includes(process.env.NODE_ENV) ? { rejectUnauthorized: false } : false,
+    ssl: ['production', 'staging'].includes(process.env.NODE_ENV)
+      ? { rejectUnauthorized: false }
+      : false,
   },
   migrations: {
     extension: 'ts',
-    directory: path.join('..', 'database', 'migrations',),
+    directory: path.join('..', 'database', 'migrations'),
   },
   seeds: {
     extension: 'ts',
-    directory: path.join('..', 'database', 'seeds',),
+    directory: path.join('..', 'database', 'seeds'),
   },
   postProcessResponse: (result) => {
     if (!result) {
       return null
     } else if (Array.isArray(result)) {
-      return result.map(row => objectSnakeToCamel(row));
+      return result.map((row) => objectSnakeToCamel(row))
     } else {
-      return objectSnakeToCamel(result);
+      return objectSnakeToCamel(result)
     }
   },
 }

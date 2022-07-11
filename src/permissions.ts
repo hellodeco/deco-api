@@ -39,7 +39,7 @@ const permissions = shield(
   },
   {
     fallbackRule: isAuthenticated,
-  }
+  },
 )
 
 export default permissions

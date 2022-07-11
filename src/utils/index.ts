@@ -8,7 +8,7 @@ export function objectSnakeToCamel(o: { [key: string]: any }) {
   }, {})
 }
 
-export function objectCamelToSnake(o: { [key: string]: any}) {
+export function objectCamelToSnake(o: { [key: string]: any }) {
   return Object.entries(o).reduce((acc, [k, v]) => {
     acc[snakeCase(k)] = v
     return acc

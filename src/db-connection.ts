@@ -1,10 +1,6 @@
 import knex from 'knex'
 import knexConfig from './knexfile'
-import {
-  Tables,
-  User,
-  Subscription,
-} from './types/database'
+import { Tables, User, Subscription } from './types/database'
 
 const dbConnection = knex(knexConfig)
 
@@ -14,4 +10,3 @@ export const db = {
   users: () => dbConnection<User>(Tables.USERS),
   subscriptions: () => dbConnection<Subscription>(Tables.SUBSCRIPTIONS),
 }
-

@@ -53,7 +53,9 @@ export const queryResolvers: QueryResolvers = {
     { notionAccess, user },
   ) => {
     try {
-      return await notionAccess.getCurrentUserNotionDatabaseInfo(user.userfrontID)
+      return await notionAccess.getCurrentUserNotionDatabaseInfo(
+        user.userfrontID,
+      )
     } catch (err) {
       console.error(err)
       return null
@@ -62,5 +64,5 @@ export const queryResolvers: QueryResolvers = {
   emailDomain: async () => {
     console.log(EMAIL_DOMAIN)
     return EMAIL_DOMAIN
-  }
+  },
 }
