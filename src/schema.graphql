@@ -37,11 +37,6 @@ input Email {
   plainTextContent: String
 }
 
-type AddEmailToNotionResult {
-  success: Boolean
-  notionPageId: String
-}
-
 enum UpdateDecoEmailErrorReasons {
   ALREADY_TAKEN
   INVALID_FORMAT
@@ -69,5 +64,4 @@ type Mutation {
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   setDecoEmail(username: String): UpdateDecoEmailResult
-  addEmailToNotion(toAddress: String, newEmail: Email): AddEmailToNotionResult
 }

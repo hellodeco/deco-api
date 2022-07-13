@@ -34,7 +34,6 @@ const permissions = shield(
       deleteNotionTableProperties: isAuthenticated,
       formatNotionTable: isAuthenticated,
       setDecoEmail: isAuthenticated,
-      addEmailToNotion: isEmailAdaptor,
     },
   },
   {
