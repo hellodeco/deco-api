@@ -1,13 +1,40 @@
 import { Client } from '@notionhq/client'
+import type { GetDatabaseResponse, SearchResponse } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { db } from '../db-connection'
+import type { NotionIntegration } from '../types/database'
 
-export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
-  'From',
-  'Delivered',
-  'Email_ID',
-  'Name',
-]
+/**
+ * Notion formatting setup order of operations:
+ * 
+ * 1. connect Notion database(s)
+ * 2. if multiple selected ask user to select which one to use
+ * 3. detect if single selected page is correct format (full page database)
+ * 4. if it isn't ask user to format it correctly and provide instructions (video + written instructions)
+ * 5. once it is correct type, ask user to "format". This kicks off the following sequential steps under the hood:
+ *     a. wipeNotionDatabase (delete all existing data)
+ *     b. deleteNotionTableProperties (delete all existing table properties)
+ *     c. formatNotionTable (add table properties)
+ * 
+ * Required code changes for this:
+ * 
+ * 1. Notion callback route will no longer query Notion for databases
+ *    a. it won't check that the page is formatted correctly
+ *    b. it won't auto choose the first shared page in the notion provided list
+ * 2. New API / API functionality to report if multiple pages are shared
+ * 3. New API to choose one page to use
+ * 
+ * 
+ * Client side logic
+ * - Query for notion_integration
+ *  - if it doesn't exist display button to connect
+ *  - if it exists query for notion_database
+ *    - if notion_database exists
+ *      - show database info
+ *      - show button to connect another db
+ *   - if notion_database doesn't exist
+ *      - query for list of shared databases and have user select one
+ */
 
 export interface NewEmail {
   subject: string
@@ -15,6 +42,21 @@ export interface NewEmail {
   emailId?: number
   emailThreadId?: number
   plainTextContent: string
+}
+
+export async function getNotionDatabases(userfrontID: string): Promise<SearchResponse> {
+  try {
+    const notion = await notionClient(userfrontID)
+
+    return notion.search({
+      filter: {
+        property: 'object',
+        value: 'database',
+      },
+    })
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 export async function getNotionDatabaseIdFromNotion({
@@ -74,7 +116,7 @@ async function getNotionDatabaseId(userfrontID: string): Promise<string | null> 
 
   const notionDB = await db.notionDatabases()
     .where('notion_integration_id', notionIntegration.id)
-    .select('notionDatabaseId')
+    .select('notion_database_id')
     .first()
 
   return notionDB?.notionDatabaseId || null
@@ -234,44 +276,48 @@ export async function addEmailToNotion({
 }
 
 // Returns metadata about the Notion page a user has shared with us
-export async function getCurrentUserNotionDatabaseInfo(userfrontID: string) {
+export async function notionDatabaseInfo({
+  notionIntegration,
+  notionDatabaseId,
+}: {
+  notionIntegration: NotionIntegration
+  notionDatabaseId: string 
+}): Promise<GetDatabaseResponse | null> {
   let notionDatabaseInfo = null
   try {
-    const notionIntegration = await db.notionIntegrations()
-      .where('userfront_user_id', userfrontID)
-      .select('id accessToken')
-      .first()
+    // const notionIntegration = await db.notionIntegrations()
+    //   .where('userfront_user_id', userfrontID)
+    //   .select('id accessToken')
+    //   .first()
 
-    if (!notionIntegration) {
-      return null
-    }
+    // if (!notionIntegration) {
+    //   return null
+    // }
 
     const notion = new Client({ auth: notionIntegration.accessToken })
 
-    const notionDB = await db.notionDatabases()
-      .where('notion_integration_id', notionIntegration.id)
-      .select('notionDatabaseId')
-      .first()
 
-    const notionDatabaseId = notionDB?.notionDatabaseId
-
-    const response: any = await notion.databases.retrieve({
+    const response = await notion.databases.retrieve({
       database_id: notionDatabaseId,
     })
 
-    const dbProperties = Object.keys(response.properties)
+    console.log('response', response)
 
-    // Check to see if the database has the correct properties required to receive emails
-    const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
-      return dbProperties.includes(propKey)
-    })
+    return response
 
-    notionDatabaseInfo = {
-      title: response?.title?.[0]?.plain_text,
-      url: response?.url,
-      icon: response?.icon?.emoji,
-      needsFormatting: !containsAll,
-    }
+    // const dbProperties = Object.keys(response.properties)
+
+    // // Check to see if the database has the correct properties required to receive emails
+    // const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
+    //   return dbProperties.includes(propKey)
+    // })
+
+    // notionDatabaseInfo = {
+    //   title: response?.title?.[0]?.plain_text,
+    //   url: response?.url,
+    //   icon: response?.icon?.emoji,
+    //   needsFormatting: !containsAll,
+    // }
   } catch (err) {
     console.error(err)
   }

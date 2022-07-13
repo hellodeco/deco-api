@@ -63,7 +63,6 @@ export async function createOrUpdateNotionIntegration(
       .where('userfront_user_id', notionIntegration.userfrontUserId)
       .update(objectCamelToSnake(notionIntegration))
       .returning('*')
-      .first()
   }
 
   const [newIntegration] = await dbConnection<NotionIntegration>(

@@ -7,26 +7,6 @@ import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 
 
-/**
- * Notion formatting setup order of operations:
- * 
- * 1. connect Notion database(s)
- * 2. if multiple selected ask user to select which one to use
- * 3. detect if single selected page is correct format (full page database)
- * 4. if it isn't ask user to format it correctly and provide instructions (video + written instructions)
- * 5. once it is correct type, ask user to "format". This kicks off the following sequential steps under the hood:
- *     a. wipeNotionDatabase (delete all existing data)
- *     b. deleteNotionTableProperties (delete all existing table properties)
- *     c. formatNotionTable (add table properties)
- * 
- * Required code changes for this:
- * 
- * 1. Notion callback route will no longer query Notion for databases
- *    a. it won't check that the page is formatted correctly
- *    b. it won't auto choose the first shared page in the notion provided list
- * 2. New API / API functionality to report if multiple pages are shared
- * 3. New API to choose one page to use
- */
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
