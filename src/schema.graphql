@@ -51,7 +51,6 @@ type UpdateDecoEmailResult {
 }
 
 type Query {
-  getUserMetaByDecoEmail(decoEmail: String): Boolean
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
   emailUsernameAvailable(username: String!): Boolean

@@ -22,7 +22,6 @@ const isEmailAdaptor = rule()((parent, args, ctx, info) => {
 const permissions = shield(
   {
     Query: {
-      getUserMetaByDecoEmail: isAuthenticated,
       currentUser: isAuthenticated,
       getCurrentUserNotionIntegration: isAuthenticated,
       emailUsernameAvailable: isAuthenticated,
