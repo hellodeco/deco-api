@@ -1,3 +1,4 @@
+import { isArray } from 'lodash'
 import { QueryResolvers } from '../generated/resolvers-types'
 import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
@@ -49,25 +50,13 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
     args,
     { notionAccess, user, db },
   ) => {
-    console.log('user', user)
-    /**
-     * possible notion_database states:
-     * 
-     * - not connected to notion
-     * - none shared
-     * - none chosen
-     * - selected
-     */
     try {
       const notionIntegration = await db.notionIntegrations()
         .where('userfront_user_id', user.userfrontID)
         .select('id' ,'access_token')
         .first()
       
-      console.log('notion integration', notionIntegration)
-
       if (!notionIntegration) {
-        // not connected to any notion databases
         return null
       }
 
@@ -76,14 +65,7 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         .select('notion_database_id')
         .first()
 
-      console.log('notion database', notionDatabase)
-
-      // database has not been share OR selected
       if (!notionDatabase) {
-        // query notion for all shared DB's
-        const sharedNotionDBs = await notionAccess.getNotionDatabases(user.userfrontID)
-        // 
-
         return null
       }
 
@@ -106,20 +88,34 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
       })
 
       return {
-        title: '',
-        url: '',
-        icon:'',
+        // @ts-ignore
+        title: notionDBResp?.title?.[0]?.plain_text,
+        // @ts-ignore
+        url: notionDBResp?.url,
+        // @ts-ignore
+        icon: notionDBResp?.icon?.emoji,
         needsFormatting: !containsAll,
       }
-      // return {
-      //   title: notionDBResp?.title?.[0]?.plain_text,
-      //   url: notionDBResp?.url,
-      //   icon: notionDBResp?.icon?.emoji,
-      //   needsFormatting: !containsAll,
-      // }
     } catch (err) {
       console.error(err)
     }
+  },
+  currentUserConnectedNotionPages: async (
+    parent,
+    args,
+    { notionAccess, user, db },
+  ) => {
+    let notionPages = []
+    try {
+      const notionDBs = await notionAccess.getNotionDatabases(user.userfrontID)
+      if (isArray(notionDBs?.results)) {
+        notionPages = notionDBs.results
+      }
+    } catch (err) {
+      console.error(err)
+    }
+
+    return notionPages
   },
   emailDomain: async () => {
     return EMAIL_DOMAIN

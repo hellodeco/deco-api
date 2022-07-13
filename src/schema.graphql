@@ -57,12 +57,17 @@ type UpdateDecoEmailResult {
   errorReason: UpdateDecoEmailErrorReasons
 }
 
+type NotionPage {
+  id: String
+}
+
 type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
   emailUsernameAvailable(username: String!): Boolean
   getCurrentUserNotionDatabaseInfo: NotionDatabaseInfo
   emailDomain: String
+  currentUserConnectedNotionPages: [NotionPage]
 }
 
 type Mutation {

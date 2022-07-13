@@ -100,7 +100,7 @@ export async function getNotionDatabaseIdFromNotion({
 async function notionClient(userfrontID: string): Promise<Client> {
   const notionIntegration = await db.notionIntegrations()
     .where('userfront_user_id', userfrontID)
-    .select('accessToken')
+    .select('access_token')
     .first()
 
   const notion = new Client({ auth: notionIntegration.accessToken })
