@@ -234,7 +234,7 @@ export function addRoutes(app: Express) {
         )
       }
 
-      // NOTION ONBOARDING: this will now
+      // NOTION ONBOARDING: remove the automatic database selection here
       // const { notionDatabaseId } = await getNotionDatabaseIdFromNotion({
       //   accessToken: access_token,
       // })
@@ -248,7 +248,7 @@ export function addRoutes(app: Express) {
       //   )
       // }
 
-      await createOrUpdateNotionIntegration({
+      const { id: notionIntegrationId } = await createOrUpdateNotionIntegration({
         userfrontUserId: userMeta.userfrontUserId,
         accessToken: access_token,
         tokenType: token_type,
@@ -264,7 +264,7 @@ export function addRoutes(app: Express) {
       })
 
       // await createOrUpdateNotionDatabase({
-      //   notionIntegrationId: notionIntegration.id,
+      //   notionIntegrationId,
       //   notionDatabaseId: notionDatabaseId,
       // })
 

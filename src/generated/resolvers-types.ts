@@ -40,9 +40,16 @@ export type NotionDatabaseInfo = {
   __typename?: 'NotionDatabaseInfo';
   icon?: Maybe<Scalars['String']>;
   needsFormatting?: Maybe<Scalars['Boolean']>;
+  status?: Maybe<NotionDatabaseStatus>;
   title?: Maybe<Scalars['String']>;
   url?: Maybe<Scalars['String']>;
 };
+
+export enum NotionDatabaseStatus {
+  Connected = 'CONNECTED',
+  NotConnected = 'NOT_CONNECTED',
+  NotShared = 'NOT_SHARED'
+}
 
 export type NotionIntegration = {
   __typename?: 'NotionIntegration';
@@ -60,9 +67,15 @@ export type NotionIntegration = {
   workspaceName?: Maybe<Scalars['String']>;
 };
 
+export type NotionPage = {
+  __typename?: 'NotionPage';
+  id?: Maybe<Scalars['String']>;
+};
+
 export type Query = {
   __typename?: 'Query';
   currentUser?: Maybe<User>;
+  currentUserConnectedNotionPages?: Maybe<Array<Maybe<NotionPage>>>;
   emailDomain?: Maybe<Scalars['String']>;
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
@@ -171,7 +184,9 @@ export type ResolversTypes = ResolversObject<{
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
   NotionDatabaseInfo: ResolverTypeWrapper<NotionDatabaseInfo>;
+  NotionDatabaseStatus: NotionDatabaseStatus;
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
+  NotionPage: ResolverTypeWrapper<NotionPage>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
@@ -188,6 +203,7 @@ export type ResolversParentTypes = ResolversObject<{
   Mutation: {};
   NotionDatabaseInfo: NotionDatabaseInfo;
   NotionIntegration: NotionIntegration;
+  NotionPage: NotionPage;
   Query: {};
   String: Scalars['String'];
   UUID: Scalars['UUID'];
@@ -205,6 +221,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionDatabaseInfo'] = ResolversParentTypes['NotionDatabaseInfo']> = ResolversObject<{
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   needsFormatting?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  status?: Resolver<Maybe<ResolversTypes['NotionDatabaseStatus']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -226,8 +243,14 @@ export type NotionIntegrationResolvers<ContextType = any, ParentType extends Res
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type NotionPageResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionPage'] = ResolversParentTypes['NotionPage']> = ResolversObject<{
+  id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  currentUserConnectedNotionPages?: Resolver<Maybe<Array<Maybe<ResolversTypes['NotionPage']>>>, ParentType, ContextType>;
   emailDomain?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
@@ -256,6 +279,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   Mutation?: MutationResolvers<ContextType>;
   NotionDatabaseInfo?: NotionDatabaseInfoResolvers<ContextType>;
   NotionIntegration?: NotionIntegrationResolvers<ContextType>;
+  NotionPage?: NotionPageResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   UUID?: GraphQLScalarType;
   UpdateDecoEmailResult?: UpdateDecoEmailResultResolvers<ContextType>;
