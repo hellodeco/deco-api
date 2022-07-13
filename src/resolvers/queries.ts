@@ -1,8 +1,9 @@
 import { QueryResolvers } from '../generated/resolvers-types'
 import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
+import { ResolverContext } from '../types/shared'
 
-export const queryResolvers: QueryResolvers = {
+export const queryResolvers: QueryResolvers<ResolverContext> = {
   currentUser: async (parent, args, { dbAccess, user }) => {
     const userMeta = await dbAccess.getUserByUserfrontID(user.userfrontID)
     return {
@@ -22,21 +23,10 @@ export const queryResolvers: QueryResolvers = {
 
     return userMeta ? false : true
   },
-  getCurrentUserNotionIntegration: async (parent, args, { dbAccess, user }) => {
-    // omit the access token since it is a sensitive value and not needed for front end code
-    const { accessToken, ...integration } =
-      await dbAccess.getNotionIntegrationByUserfrontID(user.userfrontID)
-
-    if (!accessToken) {
-      return null
-    }
-
-    return integration
-  },
   getCurrentUserNotionDatabaseInfo: async (
     parent,
     args,
-    { notionAccess, user },
+    { notionAccess, user, db },
   ) => {
     try {
       return await notionAccess.getCurrentUserNotionDatabaseInfo(
