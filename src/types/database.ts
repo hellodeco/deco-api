@@ -3,6 +3,8 @@ export enum Tables {
   NOTION_DATABASES = 'notion_databases',
   SUBSCRIPTIONS = 'subscriptions',
   USERS = 'users',
+  EMAILS = 'emails',
+  EMAIL_HEADERS = 'email_headers',
 }
 
 export interface User {
@@ -26,6 +28,12 @@ export interface DecoDBEmail {
   messageId?: string
   inReplyTo?: string
   references?: string
+}
+
+export interface EmailHeader {
+  key: string
+  value: string
+  emailId: number
 }
 
 export interface NotionDatabase {
