@@ -174,6 +174,7 @@ export async function formatNotionTable(userfrontID: string) {
   return true
 }
 
+// Stores a new email in Notion
 export async function addEmailToNotion({
   newEmail,
   userfrontID,
@@ -184,13 +185,13 @@ export async function addEmailToNotion({
   const notion = await notionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
-  const { subject, from, emailId, emailThreadId, plainTextContent } = newEmail
+  const { subject, from, emailId, plainTextContent } = newEmail
 
   const time = Date.now()
   const deliveryDate = new Date(time)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
-  const emailCreated = await notion.pages.create({
+  const notionPage = await notion.pages.create({
     parent: { database_id: notionDatabaseId },
     properties: {
       title: {
@@ -232,9 +233,10 @@ export async function addEmailToNotion({
     ],
   })
 
-  return emailCreated.id
+  return notionPage.id
 }
 
+// Returns metadata about the Notion page a user has shared with us
 export async function getCurrentUserNotionDatabaseInfo(userfrontID: string) {
   let notionDatabaseInfo = null
   try {

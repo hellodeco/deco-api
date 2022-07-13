@@ -22,31 +22,6 @@ export const mutationResolvers: MutationResolvers = {
     )
     return formattedTable
   },
-  /**
-   * @todo remove this!
-   */
-  addEmailToNotion: async (
-    _,
-    { toAddress, newEmail },
-    { notionAccess, dbAccess },
-  ) => {
-    const userMeta = dbAccess.getUserByDecoEmail(toAddress)
-
-    if (!userMeta) {
-      return {
-        success: false,
-      }
-    }
-
-    await notionAccess.addEmailToNotion({
-      newEmail,
-      userfrontID: userMeta.userfrontID,
-    })
-
-    return {
-      success: true,
-    }
-  },
   setDecoEmail: async (
     _,
     { username: unNormalizedUsername },
