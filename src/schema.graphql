@@ -59,6 +59,9 @@ type UpdateDecoEmailResult {
 
 type NotionPage {
   id: String
+  title: String
+  url: String
+  icon: String
 }
 
 type Query {

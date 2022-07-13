@@ -115,7 +115,16 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
       console.error(err)
     }
 
-    return notionPages
+    console.log(notionPages)
+
+    return notionPages.map(({ id, title, url, icon }) => {
+      return {
+        id,
+        title: title?.[0]?.plain_text,
+        url,
+        icon,
+      }
+    })
   },
   emailDomain: async () => {
     return EMAIL_DOMAIN
