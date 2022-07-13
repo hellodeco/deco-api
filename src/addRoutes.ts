@@ -33,7 +33,12 @@ function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
 }
 
 export function addRoutes(app: Express) {
-  const upload = multer()
+  const upload = multer({
+    fileFilter: (req, file, cb) => {
+      // ignore all files
+      cb(null, false)
+    }
+  })
 
   // this endpoint needs to be added before other parsing middleware is added because Stripe is a huge diva and relies on raw body data
   app.post(
@@ -307,5 +312,5 @@ export function addRoutes(app: Express) {
     return res.status(200).json({ sessionUrl: session.url })
   })
 
-  app.post('/inbound', upload.none(), emailReceiveHandler)
+  app.post('/inbound', upload.any(), emailReceiveHandler)
 }
