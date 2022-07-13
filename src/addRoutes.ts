@@ -229,20 +229,21 @@ export function addRoutes(app: Express) {
         )
       }
 
-      const { notionDatabaseId } = await getNotionDatabaseIdFromNotion({
-        accessToken: access_token,
-      })
+      // NOTION ONBOARDING: this will now
+      // const { notionDatabaseId } = await getNotionDatabaseIdFromNotion({
+      //   accessToken: access_token,
+      // })
 
-      if (!notionDatabaseId) {
-        return res.redirect(
-          createNotionAuthFailedRedirectURL({
-            message:
-              'It seems that the Notion page shared was not formatted as a full page database',
-          }),
-        )
-      }
+      // if (!notionDatabaseId) {
+      //   return res.redirect(
+      //     createNotionAuthFailedRedirectURL({
+      //       message:
+      //         'It seems that the Notion page shared was not formatted as a full page database',
+      //     }),
+      //   )
+      // }
 
-      const notionIntegration = await createOrUpdateNotionIntegration({
+      await createOrUpdateNotionIntegration({
         userfrontUserId: userMeta.userfrontUserId,
         accessToken: access_token,
         tokenType: token_type,
@@ -257,10 +258,10 @@ export function addRoutes(app: Express) {
         email: owner?.user?.person?.email,
       })
 
-      await createOrUpdateNotionDatabase({
-        notionIntegrationId: notionIntegration.id,
-        notionDatabaseId: notionDatabaseId,
-      })
+      // await createOrUpdateNotionDatabase({
+      //   notionIntegrationId: notionIntegration.id,
+      //   notionDatabaseId: notionDatabaseId,
+      // })
 
       return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
     } catch (err) {

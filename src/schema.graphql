@@ -22,11 +22,18 @@ type NotionIntegration {
   email: String
 }
 
+enum NotionDatabaseStatus {
+  NOT_SHARED   
+  NOT_CONNECTED
+  CONNECTED
+}
+
 type NotionDatabaseInfo {
   title: String
   url: String
   icon: String
   needsFormatting: Boolean
+  status: NotionDatabaseStatus
 }
 
 input Email {
