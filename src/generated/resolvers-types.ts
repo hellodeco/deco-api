@@ -67,17 +67,11 @@ export type Query = {
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
   getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
-  getUserMetaByDecoEmail?: Maybe<Scalars['Boolean']>;
 };
 
 
 export type QueryEmailUsernameAvailableArgs = {
   username: Scalars['String'];
-};
-
-
-export type QueryGetUserMetaByDecoEmailArgs = {
-  decoEmail?: InputMaybe<Scalars['String']>;
 };
 
 export enum UpdateDecoEmailErrorReasons {
@@ -238,7 +232,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
-  getUserMetaByDecoEmail?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<QueryGetUserMetaByDecoEmailArgs>>;
 }>;
 
 export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any> {

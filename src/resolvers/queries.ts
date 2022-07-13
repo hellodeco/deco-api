@@ -3,20 +3,6 @@ import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
 
 export const queryResolvers: QueryResolvers = {
-  /**
-   * @todo remove this if we do not use it!
-   */
-  getUserMetaByDecoEmail: async (parent, args, context) => {
-    const existingUser = await context.dbAccess.getUserMetaByDecoEmail(
-      args.decoEmail,
-    )
-
-    if (existingUser) {
-      return true
-    }
-
-    return false
-  },
   currentUser: async (parent, args, { dbAccess, user }) => {
     const userMeta = await dbAccess.getUserByUserfrontID(user.userfrontID)
     return {
