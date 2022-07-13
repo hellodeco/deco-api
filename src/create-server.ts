@@ -10,6 +10,7 @@ import { db } from './db-connection'
 import * as notionAccess from './notion/notion'
 import { verifyJWT } from './jwt'
 import { addRoutes } from './addRoutes'
+import { ResolverContext } from './types/shared'
 
 interface StartApolloServerOpts {
   typeDefs: string
@@ -31,7 +32,7 @@ export async function createServer({
     resolvers,
     schema,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
-    context: async ({ req }) => {
+    context: async ({ req }): Promise<ResolverContext> => {
       let user: User
       const authHeader = req.headers.authorization || ''
       const [, token] = authHeader.split(' ')

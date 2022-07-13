@@ -37,7 +37,7 @@ export interface EmailHeader {
 }
 
 export interface NotionDatabase {
-  id: number
+  id?: number
   notionDatabaseId: string
   notionIntegrationId: number
 }
