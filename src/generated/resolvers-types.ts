@@ -69,7 +69,10 @@ export type NotionIntegration = {
 
 export type NotionPage = {
   __typename?: 'NotionPage';
+  icon?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['String']>;
+  title?: Maybe<Scalars['String']>;
+  url?: Maybe<Scalars['String']>;
 };
 
 export type Query = {
@@ -244,7 +247,10 @@ export type NotionIntegrationResolvers<ContextType = any, ParentType extends Res
 }>;
 
 export type NotionPageResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionPage'] = ResolversParentTypes['NotionPage']> = ResolversObject<{
+  icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
