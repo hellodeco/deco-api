@@ -260,6 +260,9 @@ export function addRoutes(app: Express) {
         },
       )
 
+      // TODO: query notion api for all shared databases and delete existing notion_database
+      // if it is not longer a database that is shared with deco
+
       // await createOrUpdateNotionDatabase({
       //   notionIntegrationId,
       //   notionDatabaseId: notionDatabaseId,
