@@ -1,3 +1,4 @@
+import { isArray } from 'lodash'
 import { EMAIL_DOMAIN } from '../constants'
 import {
   MutationResolvers,
@@ -109,21 +110,45 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         .first()
 
       if (!integration) {
-        // do something
+        // TODO: do something better
+        return false
       }
 
-      const database = await db
+      const existingDatabase = await db
         .notionDatabases()
-        .insert(
-          objectCamelToSnake({
-            notionDatabaseId: databaseId,
-            notionIntegrationId: integration.id,
-          }),
-        )
-        .returning('id')
+        .where('notion_integration_id', integration.id)
+        .select('id')
+        .first()
+
+      let database
+      if (existingDatabase) {
+        console.log('updating existing db.....')
+        database = await db
+          .notionDatabases()
+          .where('notion_integration_id', integration.id)
+          .update(objectCamelToSnake({ notionDatabaseId: databaseId }))
+          .returning('id')
+      } else {
+        console.log('creating new db.....')
+        database = await db
+          .notionDatabases()
+          .insert(
+            objectCamelToSnake({
+              notionDatabaseId: databaseId,
+              notionIntegrationId: integration.id,
+            }),
+          )
+          .returning('id')
+      }
+
+      console.log('db', database)
+
+      if (isArray(database)) {
+        database = database[0]
+      }
 
       if (!database) {
-        // do something
+        // TODO: do something better
         console.error('No notion database created')
         return false
       }
