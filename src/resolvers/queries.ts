@@ -1,4 +1,4 @@
-import { isArray } from 'lodash'
+import { isArray, isString } from 'lodash'
 import { QueryResolvers } from '../generated/resolvers-types'
 import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
@@ -107,22 +107,42 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
   ) => {
     let notionPages = []
     try {
-      const notionDBs = await notionAccess.getNotionDatabases(user.userfrontID)
-      if (isArray(notionDBs?.results)) {
-        notionPages = notionDBs.results
+      const sharedDBs = await notionAccess.getSharedNotionDatabases(user.userfrontID)
+      const sharedPages = await notionAccess.getSharedNotionPages(user.userfrontID)
+
+      const topLevelFilter = (page) => {
+        // @ts-ignore - TS can not figure its goddamn shit out with this one
+        const { parent } = page
+        return parent?.type === 'workspace' && parent?.workspace === true
       }
+
+      const topLevelDBs = sharedDBs.filter(topLevelFilter)
+      const topLevelPages = sharedPages.filter(topLevelFilter)
+
+      console.log('shared dbs', topLevelDBs)
+
+      console.log('shared pages', topLevelPages)
+
+
+      // if (isArray(notionDBs?.results)) {
+      //   notionPages = notionDBs.results
+      // }
     } catch (err) {
       console.error(err)
     }
 
-    console.log(notionPages)
+    // console.log(notionPages)
 
-    return notionPages.map(({ id, title, url, icon }) => {
+    return notionPages.map((page) => {
+      let { id, title, url, icon } = page
+
+      if (!isString(icon) ) {
+      }
       return {
         id,
         title: title?.[0]?.plain_text,
         url,
-        icon,
+        icon: null,
       }
     })
   },
