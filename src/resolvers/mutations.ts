@@ -6,8 +6,6 @@ import {
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 
-
-
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
     const archivedIDs = await notionAccess.wipeNotionDatabase(user.userfrontID)
@@ -26,7 +24,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     return formattedTable
   },
   // formatNotionDatabase: async (_, args, { notionAccess, user }) => {
-  //   
+  //
   // },
   setDecoEmail: async (
     _,

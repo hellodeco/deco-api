@@ -1,12 +1,15 @@
 import { Client } from '@notionhq/client'
-import type { GetDatabaseResponse, SearchResponse } from '@notionhq/client/build/src/api-endpoints'
+import type {
+  GetDatabaseResponse,
+  SearchResponse,
+} from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 
 /**
  * Notion formatting setup order of operations:
- * 
+ *
  * 1. connect Notion database(s)
  * 2. if multiple selected ask user to select which one to use
  * 3. detect if single selected page is correct format (full page database)
@@ -15,16 +18,16 @@ import type { NotionIntegration } from '../types/database'
  *     a. wipeNotionDatabase (delete all existing data)
  *     b. deleteNotionTableProperties (delete all existing table properties)
  *     c. formatNotionTable (add table properties)
- * 
+ *
  * Required code changes for this:
- * 
+ *
  * 1. Notion callback route will no longer query Notion for databases
  *    a. it won't check that the page is formatted correctly
  *    b. it won't auto choose the first shared page in the notion provided list
  * 2. New API / API functionality to report if multiple pages are shared
  * 3. New API to choose one page to use
- * 
- * 
+ *
+ *
  * Client side logic
  * - Query for notion_integration
  *  - if it doesn't exist display button to connect
@@ -117,7 +120,8 @@ export async function getNotionDatabaseIdFromNotion({
 }
 
 async function notionClient(userfrontID: string): Promise<Client> {
-  const notionIntegration = await db.notionIntegrations()
+  const notionIntegration = await db
+    .notionIntegrations()
     .where('userfront_user_id', userfrontID)
     .select('access_token')
     .first()
@@ -127,13 +131,17 @@ async function notionClient(userfrontID: string): Promise<Client> {
   return notion
 }
 
-async function getNotionDatabaseId(userfrontID: string): Promise<string | null> {
-  const notionIntegration = await db.notionIntegrations()
+async function getNotionDatabaseId(
+  userfrontID: string,
+): Promise<string | null> {
+  const notionIntegration = await db
+    .notionIntegrations()
     .where('userfront_user_id', userfrontID)
     .select('id')
     .first()
 
-  const notionDB = await db.notionDatabases()
+  const notionDB = await db
+    .notionDatabases()
     .where('notion_integration_id', notionIntegration.id)
     .select('notion_database_id')
     .first()
@@ -300,7 +308,7 @@ export async function notionDatabaseInfo({
   notionDatabaseId,
 }: {
   notionIntegration: NotionIntegration
-  notionDatabaseId: string 
+  notionDatabaseId: string
 }): Promise<GetDatabaseResponse | null> {
   let notionDatabaseInfo = null
   try {
@@ -314,7 +322,6 @@ export async function notionDatabaseInfo({
     // }
 
     const notion = new Client({ auth: notionIntegration.accessToken })
-
 
     const response = await notion.databases.retrieve({
       database_id: notionDatabaseId,

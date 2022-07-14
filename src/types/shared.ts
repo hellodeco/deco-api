@@ -9,4 +9,3 @@ export interface ResolverContext {
   dbAccess: typeof dbAccess
   notionAccess: typeof notionAccess
 }
-

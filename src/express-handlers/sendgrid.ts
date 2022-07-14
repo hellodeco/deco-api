@@ -88,7 +88,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // this is problematic because we try and look up the original receiver in our DB which probably doesn't exist
   // since it's likely not a deco email address. We'll need to figure out what emails like this look like and then
   // handle them correctly
-    
+
   const headersMap = parseHeaderString(headers)
 
   const inReplyTo = headersMap['in-reply-to']
@@ -96,7 +96,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   const messageID = headersMap['message-id']
 
   let emailRecipient
-  
+
   try {
     emailRecipient = await getUserByDecoEmail(to)
   } catch (err) {
@@ -164,7 +164,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     )
 
     newEmailThread = thread
-  } catch(err) {
+  } catch (err) {
     console.error(err)
   }
 
@@ -174,7 +174,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   try {
     const [email] = await createNewEmail(newInboundEmail)
     newEmail = email
-  } catch(err) {
+  } catch (err) {
     console.error(err)
   }
 
@@ -186,18 +186,23 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       userfrontID: emailRecipient.userfrontUserId,
     })
 
-    await db.emails()
+    await db
+      .emails()
       .where('id', newEmail.id)
       .update({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id })
-  } catch(err) {
+  } catch (err) {
     console.error(err)
   }
 
   try {
-    await db.emailHeaders().insert(
-      headerMapToArray(headersMap, newEmail.id).map((header) => objectCamelToSnake(header))
-    )
-  } catch(err) {
+    await db
+      .emailHeaders()
+      .insert(
+        headerMapToArray(headersMap, newEmail.id).map((header) =>
+          objectCamelToSnake(header),
+        ),
+      )
+  } catch (err) {
     console.error(err)
   }
 
