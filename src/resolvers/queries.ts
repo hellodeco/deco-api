@@ -169,7 +169,9 @@ i      * {
         .map(iconMapper)
 
       const topLevelPages = sharedPages.filter(topLevelFilter).map((page) => {
+        // @ts-ignore
         const title =
+          page.title ||
           // @ts-ignore
           page?.properties?.title?.title?.[0]?.plain_text ||
           'Untitled Notion Page'
