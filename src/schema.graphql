@@ -23,7 +23,7 @@ type NotionIntegration {
 }
 
 enum NotionDatabaseStatus {
-  NOT_SHARED   
+  NOT_SHARED
   NOT_CONNECTED
   CONNECTED
 }
@@ -57,16 +57,46 @@ type UpdateDecoEmailResult {
   errorReason: UpdateDecoEmailErrorReasons
 }
 
+type ConnectedNotionEntities {
+  pages: [NotionPage]
+  databases: [NotionDatabaseInfo]
+}
+
+type NotionFile {
+  url: String
+}
+
+# type NotionExternalImageFileIcon {
+#   type: String
+#   external: NotionFile
+# }
+# 
+# type NotionImageFileIcon {
+#   type: String
+#   file: NotionFile
+# }
+#
+# type NotionEmojiIcon {
+#   type: String
+#   emoji: String
+# }
+
+type NotionIcon {
+  type: String
+  emoji: String
+  url: String
+}
+
+# union NotionIcon =
+#     NotionExternalImageFileIcon
+#   | NotionImageFileIcon
+#   | NotionEmojiIcon
+
 type NotionPage {
   id: String
   title: String
   url: String
-  icon: String
-}
-
-type ConnectedNotionEntities {
-  pages: [NotionPage]
-  databases: [NotionDatabaseInfo]
+  icon: NotionIcon
 }
 
 type Query {
