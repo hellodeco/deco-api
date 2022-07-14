@@ -104,19 +104,11 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
       console.error(err)
     }
   },
-  connectedNotionPages: async (
-    parent,
-    args,
-    { notionAccess, user, db },
-  ) => {
+  connectedNotionPages: async (parent, args, { notionAccess, user, db }) => {
     try {
       const [sharedDBs, sharedPages] = await Promise.all([
-        notionAccess.getSharedNotionDatabases(
-          user.userfrontID,
-        ),
-        notionAccess.getSharedNotionPages(
-          user.userfrontID,
-        )
+        notionAccess.getSharedNotionDatabases(user.userfrontID),
+        notionAccess.getSharedNotionPages(user.userfrontID),
       ])
 
       // filter out any notion pages that are not top level
@@ -176,19 +168,17 @@ i      * {
 
         .map(iconMapper)
 
-      const topLevelPages = sharedPages
-        .filter(topLevelFilter)
-        .map((page) => {
-          const title =
-            // @ts-ignore
-            page?.properties?.title?.title?.[0]?.plain_text ||
-            'Untitled Notion Page'
+      const topLevelPages = sharedPages.filter(topLevelFilter).map((page) => {
+        const title =
+          // @ts-ignore
+          page?.properties?.title?.title?.[0]?.plain_text ||
+          'Untitled Notion Page'
 
-          return {
-            ...page,
-            title,
-          }
-        })
+        return {
+          ...page,
+          title,
+        }
+      })
 
       const allPages = [...topLevelDBs, ...topLevelPages]
         .map(iconMapper)

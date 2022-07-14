@@ -5,6 +5,7 @@ import {
 } from '../generated/resolvers-types'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
+import { objectCamelToSnake } from '../utils'
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -91,6 +92,46 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     return {
       success: true,
       errorReason: null,
+    }
+  },
+  selectNotionDatabase: async (
+    _,
+    { databaseId },
+    { db, user: { userfrontID } },
+  ) => {
+    try {
+      // TODO: validate that databaseId is good to go
+
+      const integration = await db
+        .notionIntegrations()
+        .where('userfront_user_id', userfrontID)
+        .select('id')
+        .first()
+
+      if (!integration) {
+        // do something
+      }
+
+      const database = await db
+        .notionDatabases()
+        .insert(
+          objectCamelToSnake({
+            notionDatabaseId: databaseId,
+            notionIntegrationId: integration.id,
+          }),
+        )
+        .returning('id')
+
+      if (!database) {
+        // do something
+        console.error('No notion database created')
+        return false
+      }
+
+      return true
+    } catch (err) {
+      console.error(err)
+      return false
     }
   },
 }
