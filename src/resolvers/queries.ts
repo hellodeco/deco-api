@@ -169,8 +169,8 @@ i      * {
         .map(iconMapper)
 
       const topLevelPages = sharedPages.filter(topLevelFilter).map((page) => {
-        // @ts-ignore
         const title =
+          // @ts-ignore
           page.title ||
           // @ts-ignore
           page?.properties?.title?.title?.[0]?.plain_text ||
