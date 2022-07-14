@@ -104,7 +104,7 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
       console.error(err)
     }
   },
-  currentUserConnectedNotionPages: async (
+  connectedNotionPages: async (
     parent,
     args,
     { notionAccess, user, db },
@@ -130,6 +130,10 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
       const iconMapper = (page) => {
         if (!page.icon) {
           page.icon = { type: 'emoji', emoji: '📁' }
+        }
+
+        if (['file', 'external'].includes(page.icon.type)) {
+          page.icon.url = page.icon[page.icon?.type]?.url || null
         }
 
         return page
