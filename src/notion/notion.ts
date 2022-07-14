@@ -44,16 +44,35 @@ export interface NewEmail {
   plainTextContent: string
 }
 
-export async function getNotionDatabases(userfrontID: string): Promise<SearchResponse> {
+export async function getSharedNotionDatabases(userfrontID: string) {
   try {
     const notion = await notionClient(userfrontID)
 
-    return notion.search({
+    const resp = await notion.search({
       filter: {
         property: 'object',
         value: 'database',
       },
     })
+
+    return resp.results || []
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+export async function getSharedNotionPages(userfrontID: string) {
+  try {
+    const notion = await notionClient(userfrontID)
+
+    const resp = await notion.search({
+      filter: {
+        property: 'object',
+        value: 'page',
+      },
+    })
+
+    return resp.results || []
   } catch (err) {
     console.error(err)
   }

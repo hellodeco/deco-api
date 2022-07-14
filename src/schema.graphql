@@ -64,12 +64,18 @@ type NotionPage {
   icon: String
 }
 
+type ConnectedNotionEntities {
+  pages: [NotionPage]
+  databases: [NotionDatabaseInfo]
+}
+
 type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
   emailUsernameAvailable(username: String!): Boolean
   getCurrentUserNotionDatabaseInfo: NotionDatabaseInfo
   emailDomain: String
+  # will return list of databases and pages
   currentUserConnectedNotionPages: [NotionPage]
 }
 
