@@ -26,14 +26,14 @@ import type { NotionIntegration } from '../types/database'
  *    b. it won't auto choose the first shared page in the notion provided list
  * 2. New API / API functionality to report if multiple pages are shared
  * 3. New API to choose one page to use
- * 
+ *
  * "Rules" for this
- * 
+ *
  *   | ***
  *   | notion_database === the database we route mail to. This must be one of the databases
  *   | that the user has explicity shared with us
  *   | ***
- * 
+ *
  * 1. connecting to notion will only create a notion_integration, not actually choose which shared page
  *    is used for the connected database
  * 2. we will only set one notion_database at a time per user

@@ -70,7 +70,7 @@ type NotionFile {
 #   type: String
 #   external: NotionFile
 # }
-# 
+#
 # type NotionImageFileIcon {
 #   type: String
 #   file: NotionFile
@@ -114,4 +114,5 @@ type Mutation {
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   setDecoEmail(username: String): UpdateDecoEmailResult
+  selectNotionDatabase(databaseId: String!): Boolean
 }
