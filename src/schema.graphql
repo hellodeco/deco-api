@@ -106,7 +106,7 @@ type Query {
   getCurrentUserNotionDatabaseInfo: NotionDatabaseInfo
   emailDomain: String
   # will return list of databases and pages
-  currentUserConnectedNotionPages: [NotionPage]
+  connectedNotionPages: [NotionPage]
 }
 
 type Mutation {

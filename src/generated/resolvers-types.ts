@@ -4,7 +4,6 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -58,29 +57,16 @@ export enum NotionDatabaseStatus {
   NotShared = 'NOT_SHARED'
 }
 
-export type NotionEmojiIcon = {
-  __typename?: 'NotionEmojiIcon';
-  emoji?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
-};
-
-export type NotionExternalImageFileIcon = {
-  __typename?: 'NotionExternalImageFileIcon';
-  external?: Maybe<NotionFile>;
-  type?: Maybe<Scalars['String']>;
-};
-
 export type NotionFile = {
   __typename?: 'NotionFile';
   url?: Maybe<Scalars['String']>;
 };
 
-export type NotionIcon = NotionEmojiIcon | NotionExternalImageFileIcon | NotionImageFileIcon;
-
-export type NotionImageFileIcon = {
-  __typename?: 'NotionImageFileIcon';
-  file?: Maybe<NotionFile>;
+export type NotionIcon = {
+  __typename?: 'NotionIcon';
+  emoji?: Maybe<Scalars['String']>;
   type?: Maybe<Scalars['String']>;
+  url?: Maybe<Scalars['String']>;
 };
 
 export type NotionIntegration = {
@@ -109,8 +95,8 @@ export type NotionPage = {
 
 export type Query = {
   __typename?: 'Query';
+  connectedNotionPages?: Maybe<Array<Maybe<NotionPage>>>;
   currentUser?: Maybe<User>;
-  currentUserConnectedNotionPages?: Maybe<Array<Maybe<NotionPage>>>;
   emailDomain?: Maybe<Scalars['String']>;
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
@@ -221,13 +207,10 @@ export type ResolversTypes = ResolversObject<{
   Mutation: ResolverTypeWrapper<{}>;
   NotionDatabaseInfo: ResolverTypeWrapper<NotionDatabaseInfo>;
   NotionDatabaseStatus: NotionDatabaseStatus;
-  NotionEmojiIcon: ResolverTypeWrapper<NotionEmojiIcon>;
-  NotionExternalImageFileIcon: ResolverTypeWrapper<NotionExternalImageFileIcon>;
   NotionFile: ResolverTypeWrapper<NotionFile>;
-  NotionIcon: ResolversTypes['NotionEmojiIcon'] | ResolversTypes['NotionExternalImageFileIcon'] | ResolversTypes['NotionImageFileIcon'];
-  NotionImageFileIcon: ResolverTypeWrapper<NotionImageFileIcon>;
+  NotionIcon: ResolverTypeWrapper<NotionIcon>;
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
-  NotionPage: ResolverTypeWrapper<Omit<NotionPage, 'icon'> & { icon?: Maybe<ResolversTypes['NotionIcon']> }>;
+  NotionPage: ResolverTypeWrapper<NotionPage>;
   Query: ResolverTypeWrapper<{}>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
@@ -244,13 +227,10 @@ export type ResolversParentTypes = ResolversObject<{
   Int: Scalars['Int'];
   Mutation: {};
   NotionDatabaseInfo: NotionDatabaseInfo;
-  NotionEmojiIcon: NotionEmojiIcon;
-  NotionExternalImageFileIcon: NotionExternalImageFileIcon;
   NotionFile: NotionFile;
-  NotionIcon: ResolversParentTypes['NotionEmojiIcon'] | ResolversParentTypes['NotionExternalImageFileIcon'] | ResolversParentTypes['NotionImageFileIcon'];
-  NotionImageFileIcon: NotionImageFileIcon;
+  NotionIcon: NotionIcon;
   NotionIntegration: NotionIntegration;
-  NotionPage: Omit<NotionPage, 'icon'> & { icon?: Maybe<ResolversParentTypes['NotionIcon']> };
+  NotionPage: NotionPage;
   Query: {};
   String: Scalars['String'];
   UUID: Scalars['UUID'];
@@ -280,30 +260,15 @@ export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends Re
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type NotionEmojiIconResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionEmojiIcon'] = ResolversParentTypes['NotionEmojiIcon']> = ResolversObject<{
-  emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  type?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type NotionExternalImageFileIconResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionExternalImageFileIcon'] = ResolversParentTypes['NotionExternalImageFileIcon']> = ResolversObject<{
-  external?: Resolver<Maybe<ResolversTypes['NotionFile']>, ParentType, ContextType>;
-  type?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type NotionFileResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionFile'] = ResolversParentTypes['NotionFile']> = ResolversObject<{
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type NotionIconResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionIcon'] = ResolversParentTypes['NotionIcon']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'NotionEmojiIcon' | 'NotionExternalImageFileIcon' | 'NotionImageFileIcon', ParentType, ContextType>;
-}>;
-
-export type NotionImageFileIconResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionImageFileIcon'] = ResolversParentTypes['NotionImageFileIcon']> = ResolversObject<{
-  file?: Resolver<Maybe<ResolversTypes['NotionFile']>, ParentType, ContextType>;
+  emoji?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -332,8 +297,8 @@ export type NotionPageResolvers<ContextType = any, ParentType extends ResolversP
 }>;
 
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
+  connectedNotionPages?: Resolver<Maybe<Array<Maybe<ResolversTypes['NotionPage']>>>, ParentType, ContextType>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
-  currentUserConnectedNotionPages?: Resolver<Maybe<Array<Maybe<ResolversTypes['NotionPage']>>>, ParentType, ContextType>;
   emailDomain?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
@@ -362,11 +327,8 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   ConnectedNotionEntities?: ConnectedNotionEntitiesResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NotionDatabaseInfo?: NotionDatabaseInfoResolvers<ContextType>;
-  NotionEmojiIcon?: NotionEmojiIconResolvers<ContextType>;
-  NotionExternalImageFileIcon?: NotionExternalImageFileIconResolvers<ContextType>;
   NotionFile?: NotionFileResolvers<ContextType>;
   NotionIcon?: NotionIconResolvers<ContextType>;
-  NotionImageFileIcon?: NotionImageFileIconResolvers<ContextType>;
   NotionIntegration?: NotionIntegrationResolvers<ContextType>;
   NotionPage?: NotionPageResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
