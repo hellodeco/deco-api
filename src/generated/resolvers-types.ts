@@ -52,6 +52,7 @@ export type NotionDatabaseInfo = {
   __typename?: 'NotionDatabaseInfo';
   icon?: Maybe<Scalars['String']>;
   needsFormatting?: Maybe<Scalars['Boolean']>;
+  needsManualFormatting?: Maybe<Scalars['Boolean']>;
   status?: Maybe<NotionDatabaseStatus>;
   title?: Maybe<Scalars['String']>;
   url?: Maybe<Scalars['String']>;
@@ -261,6 +262,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
 export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionDatabaseInfo'] = ResolversParentTypes['NotionDatabaseInfo']> = ResolversObject<{
   icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   needsFormatting?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  needsManualFormatting?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['NotionDatabaseStatus']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
