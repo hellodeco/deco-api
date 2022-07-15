@@ -56,7 +56,6 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         .select('id', 'access_token')
         .first()
 
-      console.log('integration', notionIntegration)
       if (!notionIntegration) {
         return null
       }
@@ -67,8 +66,6 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         .select('notion_database_id')
         .first()
 
-
-      console.log('database', notionDatabase)
       if (!notionDatabase) {
         return null
       }
@@ -80,16 +77,12 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         notionDatabaseId,
       })
 
-      console.log('notionDBResp', notionDBResp)
-
       if (!notionDBResp) {
         return null
       }
 
       // @ts-ignore Typescript you're goddamn high!
       const dbProperties = Object.keys(notionDBResp.properties)
-
-      console.log('dbProperties', dbProperties)
 
       // Check to see if the database has the correct properties required to receive emails
       const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every(
@@ -105,9 +98,6 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
           notionDBResp.properties?.title?.title?.[0]?.plain_text ||
           'Untitled Notion Page'
 
-        
-      console.log('title', title)
-
       const needsManualFormatting = notionDBResp.object === 'page'
 
       const data = {
@@ -119,8 +109,6 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         icon: notionDBResp?.icon?.emoji, // only supporting emoji icon for now
         needsFormatting: !containsAll,
       }
-
-      console.log('final data', data)
 
       return data
     } catch (err) {
@@ -159,23 +147,6 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         let { id, title, url, icon } = page
         return { id, title, url, icon }
       }
-      /**
-       * page.icon can be one of:
-       * {
-       *    type: 'external',
-       *    external: {
-       *      url: 'https://images.unsplash.com/photo-1657769311349-2b2eea385393?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1935&q=80'
-       *    }
-       * }
-       * { type: 'emoji', emoji: '📕' }
-i      * {
-       *   type: 'file',
-       *   file: {
-       *     url: 'https://s3.us-west-2.amazonaws.com/secure.notion-static.com/191a95c7-9a80-4634-8c93-0daeb9cc723f/hellodeco.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20220714%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20220714T170308Z&X-Amz-Expires=3600&X-Amz-Signature=6fa6fa5b0f936bb27a5408a83f5a868b581611608faea61a85c1f27c713b30d3&X-Amz-SignedHeaders=host&x-id=GetObject',
-       *     expiry_time: '2022-07-14T18:03:08.922Z'
-       *   }
-       * }
-       */
 
       const topLevelDBs = sharedDBs
         .filter(topLevelFilter)
@@ -208,9 +179,6 @@ i      * {
       const allPages = [...topLevelDBs, ...topLevelPages]
         .map(iconMapper)
         .map(fieldMapper)
-
-      // console.log('shared dbs', topLevelDBs)
-      // console.log('shared pages', topLevelPages)
 
       return allPages
     } catch (err) {
