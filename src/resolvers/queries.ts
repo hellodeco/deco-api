@@ -1,4 +1,3 @@
-import { isArray, isString } from 'lodash'
 import { QueryResolvers } from '../generated/resolvers-types'
 import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
@@ -57,6 +56,7 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         .select('id', 'access_token')
         .first()
 
+      console.log('integration', notionIntegration)
       if (!notionIntegration) {
         return null
       }
@@ -67,6 +67,8 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         .select('notion_database_id')
         .first()
 
+
+      console.log('database', notionDatabase)
       if (!notionDatabase) {
         return null
       }
@@ -78,11 +80,16 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         notionDatabaseId,
       })
 
+      console.log('notionDBResp', notionDBResp)
+
       if (!notionDBResp) {
         return null
       }
 
+      // @ts-ignore Typescript you're goddamn high!
       const dbProperties = Object.keys(notionDBResp.properties)
+
+      console.log('dbProperties', dbProperties)
 
       // Check to see if the database has the correct properties required to receive emails
       const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every(
@@ -91,15 +98,31 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         },
       )
 
-      return {
-        // @ts-ignore
-        title: notionDBResp?.title?.[0]?.plain_text,
+        const title =
+          // @ts-ignore
+          notionDBResp.title?.[0]?.plain_text ||
+          // @ts-ignore
+          notionDBResp.properties?.title?.title?.[0]?.plain_text ||
+          'Untitled Notion Page'
+
+        
+      console.log('title', title)
+
+      const needsManualFormatting = notionDBResp.object === 'page'
+
+      const data = {
+        title,
+        needsManualFormatting,
         // @ts-ignore
         url: notionDBResp?.url,
         // @ts-ignore
-        icon: notionDBResp?.icon?.emoji,
+        icon: notionDBResp?.icon?.emoji, // only supporting emoji icon for now
         needsFormatting: !containsAll,
       }
+
+      console.log('final data', data)
+
+      return data
     } catch (err) {
       console.error(err)
     }
@@ -186,9 +209,8 @@ i      * {
         .map(iconMapper)
         .map(fieldMapper)
 
-      console.log('shared dbs', topLevelDBs)
-
-      console.log('shared pages', topLevelPages)
+      // console.log('shared dbs', topLevelDBs)
+      // console.log('shared pages', topLevelPages)
 
       return allPages
     } catch (err) {

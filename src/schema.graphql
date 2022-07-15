@@ -32,8 +32,11 @@ type NotionDatabaseInfo {
   title: String
   url: String
   icon: String
-  needsFormatting: Boolean
   status: NotionDatabaseStatus
+  # needs to be formatted programatically by deco
+  needsFormatting: Boolean
+  # user needs to manually format the notion page
+  needsManualFormatting: Boolean
 }
 
 input Email {

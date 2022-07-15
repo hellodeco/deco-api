@@ -1,7 +1,7 @@
 import { Client } from '@notionhq/client'
 import type {
   GetDatabaseResponse,
-  SearchResponse,
+  GetPageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { db } from '../db-connection'
@@ -133,7 +133,7 @@ export async function getNotionDatabaseIdFromNotion({
   return { notionDatabaseId }
 }
 
-async function notionClient(userfrontID: string): Promise<Client> {
+export async function notionClient(userfrontID: string): Promise<Client> {
   const notionIntegration = await db
     .notionIntegrations()
     .where('userfront_user_id', userfrontID)
@@ -323,27 +323,33 @@ export async function notionDatabaseInfo({
 }: {
   notionIntegration: NotionIntegration
   notionDatabaseId: string
-}): Promise<GetDatabaseResponse | null> {
+}): Promise<GetDatabaseResponse | GetPageResponse | null> {
   let notionDatabaseInfo = null
   try {
-    // const notionIntegration = await db.notionIntegrations()
-    //   .where('userfront_user_id', userfrontID)
-    //   .select('id accessToken')
-    //   .first()
-
-    // if (!notionIntegration) {
-    //   return null
-    // }
-
     const notion = new Client({ auth: notionIntegration.accessToken })
 
-    const response = await notion.databases.retrieve({
-      database_id: notionDatabaseId,
-    })
+    let resp = null
+    try {
+      resp = await notion.databases.retrieve({
+        database_id: notionDatabaseId,
+      })
+    } catch(err) {
+      console.error(err)
+    }
 
-    console.log('response', response)
+    if (!resp) {
+      try {
+        resp = await notion.pages.retrieve({
+          page_id: notionDatabaseId,
+        })
+      } catch (err) {
+        console.error(err)
+      }
+    }
 
-    return response
+    console.log('response', resp)
+
+    return resp
 
     // const dbProperties = Object.keys(response.properties)
 

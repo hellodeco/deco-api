@@ -122,14 +122,14 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       let database
       if (existingDatabase) {
-        console.log('updating existing db.....')
+        // console.log('updating existing db.....')
         database = await db
           .notionDatabases()
           .where('notion_integration_id', integration.id)
           .update(objectCamelToSnake({ notionDatabaseId: databaseId }))
           .returning('id')
       } else {
-        console.log('creating new db.....')
+        // console.log('creating new db.....')
         database = await db
           .notionDatabases()
           .insert(
@@ -141,7 +141,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           .returning('id')
       }
 
-      console.log('db', database)
+      // console.log('db', database)
 
       if (isArray(database)) {
         database = database[0]
