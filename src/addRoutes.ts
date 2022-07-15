@@ -229,21 +229,7 @@ export function addRoutes(app: Express) {
         )
       }
 
-      // NOTION ONBOARDING: remove the automatic database selection here
-      // const { notionDatabaseId } = await getNotionDatabaseIdFromNotion({
-      //   accessToken: access_token,
-      // })
-
-      // if (!notionDatabaseId) {
-      //   return res.redirect(
-      //     createNotionAuthFailedRedirectURL({
-      //       message:
-      //         'It seems that the Notion page shared was not formatted as a full page database',
-      //     }),
-      //   )
-      // }
-
-      const { id: notionIntegrationId } = await createOrUpdateNotionIntegration(
+      await createOrUpdateNotionIntegration(
         {
           userfrontUserId: userMeta.userfrontUserId,
           accessToken: access_token,
@@ -259,14 +245,6 @@ export function addRoutes(app: Express) {
           email: owner?.user?.person?.email,
         },
       )
-
-      // TODO: query notion api for all shared databases and delete existing notion_database
-      // if it is not longer a database that is shared with deco
-
-      // await createOrUpdateNotionDatabase({
-      //   notionIntegrationId,
-      //   notionDatabaseId: notionDatabaseId,
-      // })
 
       return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
     } catch (err) {
