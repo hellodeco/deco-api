@@ -117,21 +117,24 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
   },
   connectedNotionPages: async (parent, args, { notionAccess, user, db }) => {
     try {
+      // Notion requires a different query to get pages and databases
+      // because users can share either type, we need need to query for both
       const [sharedDBs, sharedPages] = await Promise.all([
         notionAccess.getSharedNotionDatabases(user.userfrontID),
         notionAccess.getSharedNotionPages(user.userfrontID),
       ])
 
-      // filter out any notion pages that are not top level
+      // filter out any notion pages/databases that are not top level
       const topLevelFilter = (page) => {
         // @ts-ignore - TS can not figure its goddamn shit out with this one
         const { parent } = page
         return parent?.type === 'workspace' && parent?.workspace === true
       }
 
-      // format the icon object on each page
+      // format the icon object on each page/database
       const iconMapper = (page) => {
         if (!page.icon) {
+          // default emoji icon if none exists
           page.icon = { type: 'emoji', emoji: '📁' }
         }
 
@@ -159,7 +162,6 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
             title,
           }
         })
-
         .map(iconMapper)
 
       const topLevelPages = sharedPages.filter(topLevelFilter).map((page) => {

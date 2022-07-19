@@ -69,31 +69,11 @@ type NotionFile {
   url: String
 }
 
-# type NotionExternalImageFileIcon {
-#   type: String
-#   external: NotionFile
-# }
-#
-# type NotionImageFileIcon {
-#   type: String
-#   file: NotionFile
-# }
-#
-# type NotionEmojiIcon {
-#   type: String
-#   emoji: String
-# }
-
 type NotionIcon {
   type: String
   emoji: String
   url: String
 }
-
-# union NotionIcon =
-#     NotionExternalImageFileIcon
-#   | NotionImageFileIcon
-#   | NotionEmojiIcon
 
 type NotionPage {
   id: String
@@ -108,7 +88,7 @@ type Query {
   emailUsernameAvailable(username: String!): Boolean
   getCurrentUserNotionDatabaseInfo: NotionDatabaseInfo
   emailDomain: String
-  # will return list of databases and pages
+  # will return list of databases and pages that the current user has shared
   connectedNotionPages: [NotionPage]
 }
 

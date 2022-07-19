@@ -11,7 +11,6 @@ import {
   createOrUpdateNotionIntegration,
   getUserByUserfrontID,
   getSubscriptionByUserfrontUserId,
-  createOrUpdateNotionDatabase,
 } from './db-access/db-access'
 import { verifyJWT } from './jwt'
 import {
@@ -23,7 +22,6 @@ import {
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
-import { getNotionDatabaseIdFromNotion } from './notion/notion'
 import { db } from './db-connection'
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
