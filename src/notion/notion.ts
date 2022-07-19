@@ -230,7 +230,7 @@ export async function formatNotionTable(userfrontID: string) {
   const props = Object.values(properties)
 
   if (props.length > 1 || props[0].id !== 'title') {
-    console.log(
+    console.warn(
       'Looks like there are too many existing properties in the table.',
     )
     return false
