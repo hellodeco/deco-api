@@ -141,8 +141,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           .returning('id')
       }
 
-      // console.log('db', database)
-
       if (isArray(database)) {
         database = database[0]
       }

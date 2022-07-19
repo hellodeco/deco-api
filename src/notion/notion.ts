@@ -347,23 +347,7 @@ export async function notionDatabaseInfo({
       }
     }
 
-    console.log('response', resp)
-
     return resp
-
-    // const dbProperties = Object.keys(response.properties)
-
-    // // Check to see if the database has the correct properties required to receive emails
-    // const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every((propKey) => {
-    //   return dbProperties.includes(propKey)
-    // })
-
-    // notionDatabaseInfo = {
-    //   title: response?.title?.[0]?.plain_text,
-    //   url: response?.url,
-    //   icon: response?.icon?.emoji,
-    //   needsFormatting: !containsAll,
-    // }
   } catch (err) {
     console.error(err)
   }
