@@ -38,9 +38,9 @@ import type { NotionIntegration } from '../types/database'
  *    is used for the connected database
  * 2. we will only set one notion_database at a time per user
  * 3. user will be able to change their notion_database
- * 4. user will also be able to choose to change the the databases shared with Deco. If this happens and
- *    the user has a notion_database, we will delete the notion_database if it is no longer shared with us
- *    at which point the user will have to select which shared database will become their notion_database
+ * 4. user will be able to change their shared notion pages. Once they have done this, we will update the integration
+ *    and delete their old notion_database from our database and they will be prompted to reselect the page they want
+ *    emails to get routed to
  *
  * Client side logic
  * - Query for notion_integration

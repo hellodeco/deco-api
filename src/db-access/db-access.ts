@@ -48,36 +48,6 @@ export async function createNewEmail(emailData: {
     .insert(objectCamelToSnake(emailData))
 }
 
-export async function createOrUpdateNotionIntegration(
-  notionIntegration: NotionIntegration,
-) {
-  const integration = await dbConnection<NotionIntegration>(
-    Tables.NOTION_INTEGRATIONS,
-  )
-    .where('userfront_user_id', notionIntegration.userfrontUserId)
-    .select('id')
-    .first()
-
-  if (integration) {
-    const [newIntegration] = await dbConnection<NotionIntegration>(
-      Tables.NOTION_INTEGRATIONS,
-    )
-      .where('userfront_user_id', notionIntegration.userfrontUserId)
-      .update(objectCamelToSnake(notionIntegration))
-      .returning('*')
-
-    return newIntegration
-  }
-
-  const [newIntegration] = await dbConnection<NotionIntegration>(
-    Tables.NOTION_INTEGRATIONS,
-  )
-    .insert(objectCamelToSnake(notionIntegration))
-    .returning('*')
-
-  return newIntegration
-}
-
 export async function createOrUpdateSubscription(subscription: Subscription) {
   const existingSub = await dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
     .where('stripe_subscription_id', subscription.stripeSubscriptionId)

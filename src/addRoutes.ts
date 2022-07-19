@@ -8,7 +8,6 @@ import multer from 'multer'
 import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
 import {
-  createOrUpdateNotionIntegration,
   getUserByUserfrontID,
   getSubscriptionByUserfrontUserId,
 } from './db-access/db-access'
@@ -23,12 +22,39 @@ import {
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
+import { objectCamelToSnake } from './utils'
+import type { NotionIntegration } from './types/database'
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
   params.append('message', message)
   return `${FRONTEND_BASE_URL}/oauth/notion/fail?${params.toString()}`
 }
+
+export async function upsertNotionIntegration(
+  notionIntegration: NotionIntegration,
+) {
+  const integration = await db.notionIntegrations()
+    .where('userfront_user_id', notionIntegration.userfrontUserId)
+    .select('id')
+    .first()
+
+  if (integration) {
+    const [newIntegration] = await db.notionIntegrations()
+      .where('userfront_user_id', notionIntegration.userfrontUserId)
+      .update(objectCamelToSnake(notionIntegration))
+      .returning('id')
+
+    return newIntegration
+  }
+
+  const [newIntegration] = await db.notionIntegrations()
+    .insert(objectCamelToSnake(notionIntegration))
+    .returning('id')
+
+  return newIntegration
+}
+
 
 export function addRoutes(app: Express) {
   const upload = multer({
@@ -232,7 +258,7 @@ export function addRoutes(app: Express) {
         )
       }
 
-      await createOrUpdateNotionIntegration({
+      const { id } = await upsertNotionIntegration({
         userfrontUserId: userMeta.userfrontUserId,
         accessToken: access_token,
         tokenType: token_type,
@@ -246,6 +272,10 @@ export function addRoutes(app: Express) {
         type: owner?.user?.type,
         email: owner?.user?.person?.email,
       })
+
+      await db.notionDatabases()
+        .where('notion_integration_id', id)
+        .delete()
 
       return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
     } catch (err) {
