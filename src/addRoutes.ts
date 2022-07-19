@@ -227,22 +227,20 @@ export function addRoutes(app: Express) {
         )
       }
 
-      await createOrUpdateNotionIntegration(
-        {
-          userfrontUserId: userMeta.userfrontUserId,
-          accessToken: access_token,
-          tokenType: token_type,
-          workspaceId: workspace_id,
-          workspaceName: workspace_name,
-          workspaceIcon: workspace_icon,
-          botId: bot_id,
-          userId: owner?.user?.id,
-          userFullName: owner?.user?.name,
-          avatarURL: owner?.user?.avatar_url,
-          type: owner?.user?.type,
-          email: owner?.user?.person?.email,
-        },
-      )
+      await createOrUpdateNotionIntegration({
+        userfrontUserId: userMeta.userfrontUserId,
+        accessToken: access_token,
+        tokenType: token_type,
+        workspaceId: workspace_id,
+        workspaceName: workspace_name,
+        workspaceIcon: workspace_icon,
+        botId: bot_id,
+        userId: owner?.user?.id,
+        userFullName: owner?.user?.name,
+        avatarURL: owner?.user?.avatar_url,
+        type: owner?.user?.type,
+        email: owner?.user?.person?.email,
+      })
 
       return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
     } catch (err) {

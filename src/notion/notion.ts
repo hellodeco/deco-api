@@ -333,7 +333,7 @@ export async function notionDatabaseInfo({
       resp = await notion.databases.retrieve({
         database_id: notionDatabaseId,
       })
-    } catch(err) {
+    } catch (err) {
       console.error(err)
     }
 

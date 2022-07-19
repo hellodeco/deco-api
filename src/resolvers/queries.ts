@@ -91,12 +91,12 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         },
       )
 
-        const title =
-          // @ts-ignore
-          notionDBResp.title?.[0]?.plain_text ||
-          // @ts-ignore
-          notionDBResp.properties?.title?.title?.[0]?.plain_text ||
-          'Untitled Notion Page'
+      const title =
+        // @ts-ignore
+        notionDBResp.title?.[0]?.plain_text ||
+        // @ts-ignore
+        notionDBResp.properties?.title?.title?.[0]?.plain_text ||
+        'Untitled Notion Page'
 
       const needsManualFormatting = notionDBResp.object === 'page'
 
