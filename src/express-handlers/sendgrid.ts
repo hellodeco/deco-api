@@ -190,11 +190,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       .emails()
       .where('id', newEmail.id)
       .update({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id })
-  } catch (err) {
-    console.error(err)
-  }
 
-  try {
     await db
       .emailHeaders()
       .insert(
