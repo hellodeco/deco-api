@@ -5,48 +5,12 @@ import { Header } from '../express-handlers/sendgrid'
 import { Tables } from '../types/database'
 import type {
   User,
-  DecoDBEmail,
   NotionDatabase,
   Subscription,
   NotionIntegration,
 } from '../types/database'
 
-interface EmailThread {
-  id?: number
-  subject?: string
-  user_id?: string
-}
-
-type EmailThreadArray = EmailThread[]
-
 //  CREATE FUNCTIONS =================================================
-
-export async function createNewEmailThreadByUserID(
-  subject: string,
-  userMetaId: string,
-): Promise<EmailThreadArray> {
-  return await dbConnection('email_threads').returning('*').insert({
-    subject: subject,
-    user_id: userMetaId,
-  })
-}
-
-export async function createNewEmail(emailData: {
-  userId?: string
-  subject: string
-  from: string
-  status?: string
-  emailThreadId?: number
-  plainTextContent: string
-  htmlContent?: string
-  messageId?: string
-  inReplyTo?: string
-  references?: string
-}): Promise<DecoDBEmail[]> {
-  return dbConnection('emails')
-    .returning('*')
-    .insert(objectCamelToSnake(emailData))
-}
 
 export async function createOrUpdateSubscription(subscription: Subscription) {
   const existingSub = await dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
