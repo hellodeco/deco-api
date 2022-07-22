@@ -1,10 +1,5 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
-import {
-  getUserByDecoEmail,
-  createNewEmailThreadByUserID,
-  createNewEmail,
-} from '../db-access/db-access'
 import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
@@ -160,7 +155,11 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       incomingEmail.status = EmailStatus.TO_ADDRESS_NOT_FOUND
 
       try {
-        await createNewEmail(incomingEmail)
+        // await createNewEmail(incomingEmail)
+        await db
+          .emails()
+          .returning('*')
+          .insert(objectCamelToSnake(incomingEmail))
       } catch (err) {
         console.error(err)
       }
