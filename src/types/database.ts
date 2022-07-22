@@ -5,6 +5,7 @@ export enum Tables {
   USERS = 'users',
   EMAILS = 'emails',
   EMAIL_HEADERS = 'email_headers',
+  EMAIL_THREADS = 'email_threads',
 }
 
 export interface User {
@@ -70,4 +71,10 @@ export interface NotionIntegration {
   avatarURL: string
   type: string
   email: string
+}
+
+export interface EmailThread {
+  id?: number
+  subject: string
+  user_id: number
 }
