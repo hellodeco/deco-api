@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+import { isArray } from 'lodash'
 import {
   getUserByDecoEmail,
   createNewEmailThreadByUserID,
@@ -78,11 +79,45 @@ export function headerMapToArray(
   }, [] as Array<Header>)
 }
 
+function logger(...args) {
+  console.log(
+    ...args.map(arg => {
+      if (typeof arg === 'object') {
+        return JSON.stringify(arg, null, 2)
+      }
+
+      return arg
+    })
+  )
+}
+
+async function handleEmail() {
+
+}
+
 export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req
-  const { headers, from, subject, text } = body
-  let { to } = body
-  to = to.toLowerCase()
+  const { headers, from, subject, text, html, cc, envelope } = body
+
+
+  // req.body contains:
+  // 
+  // - headers
+  // - dkim
+  // - to
+  // - cc
+  // - html
+  // - from
+  // - text
+  // - sender_ip
+  // - spam_report
+  // - envelope
+  // - attachments
+  // - subject
+  // - spam_score
+  // - charsets
+  // - SP
+
 
   // TODO: messages that are forwarded from another email seem to retain the same "to" address on the body object
   // this is problematic because we try and look up the original receiver in our DB which probably doesn't exist
@@ -91,117 +126,137 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
   const headersMap = parseHeaderString(headers)
 
+  // TODO: sometimes "to" can be formatted like this: "to": "Matt Ehlinger <ehlinger.matt@gmail.com>"
+
+  logger('body keys', Object.keys(body))
+  logger('headers -------------')
+  logger(headersMap)
+  logger('body ----------------')
+  logger(body)
+
+
   const inReplyTo = headersMap['in-reply-to']
   const references = headersMap['references']
   const messageID = headersMap['message-id']
 
-  let emailRecipient
 
-  try {
-    emailRecipient = await getUserByDecoEmail(to)
-  } catch (err) {
-    console.error(err)
+  let toAddresses = envelope?.to || []
+  if (!isArray(toAddresses)){
+    toAddresses = [toAddresses]
   }
 
-  if (!emailRecipient) {
-    /**
-     * @todo persist the "to" address for these
-     */
-    const orphanedEmail: InboundSendgridParsedEmail = {
-      subject: subject,
-      plainTextContent: text,
-      from: from,
-      status: EmailStatus.TO_ADDRESS_NOT_FOUND,
-    }
-
-    if (references) {
-      orphanedEmail.references = references[0]
-    }
-
-    if (inReplyTo) {
-      orphanedEmail.references = inReplyTo[0]
-    }
-
-    if (messageID) {
-      orphanedEmail.messageId = messageID[0]
-    }
+  for (let to of toAddresses) {
+    to = to.toLowerCase()
+    let emailRecipient
 
     try {
-      await createNewEmail(orphanedEmail)
+      emailRecipient = await db
+        .users()
+        .where('email_address', to)
+        .select('*')
+        .first()
     } catch (err) {
       console.error(err)
     }
 
-    return res.status(200).json({ message: 'no email recipient found' })
-  }
-
-  const newInboundEmail: InboundSendgridParsedEmail = {
-    subject: subject,
-    plainTextContent: text,
-    from: from,
-    userId: emailRecipient.id,
-    status: EmailStatus.RECEIVED_TO_DECO,
-  }
-
-  if (references) {
-    newInboundEmail.references = references[0]
-  }
-
-  if (inReplyTo) {
-    newInboundEmail.references = inReplyTo[0]
-  }
-
-  if (messageID) {
-    newInboundEmail.messageId = messageID[0]
-  }
-
-  let newEmailThread
-
-  try {
-    const [thread] = await createNewEmailThreadByUserID(
+    const incomingEmail: InboundSendgridParsedEmail = {
       subject,
-      emailRecipient.id,
-    )
+      from,
+      plainTextContent: text,
+      htmlContent: html,
+    }
 
-    newEmailThread = thread
-  } catch (err) {
-    console.error(err)
+    if (references) {
+      incomingEmail.references = references[0]
+    }
+
+    if (inReplyTo) {
+      incomingEmail.references = inReplyTo[0]
+    }
+
+    if (messageID) {
+      incomingEmail.messageId = messageID[0]
+    }
+
+
+    if (!emailRecipient) {
+      /**
+       * @todo persist the "to" address for these
+       */
+
+      incomingEmail.status = EmailStatus.TO_ADDRESS_NOT_FOUND
+
+      try {
+        await createNewEmail(incomingEmail)
+      } catch (err) {
+        console.error(err)
+      }
+
+      continue
+    }
+
+    incomingEmail.userId = emailRecipient.id
+    incomingEmail.status = EmailStatus.RECEIVED_TO_DECO
+
+    // TODO: compose threads rather than creating a new one for each new email
+    let newEmailThread
+
+    try {
+      const thread = await db
+        .emailThreads()
+        .returning('*')
+        .insert({
+          subject,
+          user_id: emailRecipient.id,
+        })
+        .first()
+
+      newEmailThread = thread
+    } catch (err) {
+      console.error(err)
+    }
+
+    incomingEmail.emailThreadId = newEmailThread?.id
+
+    let newEmail
+    try {
+      const email = await db
+        .emails()
+        .returning('*')
+        .insert(objectCamelToSnake(incomingEmail))
+        .first()
+
+      newEmail = email
+    } catch (err) {
+      console.error(err)
+    }
+
+    incomingEmail.emailId = newEmail?.id
+
+    try {
+      const { id } = await addEmailToNotion({
+        newEmail: incomingEmail,
+        userfrontID: emailRecipient.userfrontUserId,
+      })
+
+      await db
+        .emails()
+        .where('id', newEmail.id)
+        .update({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id })
+
+      await db
+        .emailHeaders()
+        .insert(
+          headerMapToArray(headersMap, newEmail.id).map((header) =>
+            objectCamelToSnake(header),
+          ),
+        )
+    } catch (err) {
+      console.error(err)
+    }
   }
 
-  newInboundEmail.emailThreadId = newEmailThread?.id
-
-  let newEmail
-  try {
-    const [email] = await createNewEmail(newInboundEmail)
-    newEmail = email
-  } catch (err) {
-    console.error(err)
-  }
-
-  newInboundEmail.emailId = newEmail?.id
-
-  try {
-    const { id } = await addEmailToNotion({
-      newEmail: newInboundEmail,
-      userfrontID: emailRecipient.userfrontUserId,
-    })
-
-    await db
-      .emails()
-      .where('id', newEmail.id)
-      .update({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id })
-
-    await db
-      .emailHeaders()
-      .insert(
-        headerMapToArray(headersMap, newEmail.id).map((header) =>
-          objectCamelToSnake(header),
-        ),
-      )
-  } catch (err) {
-    console.error(err)
-  }
-
-  // sendgrid requires a 200 response regardless of success or failure
+  // sendgrid requires a 200 response regardless of success or failure or else it will continually retry
+  // thus, we need to signal to sendgrid that we got the email and do not require an additional retry
   res.status(200).json({ message: 'success' })
 }

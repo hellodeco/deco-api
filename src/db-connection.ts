@@ -8,6 +8,7 @@ import {
   NotionDatabase,
   Subscription,
   EmailHeader,
+  EmailThread,
 } from './types/database'
 
 const dbConnection = knex(knexConfig)
@@ -22,4 +23,5 @@ export const db = {
     dbConnection<NotionIntegration>(Tables.NOTION_INTEGRATIONS),
   notionDatabases: () => dbConnection<NotionDatabase>(Tables.NOTION_DATABASES),
   emailHeaders: () => dbConnection<EmailHeader>(Tables.EMAIL_HEADERS),
+  emailThreads: () => dbConnection<EmailThread>(Tables.EMAIL_THREADS),
 }
