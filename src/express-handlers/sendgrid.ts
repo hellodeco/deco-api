@@ -97,7 +97,7 @@ async function handleEmail() {
 
 export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req
-  const { headers, from, subject, text, html, cc, envelope } = body
+  const { headers, from, subject, text, html, cc, envelope: envelopeStr } = body
 
 
   // req.body contains:
@@ -139,11 +139,21 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   const references = headersMap['references']
   const messageID = headersMap['message-id']
 
+  let envelope = { to: [] }
+  try {
+    envelope = JSON.parse(envelopeStr)
+  } catch (err) {
+    console.error(err)
+  }
+
+  logger('envelope', envelopeStr)
 
   let toAddresses = envelope?.to || []
   if (!isArray(toAddresses)){
     toAddresses = [toAddresses]
   }
+
+  logger('to addresses', toAddresses)
 
   for (let to of toAddresses) {
     to = to.toLowerCase()
@@ -178,6 +188,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       incomingEmail.messageId = messageID[0]
     }
 
+    console.log('email recipient', emailRecipient)
+
 
     if (!emailRecipient) {
       /**
@@ -202,14 +214,15 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let newEmailThread
 
     try {
-      const thread = await db
+      const [thread] = await db
         .emailThreads()
         .returning('*')
         .insert({
           subject,
           user_id: emailRecipient.id,
         })
-        .first()
+
+      logger('new thread', thread)
 
       newEmailThread = thread
     } catch (err) {
@@ -220,11 +233,12 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     let newEmail
     try {
-      const email = await db
+      const [email] = await db
         .emails()
         .returning('*')
         .insert(objectCamelToSnake(incomingEmail))
-        .first()
+
+      logger('new email', email)
 
       newEmail = email
     } catch (err) {
@@ -234,15 +248,18 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     incomingEmail.emailId = newEmail?.id
 
     try {
-      const { id } = await addEmailToNotion({
+      console.log('adding email to notion')
+      const { id, ...rest } = await addEmailToNotion({
         newEmail: incomingEmail,
         userfrontID: emailRecipient.userfrontUserId,
       })
 
+      logger('added email to notion', id, rest)
+
       await db
         .emails()
         .where('id', newEmail.id)
-        .update({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id })
+        .update(objectCamelToSnake({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id }))
 
       await db
         .emailHeaders()

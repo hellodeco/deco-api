@@ -154,11 +154,16 @@ async function getNotionDatabaseId(
     .select('id')
     .first()
 
+
+  console.log('notionIntegration', notionIntegration)
+
   const notionDB = await db
     .notionDatabases()
     .where('notion_integration_id', notionIntegration.id)
     .select('notion_database_id')
     .first()
+
+  console.log('notionDB', notionDB)
 
   return notionDB?.notionDatabaseId || null
 }
@@ -266,6 +271,9 @@ export async function addEmailToNotion({
 }) {
   const notion = await notionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
+
+  console.log('notion database id', notionDatabaseId)
+  console.log('incoming email before going to le notion', JSON.stringify(newEmail, null, 2))
 
   const { subject, from, emailId, plainTextContent } = newEmail
 
