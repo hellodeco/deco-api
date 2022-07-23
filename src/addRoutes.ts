@@ -344,9 +344,8 @@ export function addRoutes(app: Express) {
       return res.status(404).json({ message: 'not authorized' })
     }
 
-    // stream back the file
-    // check accessToken
     res.setHeader('content-type', 'image/jpeg')
+    // this will cause a browser to trigger a download
     res.attachment('picasso-big-head.jpg')
     fs.createReadStream(
       path.join(__dirname, '..', 'files', 'picasso-big-head.jpg')
