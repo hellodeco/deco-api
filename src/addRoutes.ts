@@ -347,6 +347,7 @@ export function addRoutes(app: Express) {
     // stream back the file
     // check accessToken
     res.setHeader('content-type', 'image/jpeg')
+    res.attachment('picasso-big-head.jpg')
     fs.createReadStream(
       path.join(__dirname, '..', 'files', 'picasso-big-head.jpg')
     ).pipe(res)
