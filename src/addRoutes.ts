@@ -1,5 +1,8 @@
 import express from 'express'
+import path from 'path'
+import fs from 'fs'
 import type { Express } from 'express'
+import { isArray } from 'lodash'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
@@ -320,6 +323,33 @@ export function addRoutes(app: Express) {
     })
 
     return res.status(200).json({ sessionUrl: session.url })
+  })
+
+  app.get('/files/attachments/:attachmentId/:filename', async (req, res) => {
+    let { accessToken } = req.query
+    const { attachmentId, filename } = req.params
+
+    if (!accessToken) {
+      return res.status(404).json({ message: 'not authorized' })
+    }
+
+    let user
+    try {
+      user = verifyJWT(accessToken as string)
+    } catch (err) {
+      console.error(err)
+    }
+
+    if (!user) {
+      return res.status(404).json({ message: 'not authorized' })
+    }
+
+    // stream back the file
+    // check accessToken
+    res.setHeader('content-type', 'image/jpeg')
+    fs.createReadStream(
+      path.join(__dirname, '..', 'files', 'picasso-big-head.jpg')
+    ).pipe(res)
   })
 
   app.post('/inbound', upload.any(), emailReceiveHandler)
