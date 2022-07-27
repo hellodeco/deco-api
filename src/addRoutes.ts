@@ -354,6 +354,7 @@ export function addRoutes(app: Express) {
       return res.status(404).json({ message: 'not authorized' })
     }
 
+
     res.setHeader('content-type', 'image/jpeg')
     // this will cause a browser to trigger a download
     res.attachment('picasso-big-head.jpg')

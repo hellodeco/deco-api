@@ -6,7 +6,9 @@ import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
+import type { EmailAttachment } from '../types/database'
 import s3Client from '../s3-client'
+import { CoreCategoryType } from 'prettier';
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -77,15 +79,52 @@ export function headerMapToArray(
   }, [] as Array<Header>)
 }
 
+interface MulterFile {
+  fieldname: string
+  originalname: string
+  encoding: string
+  mimetype: string
+  buffer: Buffer
+  size: number
+}
+
+async function storeFiles(files: Array<MulterFile>) {
+  const promises = files.map(async (file) => {
+    console.log('saving file to object storage...', file)
+    // Example fields on the file object:
+    // fieldname: 'attachment1',
+    // originalname: 'salute.png',
+    // encoding: '7bit',
+    // mimetype: 'image/png'
+    // size: number
+
+    let uuid: string = uuidv4()
+
+    const res = await s3Client.send(new PutObjectCommand({
+      Bucket: 'attachments',
+      Key: `${uuid}-${file.originalname}`,
+      Body: file.buffer,
+      Metadata: {
+        // TODO: should we store file metadata along with the file here?
+      }
+    }))
+
+    console.log(`${file.originalname} upload result:`, res)
+
+    return {
+      ...file,
+      uuid,
+    }
+  })
+
+  return await Promise.all(promises)
+}
 
 export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req
   const { headers, from, subject, text, html, cc, envelope: envelopeStr } = body
   const attachmentInfo = body['attachment-info']
   // @ts-ignore
-  console.log('files', req.files)
-  console.log('attachemtnInfo', JSON.stringify(attachmentInfo, null, 2))
-
 
   // req.body contains:
   // 
@@ -105,35 +144,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - charsets
   // - SP
 
-  // @ts-ignore
-  const filePromises = req.files.map(async (file) => {
-    console.log('saving file to object storage...', file)
-    // fieldname: 'attachment1',
-    // originalname: 'salute.png',
-    // encoding: '7bit',
-    // mimetype: 'image/png'
-    // size: number
 
-    let uuid = uuidv4()
-
-    const res = await s3Client.send(new PutObjectCommand({
-      Bucket: 'attachments',
-      Key: `${uuid}-${file.originalname}`,
-      Body: file.buffer,
-    }))
-
-    console.log(`${file.originalname} upload result:`, res)
-
-    return {
-      ...file,
-      uuid,
-    }
-  })
-
-  const files = await Promise.all(filePromises)
-
-  console.log('uploaded files: ', files)
-
+  const files = await storeFiles(req.files as Array<MulterFile>)
 
   const headersMap = parseHeaderString(headers)
 
@@ -195,7 +207,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       incomingEmail.status = EmailStatus.TO_ADDRESS_NOT_FOUND
 
       try {
-        // await createNewEmail(incomingEmail)
         await db
           .emails()
           .returning('*')
@@ -275,8 +286,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           }
         })
         .map(objectCamelToSnake)
-
-      console.log('prepared files', preppedFiles)
 
       await db.emailAttachments()
           .insert([...preppedFiles])

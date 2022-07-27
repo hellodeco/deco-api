@@ -86,6 +86,6 @@ export interface EmailAttachment {
   filename: string
   encoding: string
   mimetype: string
-  userfront_user_id: string
-  email_id: number
+  userfrontUserId: string
+  emailId: number
 }
