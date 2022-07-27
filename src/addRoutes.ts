@@ -26,7 +26,9 @@ import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
+import { multerS3 } from './uploads/multer-storage-engine-s3'
 import type { NotionIntegration } from './types/database'
+
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
@@ -61,10 +63,17 @@ export async function upsertNotionIntegration(
 
 export function addRoutes(app: Express) {
   const upload = multer({
+    // can't use this rn because req.body is not always fully populated before it is used
+    // to process each file and we need req.body.attachment-info (as given to us by Sendgrid)
+    // to use this because we need the file size before uploading to S3
+    // storage: multerS3(),
     fileFilter: (req, file, cb) => {
       // ignore all files
-      cb(null, false)
-    }
+      // cb(null, false)
+
+      // TODO: do we need to reject some files here?
+      cb(null, true)
+    },
   })
 
   // this endpoint needs to be added before other parsing middleware is added because Stripe is a huge diva and relies on raw body data
@@ -200,6 +209,7 @@ export function addRoutes(app: Express) {
      * @reference https://developers.notion.com/docs/authorization#user-authorization-failures
      * @reference https://developers.notion.com/docs/authorization#token-request-failures
      */
+
     if (error || prevState !== state) {
       return res.redirect(
         createNotionAuthFailedRedirectURL({

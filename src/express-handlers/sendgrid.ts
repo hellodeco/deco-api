@@ -1,9 +1,11 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
+import s3Client from '../s3-client'
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -74,9 +76,15 @@ export function headerMapToArray(
   }, [] as Array<Header>)
 }
 
+
 export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req
   const { headers, from, subject, text, html, cc, envelope: envelopeStr } = body
+  const attachmentInfo = body['attachment-info']
+  // @ts-ignore
+  console.log('files', req.files)
+  console.log('attachemtnInfo', JSON.stringify(attachmentInfo, null, 2))
+
 
   // req.body contains:
   // 
@@ -96,6 +104,20 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - charsets
   // - SP
 
+  // @ts-ignore
+  const filePromises = req.files.map(async (file) => {
+    const res = await s3Client.send(new PutObjectCommand({
+      Bucket: 'attachments',
+      Key: file.originalname,
+      Body: file.buffer,
+    }))
+
+    console.log(`${file.originalname} upload result:`, res)
+  })
+
+  await Promise.all(filePromises)
+
+
   const headersMap = parseHeaderString(headers)
 
   const inReplyTo = headersMap['in-reply-to']
@@ -108,6 +130,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   } catch (err) {
     console.error(err)
   }
+
 
   let toAddresses = envelope?.to || []
   if (!isArray(toAddresses)){
