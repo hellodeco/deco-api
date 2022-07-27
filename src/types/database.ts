@@ -6,6 +6,7 @@ export enum Tables {
   EMAILS = 'emails',
   EMAIL_HEADERS = 'email_headers',
   EMAIL_THREADS = 'email_threads',
+  EMAIL_ATTACHMENTS = 'email_attachments',
 }
 
 export interface User {
@@ -77,4 +78,14 @@ export interface EmailThread {
   id?: number
   subject: string
   user_id: number
+}
+
+export interface EmailAttachment {
+  id?: number
+  uuid: string
+  filename: string
+  encoding: string
+  mimetype: string
+  userfront_user_id: string
+  email_id: number
 }
