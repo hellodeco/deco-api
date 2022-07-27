@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
 import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { v4 as uuidv4 } from 'uuid';
 import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
@@ -106,16 +107,32 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
   // @ts-ignore
   const filePromises = req.files.map(async (file) => {
+    console.log('saving file to object storage...', file)
+    // fieldname: 'attachment1',
+    // originalname: 'salute.png',
+    // encoding: '7bit',
+    // mimetype: 'image/png'
+    // size: number
+
+    let uuid = uuidv4()
+
     const res = await s3Client.send(new PutObjectCommand({
       Bucket: 'attachments',
-      Key: file.originalname,
+      Key: `${uuid}-${file.originalname}`,
       Body: file.buffer,
     }))
 
     console.log(`${file.originalname} upload result:`, res)
+
+    return {
+      ...file,
+      uuid,
+    }
   })
 
-  await Promise.all(filePromises)
+  const files = await Promise.all(filePromises)
+
+  console.log('uploaded files: ', files)
 
 
   const headersMap = parseHeaderString(headers)
@@ -244,6 +261,25 @@ export async function emailReceiveHandler(req: Request, res: Response) {
             objectCamelToSnake(header),
           ),
         )
+
+      const preppedFiles = files
+        .map(file => {
+          return {
+            userfrontUserId: emailRecipient.userfrontUserId,
+            uuid: file.uuid,
+            filename: file.originalname,
+            encoding: file.encoding,
+            mimetype: file.mimetype,
+            size: file.size,
+            emailId: newEmail.id,
+          }
+        })
+        .map(objectCamelToSnake)
+
+      console.log('prepared files', preppedFiles)
+
+      await db.emailAttachments()
+          .insert([...preppedFiles])
     } catch (err) {
       console.error(err)
     }
