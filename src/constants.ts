@@ -67,3 +67,11 @@ export const IS_LOCAL = !['production', 'staging'].includes(
 export const USERFRONT_READONLY_API_KEY = process.env.USERFRONT_READONLY_API_KEY
 
 export const NOTION_REDIRECT_URI = `${SERVER_BASE_URL}/oauth/notion/callback`
+
+export const S3_ENDPOINT = process.env.S3_ENDPOINT || 'http://localhost:9000'
+
+export const S3_REGION = process.env.S3_REGION || 'us-east-1'
+
+export const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID
+
+export const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY
