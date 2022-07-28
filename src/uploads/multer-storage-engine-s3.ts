@@ -3,7 +3,6 @@ import fs from 'fs'
 import type { Request } from 'express'
 import client from '../s3-client'
 
-
 interface File {
   fieldname: string
   originalname: string
@@ -17,9 +16,7 @@ interface File {
 const wait = (ms = 5000) => new Promise((resolve) => setTimeout(resolve, ms))
 
 class StorageEngineS3 {
-  constructor() {
-
-  }
+  constructor() {}
 
   _handleFile(req: Request, file: File, cb: () => void) {
     // noop
@@ -43,11 +40,10 @@ class StorageEngineS3 {
   //   //   mimetype: 'image/png'
   //   // }
 
-  //   
+  //
   //   console.log('file', file, file.stream)
   //   console.log('file keys', Object.keys(file))
   //   console.log('attachmentInfo', Object.keys(body))
-
 
   //   try {
   //     // const writeStream = fs.createWriteStream()

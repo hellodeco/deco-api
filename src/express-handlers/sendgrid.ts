@@ -1,14 +1,14 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { v4 as uuidv4 } from 'uuid';
+import { PutObjectCommand } from '@aws-sdk/client-s3'
+import { v4 as uuidv4 } from 'uuid'
 import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
 import type { EmailAttachment } from '../types/database'
 import s3Client from '../s3-client'
-import { CoreCategoryType } from 'prettier';
+import { CoreCategoryType } from 'prettier'
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -100,14 +100,16 @@ async function storeFiles(files: Array<MulterFile>) {
 
     let uuid: string = uuidv4()
 
-    const res = await s3Client.send(new PutObjectCommand({
-      Bucket: 'attachments',
-      Key: `${uuid}-${file.originalname}`,
-      Body: file.buffer,
-      Metadata: {
-        // TODO: should we store file metadata along with the file here?
-      }
-    }))
+    const res = await s3Client.send(
+      new PutObjectCommand({
+        Bucket: 'attachments',
+        Key: `${uuid}-${file.originalname}`,
+        Body: file.buffer,
+        Metadata: {
+          // TODO: should we store file metadata along with the file here?
+        },
+      }),
+    )
 
     console.log(`${file.originalname} upload result:`, res)
 
@@ -127,7 +129,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // @ts-ignore
 
   // req.body contains:
-  // 
+  //
   // - headers
   // - dkim
   // - to -> sometimes "to" can be formatted like this: "to": "Matt Ehlinger <ehlinger.matt@gmail.com>"
@@ -144,7 +146,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - charsets
   // - SP
 
-
   const files = await storeFiles(req.files as Array<MulterFile>)
 
   const headersMap = parseHeaderString(headers)
@@ -160,9 +161,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     console.error(err)
   }
 
-
   let toAddresses = envelope?.to || []
-  if (!isArray(toAddresses)){
+  if (!isArray(toAddresses)) {
     toAddresses = [toAddresses]
   }
 
@@ -225,13 +225,10 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let newEmailThread
 
     try {
-      const [thread] = await db
-        .emailThreads()
-        .returning('*')
-        .insert({
-          subject,
-          user_id: emailRecipient.id,
-        })
+      const [thread] = await db.emailThreads().returning('*').insert({
+        subject,
+        user_id: emailRecipient.id,
+      })
 
       newEmailThread = thread
     } catch (err) {
@@ -263,7 +260,12 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       await db
         .emails()
         .where('id', newEmail.id)
-        .update(objectCamelToSnake({ status: EmailStatus.RECEIVED_TO_NOTION, notionPageId: id }))
+        .update(
+          objectCamelToSnake({
+            status: EmailStatus.RECEIVED_TO_NOTION,
+            notionPageId: id,
+          }),
+        )
 
       await db
         .emailHeaders()
@@ -274,7 +276,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         )
 
       const preppedFiles = files
-        .map(file => {
+        .map((file) => {
           return {
             userfrontUserId: emailRecipient.userfrontUserId,
             uuid: file.uuid,
@@ -287,8 +289,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         })
         .map(objectCamelToSnake)
 
-      await db.emailAttachments()
-          .insert([...preppedFiles])
+      await db.emailAttachments().insert([...preppedFiles])
     } catch (err) {
       console.error(err)
     }
