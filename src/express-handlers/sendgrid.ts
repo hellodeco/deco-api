@@ -90,7 +90,6 @@ interface MulterFile {
 
 async function storeFiles(files: Array<MulterFile>) {
   const promises = files.map(async (file) => {
-    console.log('saving file to object storage...', file)
     // Example fields on the file object:
     // fieldname: 'attachment1',
     // originalname: 'salute.png',
@@ -98,38 +97,42 @@ async function storeFiles(files: Array<MulterFile>) {
     // mimetype: 'image/png'
     // size: number
 
-    let uuid: string = uuidv4()
+    try {
+      let uuid: string = uuidv4()
 
-    const res = await s3Client.send(
-      new PutObjectCommand({
-        Bucket: 'attachments',
-        Key: `${uuid}-${file.originalname}`,
-        Body: file.buffer,
-        Metadata: {
-          // TODO: should we store file metadata along with the file here?
-        },
-      }),
-    )
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: 'attachments',
+          Key: `${uuid}-${file.originalname}`,
+          Body: file.buffer,
+          Metadata: {
+            // TODO: should we store file metadata along with the file here?
+          },
+        }),
+      )
 
-    console.log(`${file.originalname} upload result:`, res)
-
-    return {
-      ...file,
-      uuid,
+      return {
+        ...file,
+        uuid,
+      }
+    } catch (err) {
+      console.error(err)
     }
+
+    return null
   })
 
-  return await Promise.all(promises)
+  // TODO: do something with files that failed to upload rather than just ignore them
+  return (await Promise.all(promises)).filter(Boolean)
 }
 
 export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req
   const { headers, from, subject, text, html, cc, envelope: envelopeStr } = body
-  const attachmentInfo = body['attachment-info']
-  // @ts-ignore
+  // TODO: we need this data when streaming files to s3 instead of buffering them in memory first (like we do now)
+  // const attachmentInfo = body['attachment-info']
 
   // req.body contains:
-  //
   // - headers
   // - dkim
   // - to -> sometimes "to" can be formatted like this: "to": "Matt Ehlinger <ehlinger.matt@gmail.com>"
@@ -146,6 +149,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - charsets
   // - SP
 
+  // @ts-ignore
   const files = await storeFiles(req.files as Array<MulterFile>)
 
   const headersMap = parseHeaderString(headers)
