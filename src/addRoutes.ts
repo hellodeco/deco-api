@@ -1,8 +1,5 @@
 import express from 'express'
 import type { Request, Response } from 'express'
-import path from 'path'
-import fs from 'fs'
-import stream from 'stream'
 import type { Express } from 'express'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
@@ -28,7 +25,6 @@ import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
-import { multerS3 } from './uploads/multer-storage-engine-s3'
 import s3Client from './s3-client'
 import type { NotionIntegration } from './types/database'
 
@@ -388,12 +384,15 @@ export function addRoutes(app: Express) {
       )
 
       if (!file.Body) {
-        return res.sendStatus(404)
+        return res.sendStatus(404).end()
       }
 
       res.setHeader('Content-Type', file.ContentType)
       // this should trigger a browser to show a preview if the browser supports it. Otherwise it will download the file.
-      res.setHeader('Content-Disposition', `inline; filename=${attachment.filename}`)
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename=${attachment.filename}`,
+      )
 
       // @ts-ignore
       file.Body.on('end', () => {
