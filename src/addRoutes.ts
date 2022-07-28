@@ -32,7 +32,6 @@ import { multerS3 } from './uploads/multer-storage-engine-s3'
 import s3Client from './s3-client'
 import type { NotionIntegration } from './types/database'
 
-
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
   params.append('message', message)
@@ -42,13 +41,15 @@ function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
 export async function upsertNotionIntegration(
   notionIntegration: NotionIntegration,
 ) {
-  const integration = await db.notionIntegrations()
+  const integration = await db
+    .notionIntegrations()
     .where('userfront_user_id', notionIntegration.userfrontUserId)
     .select('id')
     .first()
 
   if (integration) {
-    const [newIntegration] = await db.notionIntegrations()
+    const [newIntegration] = await db
+      .notionIntegrations()
       .where('userfront_user_id', notionIntegration.userfrontUserId)
       .update(objectCamelToSnake(notionIntegration))
       .returning('id')
@@ -56,13 +57,13 @@ export async function upsertNotionIntegration(
     return newIntegration
   }
 
-  const [newIntegration] = await db.notionIntegrations()
+  const [newIntegration] = await db
+    .notionIntegrations()
     .insert(objectCamelToSnake(notionIntegration))
     .returning('id')
 
   return newIntegration
 }
-
 
 export function addRoutes(app: Express) {
   const upload = multer({
@@ -289,9 +290,7 @@ export function addRoutes(app: Express) {
         email: owner?.user?.person?.email,
       })
 
-      await db.notionDatabases()
-        .where('notion_integration_id', id)
-        .delete()
+      await db.notionDatabases().where('notion_integration_id', id).delete()
 
       return res.redirect(`${FRONTEND_BASE_URL}/oauth/notion/success`)
     } catch (err) {
@@ -338,64 +337,70 @@ export function addRoutes(app: Express) {
     return res.status(200).json({ sessionUrl: session.url })
   })
 
-  app.get('/files/attachments/:attachmentId/:filename', async (req: Request, res: Response) => {
-    let { accessToken } = req.query
-    const { attachmentId, filename } = req.params
+  app.get(
+    '/files/attachments/:attachmentId/:filename',
+    async (req: Request, res: Response) => {
+      let { accessToken } = req.query
+      const { attachmentId, filename } = req.params
 
-    if (!accessToken) {
-      return res.status(404).json({ message: 'not authorized' })
-    }
+      if (!accessToken) {
+        return res.status(404).json({ message: 'not authorized' })
+      }
 
-    let user
-    try {
-      user = await verifyJWT(accessToken as string)
-    } catch (err) {
-      console.error(err)
-    }
+      let user
+      try {
+        user = await verifyJWT(accessToken as string)
+      } catch (err) {
+        console.error(err)
+      }
 
-    console.log('user', user)
-    console.log('attachmentId', attachmentId)
+      console.log('user', user)
+      console.log('attachmentId', attachmentId)
 
-    if (!user) {
-      return res.status(404).json({ message: 'not authorized' })
-    }
+      if (!user) {
+        return res.status(404).json({ message: 'not authorized' })
+      }
 
+      const attachment = await db
+        .emailAttachments()
+        .where(
+          objectCamelToSnake({
+            uuid: attachmentId,
+            userfrontUserId: user.userfrontID,
+          }),
+        )
+        .select(['filename'])
+        .first()
 
-    const attachment = await db.emailAttachments()
-      .where(objectCamelToSnake({
-        uuid: attachmentId,
-        userfrontUserId: user.userfrontID,
-      }))
-      .select(['filename'])
-      .first()
+      console.log('attachment', attachment)
 
-    
-    console.log('attachment', attachment)
+      if (!attachment) {
+        return res.status(404).json({ message: 'not authorized' })
+      }
 
-    if (!attachment) {
-      return res.status(404).json({ message: 'not authorized' })
-    }
+      // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html
+      const file = await s3Client.send(
+        new GetObjectCommand({
+          Bucket: 'attachments',
+          Key: `${attachmentId}-${attachment.filename}`,
+        }),
+      )
 
-    // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html
-    const file = await s3Client.send(new GetObjectCommand({
-      Bucket: 'attachments',
-      Key: `${attachmentId}-${attachment.filename}`,
-    }))
+      // console.log(file)
 
-    // console.log(file)
+      if (!file.Body) {
+        return res.sendStatus(404)
+      }
 
-    if (!file.Body) {
-      return res.sendStatus(404)
-    }
+      res.setHeader('content-type', file.ContentType)
+      // this will cause a browser to trigger a download
+      // res.attachment(filename)
 
-    res.setHeader('content-type', file.ContentType)
-    // this will cause a browser to trigger a download
-    // res.attachment(filename)
-
-    // @ts-ignore
-    // await streamFile(file.Body, res)
-    file.Body.pipe(res)
-  })
+      // @ts-ignore
+      // await streamFile(file.Body, res)
+      file.Body.pipe(res)
+    },
+  )
 
   app.post('/inbound', upload.any(), emailReceiveHandler)
 }
