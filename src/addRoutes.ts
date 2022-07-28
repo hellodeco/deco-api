@@ -340,25 +340,27 @@ export function addRoutes(app: Express) {
   app.get(
     '/files/attachments/:attachmentId/:filename',
     async (req: Request, res: Response) => {
-      let { accessToken } = req.query
+      let { authToken } = req.query
+      let { authorization } = req.headers
       const { attachmentId, filename } = req.params
 
-      if (!accessToken) {
-        return res.status(404).json({ message: 'not authorized' })
+      if (!authToken && authorization) {
+        authToken = authorization.split(' ')[1]
+      }
+
+      if (!authToken) {
+        return res.status(404).end()
       }
 
       let user
       try {
-        user = await verifyJWT(accessToken as string)
+        user = await verifyJWT(authToken as string)
       } catch (err) {
         console.error(err)
       }
 
-      console.log('user', user)
-      console.log('attachmentId', attachmentId)
-
       if (!user) {
-        return res.status(404).json({ message: 'not authorized' })
+        return res.status(404).end()
       }
 
       const attachment = await db
@@ -372,10 +374,9 @@ export function addRoutes(app: Express) {
         .select(['filename'])
         .first()
 
-      console.log('attachment', attachment)
-
       if (!attachment) {
-        return res.status(404).json({ message: 'not authorized' })
+        console.log('user does not have access to the attachment')
+        return res.status(404).end()
       }
 
       // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html
@@ -386,43 +387,22 @@ export function addRoutes(app: Express) {
         }),
       )
 
-      // console.log(file)
-
       if (!file.Body) {
         return res.sendStatus(404)
       }
 
-      res.setHeader('content-type', file.ContentType)
-      // this will cause a browser to trigger a download
-      // res.attachment(filename)
+      res.setHeader('Content-Type', file.ContentType)
+      // this should trigger a browser to show a preview if the browser supports it. Otherwise it will download the file.
+      res.setHeader('Content-Disposition', `inline; filename=${attachment.filename}`)
 
       // @ts-ignore
-      // await streamFile(file.Body, res)
+      file.Body.on('end', () => {
+        res.end()
+      })
+      // @ts-ignore
       file.Body.pipe(res)
     },
   )
 
   app.post('/inbound', upload.any(), emailReceiveHandler)
-}
-
-// http://localhost:3000/files/attachments/3778ac25-9974-4900-9343-c72f4848cf33/troll.png?authTokeeyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjdlM2Y3NWRjLTcyZjMtNGMwYy1hZjZlLWVhMDU1Zjg4NGJkZiJ9.eyJtb2RlIjoidGVzdCIsInRlbmFudElkIjoid245NXA2bjUiLCJ1c2VySWQiOjc1LCJ1c2VyVXVpZCI6IjFhNTljMjljLTkyMmEtNGJiOS1hMTQ2LWZiZGE1M2VhMTY5YiIsImlzQ29uZmlybWVkIjp0cnVlLCJhdXRob3JpemF0aW9uIjp7fSwiaXNzIjoidXNlcmZyb250Iiwic2Vzc2lvbklkIjoiYmFjN2E2MGUtZDE2Yy00ODJiLTlmODQtOWU1YmUxNzhkNzEzIiwiaWF0IjoxNjU4ODczNDYxLCJleHAiOjE2NTk0NzgyNjF9.BbW79pNawSyhMg0OP0f5vejncN7WPDLrwpwl_HR4X8u2HmeXN80IK2QEWjVSi_3NKlh9c6BXRbZjgDT7NSY1jNEdcsJC41e1JtQeJVUfxwLa7naT9j02boLFaH7EoT8ybrDOKoD2cIAo6mcFjxxZ0Vuf_NiU3lvRsiKn8bQXF7qDBPrDA-MNGSTCGlAoNSN-Tl57LZK4UeuDe-TtewZWRMcK4T1P26oTX9XR59z_DvqKu7RF3nlzSNpQomzEc-ECiZIWI5B8R8qrGFK8H0_Bd72NxlalqV31BepJ9c4blNsyMaARh6uuFtl8-YmnD6EhPBiyylEtHQorY73YSaED7vM3nP9Sv-UAt6KrVGbfSpRjPze_HHKZ960NzrSluGzwTq0URpgGdNXEXH-TqALHfPYxSwA4-CR0XzUnyssI_9JHWoqil7b8ZuNZjPG0aG-vLjm3lA-6ip2_meYmmONoXjGECS52WM0xXav9c95fEDH0dDVA4auAo4ltDE_vPH4hYYrXZ4gGSwyrVc7z72IlRLxndvNJetcvL3VndEz2E0afb_9rNy71FsG_dm6FpGz1aq3WShHx6p9KTgn0LHfdLEWAFXQZkZxONJhn-0NnQCBHauVz6HBtoL0mSK_QZbEFzLTBBkotx9NLFMTuzQ3cqwrQuIqPVw7GzbUg7WUZe3sn=
-
-async function streamFile(fileStream: ReadableStream, res: Response) {
-  return new Promise((resolve, reject) => {
-    // @ts-ignore
-    fileStream.once('error', (err) => {
-      reject(err)
-    })
-
-    // @ts-ignore
-    fileStream.on('data', (chunk) => {
-      res.write(chunk)
-    })
-
-    // @ts-ignore
-    fileStream.on('end', () => {
-      res.end()
-      resolve(null)
-    })
-  })
 }
