@@ -359,47 +359,52 @@ export function addRoutes(app: Express) {
         return res.status(404).end()
       }
 
-      const attachment = await db
-        .emailAttachments()
-        .where(
-          objectCamelToSnake({
-            uuid: attachmentId,
-            userfrontUserId: user.userfrontID,
+      try {
+        const attachment = await db
+          .emailAttachments()
+          .where(
+            objectCamelToSnake({
+              uuid: attachmentId,
+              userfrontUserId: user.userfrontID,
+            }),
+          )
+          .select(['filename', 'mimetype'])
+          .first()
+
+        if (!attachment) {
+          console.log('user does not have access to the attachment')
+          return res.status(404).end()
+        }
+
+        // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html
+        const file = await s3Client.send(
+          new GetObjectCommand({
+            Bucket: 'attachments',
+            Key: `${attachmentId}-${attachment.filename}`,
           }),
         )
-        .select(['filename'])
-        .first()
 
-      if (!attachment) {
-        console.log('user does not have access to the attachment')
-        return res.status(404).end()
-      }
+        if (!file.Body) {
+          return res.sendStatus(404).end()
+        }
 
-      // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html
-      const file = await s3Client.send(
-        new GetObjectCommand({
-          Bucket: 'attachments',
-          Key: `${attachmentId}-${attachment.filename}`,
-        }),
-      )
+        res.setHeader('Content-Type', attachment.mimetype)
+        // this should trigger a browser to show a preview if the browser supports it. Otherwise it will download the file.
+        res.setHeader(
+          'Content-Disposition',
+          `inline; filename=${attachment.filename}`,
+        )
 
-      if (!file.Body) {
+        // @ts-ignore
+        file.Body.on('end', () => {
+          res.end()
+        })
+        // @ts-ignore
+        return file.Body.pipe(res)
+      } catch (err) {
+        console.error(err)
         return res.sendStatus(404).end()
       }
-
-      res.setHeader('Content-Type', file.ContentType)
-      // this should trigger a browser to show a preview if the browser supports it. Otherwise it will download the file.
-      res.setHeader(
-        'Content-Disposition',
-        `inline; filename=${attachment.filename}`,
-      )
-
-      // @ts-ignore
-      file.Body.on('end', () => {
-        res.end()
-      })
-      // @ts-ignore
-      file.Body.pipe(res)
     },
   )
 
