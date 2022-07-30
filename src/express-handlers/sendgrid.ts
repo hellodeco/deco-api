@@ -6,9 +6,9 @@ import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
+import type { MulterFile } from '../types/shared'
 import type { EmailAttachment } from '../types/database'
 import s3Client from '../s3-client'
-import { CoreCategoryType } from 'prettier'
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -77,15 +77,6 @@ export function headerMapToArray(
 
     return acc
   }, [] as Array<Header>)
-}
-
-interface MulterFile {
-  fieldname: string
-  originalname: string
-  encoding: string
-  mimetype: string
-  buffer: Buffer
-  size: number
 }
 
 async function storeFiles(files: Array<MulterFile>) {
@@ -256,9 +247,25 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     incomingEmail.emailId = newEmail?.id
 
     try {
+      const preppedFiles: Array<EmailAttachment> = files
+        .map((file) => {
+          return {
+            userfrontUserId: emailRecipient.userfrontUserId,
+            uuid: file.uuid,
+            filename: file.originalname,
+            encoding: file.encoding,
+            mimetype: file.mimetype,
+            size: file.size,
+            emailId: newEmail.id,
+          }
+        })
+
+      await db.emailAttachments().insert(preppedFiles.map(objectCamelToSnake))
+
       const { id, ...rest } = await addEmailToNotion({
         newEmail: incomingEmail,
         userfrontID: emailRecipient.userfrontUserId,
+        attachments: preppedFiles,
       })
 
       await db
@@ -278,22 +285,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
             objectCamelToSnake(header),
           ),
         )
-
-      const preppedFiles = files
-        .map((file) => {
-          return {
-            userfrontUserId: emailRecipient.userfrontUserId,
-            uuid: file.uuid,
-            filename: file.originalname,
-            encoding: file.encoding,
-            mimetype: file.mimetype,
-            size: file.size,
-            emailId: newEmail.id,
-          }
-        })
-        .map(objectCamelToSnake)
-
-      await db.emailAttachments().insert([...preppedFiles])
     } catch (err) {
       console.error(err)
     }

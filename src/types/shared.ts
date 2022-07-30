@@ -9,3 +9,12 @@ export interface ResolverContext {
   dbAccess: typeof dbAccess
   notionAccess: typeof notionAccess
 }
+
+export interface MulterFile {
+  fieldname: string
+  originalname: string
+  encoding: string
+  mimetype: string
+  buffer: Buffer
+  size: number
+}

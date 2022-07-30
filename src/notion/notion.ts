@@ -4,8 +4,10 @@ import type {
   GetPageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
+import { FRONTEND_BASE_URL } from '../constants'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
+import { EmailAttachment } from '../types/database'
 
 /**
  * Notion formatting setup order of operations:
@@ -260,9 +262,11 @@ export async function formatNotionTable(userfrontID: string) {
 export async function addEmailToNotion({
   newEmail,
   userfrontID,
+  attachments = [],
 }: {
   newEmail: NewEmail
   userfrontID: string
+  attachments?: Array<EmailAttachment>,
 }) {
   const notion = await notionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
@@ -272,6 +276,64 @@ export async function addEmailToNotion({
   const time = Date.now()
   const deliveryDate = new Date(time)
   const deliveryDateAsISOString = deliveryDate.toISOString()
+
+  const content = []
+
+  const attachmentLinks = attachments.reduce((items, { uuid, filename }, idx) => {
+    let url = encodeURI(`${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}`)
+    console.log('url:', url)
+
+    items.push({
+      type: 'text',
+      text: {
+        content: filename,
+        link: {
+          url: url,
+        }
+      }
+    })
+
+    if (idx !== attachments.length - 1) {
+      items.push({
+        type: 'text',
+        text: {
+          content: ', ',
+        },
+      })
+    }
+
+    return items
+  }, [])
+
+  const attachmentSection = [
+    {
+      object: 'block',
+      type: 'paragraph',
+      paragraph: {
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: 'Attachments: ',
+            },
+            annotations: {
+              bold: true,
+            }
+          },
+          // @ts-ignore
+          ...attachmentLinks,
+        ]
+      },
+    },
+    {
+      type: 'divider',
+      divider: {},
+    },
+  ]
+
+  if (attachments.length > 0) {
+    content.push(...attachmentSection)
+  }
 
   return notion.pages.create({
     parent: { database_id: notionDatabaseId },
@@ -298,6 +360,7 @@ export async function addEmailToNotion({
       },
     },
     children: [
+      ...content,
       {
         object: 'block',
         type: 'paragraph',
