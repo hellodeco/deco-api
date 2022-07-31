@@ -70,7 +70,7 @@ export const NOTION_REDIRECT_URI = `${SERVER_BASE_URL}/oauth/notion/callback`
 
 export const S3_ENDPOINT = process.env.S3_ENDPOINT || 'http://localhost:9000'
 
-export const S3_REGION = process.env.S3_REGION || 'us-east-1'
+export const S3_REGION = process.env.S3_REGION || ''
 
 export const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID
 
