@@ -20,6 +20,7 @@ import {
   IS_LOCAL,
   NOTION_REDIRECT_URI,
   USERFRONT_READONLY_API_KEY,
+  S3_BUCKET,
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
@@ -379,7 +380,7 @@ export function addRoutes(app: Express) {
         // https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html
         const file = await s3Client.send(
           new GetObjectCommand({
-            Bucket: 'attachments',
+            Bucket: S3_BUCKET,
             Key: `${attachmentId}-${attachment.filename}`,
           }),
         )

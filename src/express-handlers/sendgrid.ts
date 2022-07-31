@@ -3,7 +3,7 @@ import { isArray } from 'lodash'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
 import { db } from '../db-connection'
-import { EmailStatus } from '../constants'
+import { EmailStatus, S3_BUCKET } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
 import type { MulterFile } from '../types/shared'
@@ -93,7 +93,7 @@ async function storeFiles(files: Array<MulterFile>) {
 
       await s3Client.send(
         new PutObjectCommand({
-          Bucket: 'attachments',
+          Bucket: S3_BUCKET,
           Key: `${uuid}-${file.originalname}`,
           Body: file.buffer,
           Metadata: {
