@@ -260,7 +260,10 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           }
         })
 
-      await db.emailAttachments().insert(preppedFiles.map(objectCamelToSnake))
+      // passing an empty array here errors
+      if (preppedFiles.length > 0) {
+        await db.emailAttachments().insert(preppedFiles.map(objectCamelToSnake))
+      }
 
       const { id, ...rest } = await addEmailToNotion({
         newEmail: incomingEmail,
