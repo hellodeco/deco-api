@@ -7,21 +7,21 @@ describe('chunkStr', () => {
     expect(chunks).toEqual(['123', '456', '789'])
 
     // array with 10000 elements
-    str = new Array(10001).join('a');
+    str = new Array(10001).join('a')
     chunks = chunkStr(str, 2000)
     expect(chunks.length).toBe(5)
-    chunks.forEach(chunk => {
+    chunks.forEach((chunk) => {
       expect(chunk.length).toBe(2000)
     })
 
     // array with 3290 elements
-    str = new Array(3291).join('a'); 
+    str = new Array(3291).join('a')
     chunks = chunkStr(str, 1000)
     expect(chunks.length).toBe(4)
     chunks.forEach((chunk, i) => {
       if (i === 3) {
         expect(chunk.length).toBe(290)
-        return 
+        return
       }
 
       expect(chunk.length).toBe(1000)
