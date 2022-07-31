@@ -260,7 +260,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           }
         })
 
-      // passing an empty array here errors
+      // passing an empty array here causes the insert to fail
       if (preppedFiles.length > 0) {
         await db.emailAttachments().insert(preppedFiles.map(objectCamelToSnake))
       }
