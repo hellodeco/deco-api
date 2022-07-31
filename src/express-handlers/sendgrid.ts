@@ -247,18 +247,17 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     incomingEmail.emailId = newEmail?.id
 
     try {
-      const preppedFiles: Array<EmailAttachment> = files
-        .map((file) => {
-          return {
-            userfrontUserId: emailRecipient.userfrontUserId,
-            uuid: file.uuid,
-            filename: file.originalname,
-            encoding: file.encoding,
-            mimetype: file.mimetype,
-            size: file.size,
-            emailId: newEmail.id,
-          }
-        })
+      const preppedFiles: Array<EmailAttachment> = files.map((file) => {
+        return {
+          userfrontUserId: emailRecipient.userfrontUserId,
+          uuid: file.uuid,
+          filename: file.originalname,
+          encoding: file.encoding,
+          mimetype: file.mimetype,
+          size: file.size,
+          emailId: newEmail.id,
+        }
+      })
 
       // passing an empty array here causes the insert to fail
       if (preppedFiles.length > 0) {

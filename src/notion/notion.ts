@@ -267,7 +267,7 @@ export async function addEmailToNotion({
 }: {
   newEmail: NewEmail
   userfrontID: string
-  attachments?: Array<EmailAttachment>,
+  attachments?: Array<EmailAttachment>
 }) {
   const notion = await notionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
@@ -281,30 +281,35 @@ export async function addEmailToNotion({
 
   const attachmentContent = []
 
-  const attachmentLinks = attachments.reduce((items, { uuid, filename }, idx) => {
-    let url = encodeURI(`${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}`)
+  const attachmentLinks = attachments.reduce(
+    (items, { uuid, filename }, idx) => {
+      let url = encodeURI(
+        `${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}`,
+      )
 
-    items.push({
-      type: 'text',
-      text: {
-        content: filename,
-        link: {
-          url: url,
-        }
-      }
-    })
-
-    if (idx !== attachments.length - 1) {
       items.push({
         type: 'text',
         text: {
-          content: ', ',
+          content: filename,
+          link: {
+            url: url,
+          },
         },
       })
-    }
 
-    return items
-  }, [])
+      if (idx !== attachments.length - 1) {
+        items.push({
+          type: 'text',
+          text: {
+            content: ', ',
+          },
+        })
+      }
+
+      return items
+    },
+    [],
+  )
 
   const attachmentSection = [
     {
@@ -319,11 +324,11 @@ export async function addEmailToNotion({
             },
             annotations: {
               bold: true,
-            }
+            },
           },
           // @ts-ignore
           ...attachmentLinks,
-        ]
+        ],
       },
     },
     {
@@ -384,9 +389,7 @@ export async function addEmailToNotion({
         object: 'block',
         type: 'paragraph',
         paragraph: {
-          rich_text: [
-            ...bodyContentRichText,
-          ],
+          rich_text: [...bodyContentRichText],
         },
       },
     ],
