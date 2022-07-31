@@ -8,6 +8,7 @@ import { FRONTEND_BASE_URL } from '../constants'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
+import { chunkStr } from '../utils'
 
 /**
  * Notion formatting setup order of operations:
@@ -271,17 +272,17 @@ export async function addEmailToNotion({
   const notion = await notionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
-  const { subject, from, emailId, plainTextContent } = newEmail
+  const { subject, from, emailId } = newEmail
+  let { plainTextContent } = newEmail
 
   const time = Date.now()
   const deliveryDate = new Date(time)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
-  const content = []
+  const attachmentContent = []
 
   const attachmentLinks = attachments.reduce((items, { uuid, filename }, idx) => {
     let url = encodeURI(`${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}`)
-    console.log('url:', url)
 
     items.push({
       type: 'text',
@@ -332,7 +333,25 @@ export async function addEmailToNotion({
   ]
 
   if (attachments.length > 0) {
-    content.push(...attachmentSection)
+    attachmentContent.push(...attachmentSection)
+  }
+
+  if (!plainTextContent) {
+    plainTextContent = ''
+  }
+
+  // Notion limits each rich text entry to 2000 chars maximum
+  const bodyChunks = chunkStr(plainTextContent, 2000)
+
+  const bodyContentRichText = []
+
+  for (let chunk of bodyChunks) {
+    bodyContentRichText.push({
+      type: 'text',
+      text: {
+        content: chunk,
+      },
+    })
   }
 
   return notion.pages.create({
@@ -360,18 +379,13 @@ export async function addEmailToNotion({
       },
     },
     children: [
-      ...content,
+      ...attachmentContent,
       {
         object: 'block',
         type: 'paragraph',
         paragraph: {
           rich_text: [
-            {
-              type: 'text',
-              text: {
-                content: plainTextContent,
-              },
-            },
+            ...bodyContentRichText,
           ],
         },
       },
