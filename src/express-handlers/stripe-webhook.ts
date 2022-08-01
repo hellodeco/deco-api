@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 import fetch from 'node-fetch'
 import Stripe from 'stripe'
 import {
-  createUser,
+  getSubscriptionByStripeSubscriptionId,
   createOrUpdateSubscription,
   getUserBySignupEmail,
 } from './../db-access/db-access'
@@ -26,30 +26,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 })
 
-// even though we're only searching for ONE result
-// we still have to have this garbage-ass giant object with all these conjunctions and groups
-// real professional, Userfront
-const generateUserfrontSearchPayload = (email: string) => ({
-  order: 'lastActiveAt_ASC',
-  page: 1,
-  filters: {
-    conjunction: 'and',
-    filterGroups: [
-      {
-        conjunction: 'and',
-        filters: [
-          {
-            attr: 'email',
-            type: 'string',
-            comparison: 'is',
-            value: email,
-          },
-        ],
-      },
-    ],
-  },
-})
-
 export async function handleStripeWebhook(req: Request, res: Response) {
   const sig = req.headers['stripe-signature']
   let event
@@ -70,70 +46,16 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       try {
         const session = event.data.object
 
-        const { email, name } = session.customer_details
+        const { email } = session.customer_details
 
         const existingUser = await getUserBySignupEmail(email)
 
-        if (!existingUser) {
-          // add userfront user
-          // this will also automatically send a login link to the cx
-          const signupResp = await Userfront.signup({
-            method: 'passwordless',
-            email: email,
-            name: name,
-            redirect: false,
-          })
-
-          if (IS_LOCAL) {
-            const loginLink = `${FRONTEND_BASE_URL}${signupResp?.result?.url}`
-            console.log(
-              `Hello mr. developer! 👋 Open the following link to continue testing login:\n\n\t\t${loginLink}\n\n`,
-            )
-          }
-        }
-
-        // get userfront UUID from signup
-        const userfrontResponse = await fetch(
-          'https://api.userfront.com/v0/users/find',
-          {
-            method: 'POST',
-            headers: {
-              Accept: 'application/json',
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${USERFRONT_READONLY_API_KEY}`,
-            },
-            body: JSON.stringify(generateUserfrontSearchPayload(email)),
-          },
-        )
-
-        const userfrontData = await userfrontResponse.json()
-        const createdUserUUID = userfrontData?.results?.[0]?.userUuid
-
-        // todo: We should handle this case better
-        // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
-        // value for userfront_user_id.
-        if (!createdUserUUID) {
-          return res
-            .status(500)
-            .json({
-              userfrontResponseStatusCode: userfrontResponse.status,
-              message: `no userfront user found for ${email}`,
-            })
-            .end()
-        }
-
-        if (!existingUser) {
-          await createUser({
-            userfrontUserId: createdUserUUID,
-            fullName: name,
-            signupEmail: email,
+        if (existingUser) {
+          await createOrUpdateSubscription({
+            userfrontUserId: existingUser.userfrontUserId,
+            stripeSubscriptionId: session.subscription,
           })
         }
-
-        await createOrUpdateSubscription({
-          userfrontUserId: createdUserUUID,
-          stripeSubscriptionId: session.subscription,
-        })
       } catch (err) {
         console.log(err)
       }
@@ -160,7 +82,13 @@ export async function handleStripeWebhook(req: Request, res: Response) {
           stripeProductId: subscription.plan.product,
         }
 
-        createOrUpdateSubscription(dataToUpdate)
+        const existingSub = getSubscriptionByStripeSubscriptionId(
+          subscription.id,
+        )
+
+        if (existingSub) {
+          createOrUpdateSubscription(dataToUpdate)
+        }
       } catch (err) {
         console.log(err)
       }

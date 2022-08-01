@@ -54,7 +54,7 @@ export interface Subscription {
   cancelAtPeriodEnd?: boolean
   stripePriceId?: string
   stripeProductId?: string
-  userfrontUserId?: number
+  userfrontUserId?: string
 }
 
 export interface NotionIntegration {

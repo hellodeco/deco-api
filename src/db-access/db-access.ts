@@ -144,6 +144,15 @@ export async function getSubscriptionByUserfrontUserId(userfrontID: string) {
     .first()
 }
 
+export async function getSubscriptionByStripeSubscriptionId(
+  stripeSubscriptionId: string,
+) {
+  return dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
+    .where('stripe_subscription_id', stripeSubscriptionId)
+    .select('*')
+    .first()
+}
+
 //  UPDATE FUNCTIONS =================================================
 
 export function updateUsersDecoEmailAddress(
