@@ -11,7 +11,7 @@ export enum Tables {
 export interface User {
   id?: string
   userfrontUserId: string
-  fullName: string
+  fullName?: string
   signupEmail?: string
   emailAddress?: string
   stripeCustomerId?: string
