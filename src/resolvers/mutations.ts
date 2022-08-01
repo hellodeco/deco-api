@@ -1,12 +1,14 @@
 import { isArray } from 'lodash'
-import { EMAIL_DOMAIN } from '../constants'
+import { EMAIL_DOMAIN, FRONTEND_BASE_URL, IS_LOCAL } from '../constants'
 import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
 } from '../generated/resolvers-types'
+import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 import { objectCamelToSnake } from '../utils'
+import Userfront from '@userfront/core'
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -25,9 +27,49 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     )
     return formattedTable
   },
-  // formatNotionDatabase: async (_, args, { notionAccess, user }) => {
-  //
-  // },
+
+  createUserfrontAndDecoUser: async (_, { email, password }) => {
+    const existingUser = await getUserBySignupEmail(email)
+
+    const response = {
+      success: false,
+      errorMessage: null,
+    }
+
+    if (existingUser) {
+      response.errorMessage =
+        "Looks like you've already created a user with that email!"
+      return response
+    }
+
+    // add userfront user
+    const signupResp = await Userfront.signup({
+      method: 'password',
+      email,
+      password,
+    })
+
+    const createdUserUUID = signupResp.userUuid
+
+    // todo: We should handle this case better
+    // sometimes this is undefined and then crashes the server because our subscription table does not accept a null
+    // value for userfront_user_id.
+    if (!createdUserUUID) {
+      response.errorMessage =
+        'Uh Oh! We ran into an issue creating your user. Please try again.'
+      return response
+    }
+
+    await createUser({
+      userfrontUserId: createdUserUUID,
+      signupEmail: email,
+    })
+
+    response.success = true
+
+    return response
+  },
+
   setDecoEmail: async (
     _,
     { username: unNormalizedUsername },

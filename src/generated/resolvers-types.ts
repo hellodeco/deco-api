@@ -21,6 +21,12 @@ export type ConnectedNotionEntities = {
   pages?: Maybe<Array<Maybe<NotionPage>>>;
 };
 
+export type CreateUserfrontAndDecoUserResult = {
+  __typename?: 'CreateUserfrontAndDecoUserResult';
+  errorMessage?: Maybe<Scalars['String']>;
+  success: Scalars['Boolean'];
+};
+
 export type Email = {
   emailID?: InputMaybe<Scalars['Int']>;
   emailThreadID?: InputMaybe<Scalars['Int']>;
@@ -31,11 +37,18 @@ export type Email = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createUserfrontAndDecoUser?: Maybe<CreateUserfrontAndDecoUserResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
   selectNotionDatabase?: Maybe<Scalars['Boolean']>;
   setDecoEmail?: Maybe<UpdateDecoEmailResult>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
+};
+
+
+export type MutationCreateUserfrontAndDecoUserArgs = {
+  email?: InputMaybe<Scalars['String']>;
+  password?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -209,6 +222,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 export type ResolversTypes = ResolversObject<{
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   ConnectedNotionEntities: ResolverTypeWrapper<ConnectedNotionEntities>;
+  CreateUserfrontAndDecoUserResult: ResolverTypeWrapper<CreateUserfrontAndDecoUserResult>;
   Email: Email;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
@@ -230,6 +244,7 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   Boolean: Scalars['Boolean'];
   ConnectedNotionEntities: ConnectedNotionEntities;
+  CreateUserfrontAndDecoUserResult: CreateUserfrontAndDecoUserResult;
   Email: Email;
   Int: Scalars['Int'];
   Mutation: {};
@@ -251,7 +266,14 @@ export type ConnectedNotionEntitiesResolvers<ContextType = any, ParentType exten
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type CreateUserfrontAndDecoUserResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['CreateUserfrontAndDecoUserResult'] = ResolversParentTypes['CreateUserfrontAndDecoUserResult']> = ResolversObject<{
+  errorMessage?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  createUserfrontAndDecoUser?: Resolver<Maybe<ResolversTypes['CreateUserfrontAndDecoUserResult']>, ParentType, ContextType, Partial<MutationCreateUserfrontAndDecoUserArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   selectNotionDatabase?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSelectNotionDatabaseArgs, 'databaseId'>>;
@@ -334,6 +356,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
 
 export type Resolvers<ContextType = any> = ResolversObject<{
   ConnectedNotionEntities?: ConnectedNotionEntitiesResolvers<ContextType>;
+  CreateUserfrontAndDecoUserResult?: CreateUserfrontAndDecoUserResultResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NotionDatabaseInfo?: NotionDatabaseInfoResolvers<ContextType>;
   NotionFile?: NotionFileResolvers<ContextType>;

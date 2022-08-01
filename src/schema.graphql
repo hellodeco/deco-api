@@ -60,6 +60,11 @@ type UpdateDecoEmailResult {
   errorReason: UpdateDecoEmailErrorReasons
 }
 
+type CreateUserfrontAndDecoUserResult {
+  success: Boolean!
+  errorMessage: String
+}
+
 type ConnectedNotionEntities {
   pages: [NotionPage]
   databases: [NotionDatabaseInfo]
@@ -98,4 +103,8 @@ type Mutation {
   formatNotionTable: Boolean
   setDecoEmail(username: String): UpdateDecoEmailResult
   selectNotionDatabase(databaseId: String!): Boolean
+  createUserfrontAndDecoUser(
+    email: String
+    password: String
+  ): CreateUserfrontAndDecoUserResult
 }
