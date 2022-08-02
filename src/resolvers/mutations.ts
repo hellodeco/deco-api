@@ -38,7 +38,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     if (existingUser) {
       response.errorMessage =
-        "Looks like you've already created a user with that email!"
+        "Looks like you've already created a user with that email"
       return response
     }
 
@@ -56,7 +56,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     // value for userfront_user_id.
     if (!createdUserUUID) {
       response.errorMessage =
-        'Uh Oh! We ran into an issue creating your user. Please try again.'
+        'Uh Oh! We ran into an issue creating your user. Please try again'
       return response
     }
 
