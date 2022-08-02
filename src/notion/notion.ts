@@ -284,7 +284,7 @@ export async function addEmailToNotion({
   const attachmentLinks = attachments.reduce(
     (items, { uuid, filename }, idx) => {
       let url = encodeURI(
-        `${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}`,
+        `${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}/preview`,
       )
 
       items.push({
