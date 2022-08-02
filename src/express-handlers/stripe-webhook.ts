@@ -1,6 +1,5 @@
 import { Request, Response } from 'express'
 import dotenv from 'dotenv'
-import fetch from 'node-fetch'
 import Stripe from 'stripe'
 import {
   getSubscriptionByStripeSubscriptionId,
@@ -8,12 +7,7 @@ import {
   getUserBySignupEmail,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
-import {
-  FRONTEND_DOMAIN,
-  FRONTEND_BASE_URL,
-  IS_LOCAL,
-  USERFRONT_READONLY_API_KEY,
-} from '../constants'
+import { FRONTEND_DOMAIN, IS_LOCAL } from '../constants'
 
 Userfront.init('wn95p6n5', {
   // Setting this tells the Userfront API to create login links, etc using the frontend domain
