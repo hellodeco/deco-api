@@ -309,7 +309,7 @@ export function addRoutes(app: Express) {
         },
       ],
       mode: 'subscription',
-      success_url: `${FRONTEND_BASE_URL}/post-checkout`,
+      success_url: `${FRONTEND_BASE_URL}/email`,
       cancel_url: `${FRONTEND_BASE_URL}/checkout-failed`,
       allow_promotion_codes: true,
     })
