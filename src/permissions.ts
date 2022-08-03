@@ -1,4 +1,6 @@
 import { rule, shield } from 'graphql-shield'
+import { ResolverContext } from './types/shared'
+import { FRONTEND_DOMAIN } from './constants'
 
 /**
  * These rules are executed on a per field basis.
@@ -6,17 +8,17 @@ import { rule, shield } from 'graphql-shield'
  * you only need to use the context (3rd) argument in the rule callback function.
  * @reference https://graphql-shield.vercel.app/docs/rules#cache
  */
-const isAuthenticated = rule({ cache: 'contextual' })(
-  (parent, args, { user }) => {
+const isAuthenticated = rule()(
+  (parent, args, { user }: ResolverContext) => {
     return Boolean(user?.userfrontID)
   },
 )
 
-const isEmailAdaptor = rule()((parent, args, ctx, info) => {
-  /**
-   * @todo scope this to only allow requests originating from the email adaptor
-   */
-  return true
+const isDecoFrontend = rule()((_, args, ctx: ResolverContext) => {
+  const { referer } = ctx.headers
+  const url = new URL(referer || '')
+
+  return url.host === FRONTEND_DOMAIN
 })
 
 const permissions = shield(
@@ -27,16 +29,20 @@ const permissions = shield(
       emailUsernameAvailable: isAuthenticated,
       getCurrentUserNotionDatabaseInfo: isAuthenticated,
       emailDomain: isAuthenticated,
+      connectedNotionPages: isAuthenticated,
     },
     Mutation: {
       wipeNotionDatabase: isAuthenticated,
       deleteNotionTableProperties: isAuthenticated,
       formatNotionTable: isAuthenticated,
       setDecoEmail: isAuthenticated,
+      createUserfrontAndDecoUser: isDecoFrontend,
+      selectNotionDatabase: isAuthenticated,
     },
   },
   {
-    fallbackRule: isAuthenticated,
+    // I want this to work but it's causing some GD issues so commenting it out for now
+    // fallbackRule: isAuthenticated,
   },
 )
 

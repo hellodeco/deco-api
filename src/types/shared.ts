@@ -8,6 +8,9 @@ export interface ResolverContext {
   db: typeof db
   dbAccess: typeof dbAccess
   notionAccess: typeof notionAccess
+  headers: {
+    referer: string | undefined
+  }
 }
 
 export interface MulterFile {
