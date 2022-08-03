@@ -50,6 +50,9 @@ export async function createServer({
         db, // this will eventually replace dbAccess
         user,
         notionAccess,
+        headers: {
+          referer: req.headers.referer,
+        },
       }
     },
   })
