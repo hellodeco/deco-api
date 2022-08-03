@@ -5,6 +5,7 @@ type User {
   emailAddress: String
   signupEmail: String
   userfrontID: UUID
+  subscriptionStatus: String
 }
 
 type NotionIntegration {

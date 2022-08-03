@@ -13,11 +13,16 @@ export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
 export const queryResolvers: QueryResolvers<ResolverContext> = {
   currentUser: async (parent, args, { dbAccess, user }) => {
     const userMeta = await dbAccess.getUserByUserfrontID(user.userfrontID)
+    const subscription = await dbAccess.getSubscriptionByUserfrontUserId(
+      user.userfrontID,
+    )
+
     return {
       fullName: userMeta.fullName,
       emailAddress: userMeta.emailAddress,
       signupEmail: userMeta.signupEmail,
       userfrontID: user.userfrontID,
+      subscriptionStatus: subscription?.subscriptionStatus,
     }
   },
   emailUsernameAvailable: async (parent, { username }, { dbAccess }) => {
