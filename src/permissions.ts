@@ -8,13 +8,13 @@ import { FRONTEND_DOMAIN } from './constants'
  * you only need to use the context (3rd) argument in the rule callback function.
  * @reference https://graphql-shield.vercel.app/docs/rules#cache
  */
-const isAuthenticated = rule()(
+const isAuthenticated = rule({ cache: 'contextual' })(
   (parent, args, { user }: ResolverContext) => {
     return Boolean(user?.userfrontID)
   },
 )
 
-const isDecoFrontend = rule()((_, args, ctx: ResolverContext) => {
+const isDecoFrontend = rule({ cache: 'contextual' })((_, args, ctx: ResolverContext) => {
   const { referer } = ctx.headers
   const url = new URL(referer || '')
 
