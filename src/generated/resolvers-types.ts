@@ -147,6 +147,7 @@ export type User = {
   emailAddress?: Maybe<Scalars['String']>;
   fullName?: Maybe<Scalars['String']>;
   signupEmail?: Maybe<Scalars['String']>;
+  subscriptionStatus?: Maybe<Scalars['String']>;
   userfrontID?: Maybe<Scalars['UUID']>;
 };
 
@@ -350,6 +351,7 @@ export type UserResolvers<ContextType = any, ParentType extends ResolversParentT
   emailAddress?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fullName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   signupEmail?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  subscriptionStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   userfrontID?: Resolver<Maybe<ResolversTypes['UUID']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
