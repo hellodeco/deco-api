@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "watch": "ts-node-dev --respawn --exit-child --watch src src/index.ts",
+    "watch": "concurrently \"yarn compile --watch\" \"nodemon dist/index.js\"",
     "build": "yarn compile && yarn copy-schema",
     "postinstall": "yarn build",
     "compile": "tsc -p tsconfig.build.json",
@@ -18,14 +18,15 @@
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
+    "concurrently": "^7.3.0",
     "eslint": "^8.9.0",
     "eslint-config-prettier": "^8.4.0",
     "eslint-plugin-import": "^2.26.0",
     "jest": "^28.1.0",
+    "nodemon": "^2.0.19",
     "prettier": "^2.5.1",
     "ts-jest": "^28.0.2",
     "ts-node": "^10.8.0",
-    "ts-node-dev": "^1.1.8",
     "typescript": "^4.6.4"
   },
   "dependencies": {
