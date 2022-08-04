@@ -88,13 +88,15 @@ async function storeFiles(files: Array<MulterFile>) {
     // mimetype: 'image/png'
     // size: number
 
+    const uuid: string = uuidv4()
+    const key = `${uuid}-${file.originalname}`
+
     try {
-      let uuid: string = uuidv4()
 
       await s3Client.send(
         new PutObjectCommand({
           Bucket: S3_BUCKET,
-          Key: `${uuid}-${file.originalname}`,
+          Key: key,
           Body: file.buffer,
           Metadata: {
             // TODO: should we store file metadata along with the file here?
@@ -107,7 +109,7 @@ async function storeFiles(files: Array<MulterFile>) {
         uuid,
       }
     } catch (err) {
-      console.error(err)
+      console.error(`error uploading attachment ${key} to storage bucket`, err)
     }
 
     return null
@@ -153,7 +155,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   try {
     envelope = JSON.parse(envelopeStr)
   } catch (err) {
-    console.error(err)
+    console.error('error parsing incoming email envelope JSON', err)
   }
 
   let toAddresses = envelope?.to || []
@@ -172,7 +174,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         .select('*')
         .first()
     } catch (err) {
-      console.error(err)
+      console.error('error querying for email recipient', err)
     }
 
     const incomingEmail: InboundSendgridParsedEmail = {
@@ -207,7 +209,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           .returning('*')
           .insert(objectCamelToSnake(incomingEmail))
       } catch (err) {
-        console.error(err)
+        console.error('eror inserting email', err)
       }
 
       continue
@@ -236,50 +238,66 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     try {
       const [email] = await db
         .emails()
-        .returning('*')
         .insert(objectCamelToSnake(incomingEmail))
+        .returning('*')
 
       newEmail = email
+      incomingEmail.emailId = email.id
     } catch (err) {
       console.error(err)
     }
 
-    incomingEmail.emailId = newEmail?.id
-
+    const preppedFiles: Array<EmailAttachment> = files.map((file) => {
+      return {
+        userfrontUserId: emailRecipient.userfrontUserId,
+        uuid: file.uuid,
+        filename: file.originalname,
+        encoding: file.encoding,
+        mimetype: file.mimetype,
+        size: file.size,
+        emailId: newEmail.id,
+      }
+    })
     try {
-      const preppedFiles: Array<EmailAttachment> = files.map((file) => {
-        return {
-          userfrontUserId: emailRecipient.userfrontUserId,
-          uuid: file.uuid,
-          filename: file.originalname,
-          encoding: file.encoding,
-          mimetype: file.mimetype,
-          size: file.size,
-          emailId: newEmail.id,
-        }
-      })
-
       // passing an empty array here causes the insert to fail
       if (preppedFiles.length > 0) {
         await db.emailAttachments().insert(preppedFiles.map(objectCamelToSnake))
       }
+    } catch (err) {
+      console.error('error inserting email attachments', err)
+    }
 
-      const { id, ...rest } = await addEmailToNotion({
+    let emailStatus = EmailStatus.RECEIVED_TO_DECO
+    let notionPageId = null
+
+    try {
+      const { id } = await addEmailToNotion({
         newEmail: incomingEmail,
         userfrontID: emailRecipient.userfrontUserId,
         attachments: preppedFiles,
       })
 
+      emailStatus = EmailStatus.RECEIVED_TO_NOTION
+      notionPageId = id
+    } catch (err) {
+      console.error(err)
+    } finally {}
+
+    try {
       await db
         .emails()
         .where('id', newEmail.id)
         .update(
           objectCamelToSnake({
-            status: EmailStatus.RECEIVED_TO_NOTION,
-            notionPageId: id,
+            status: emailStatus,
+            notionPageId,
           }),
         )
+    } catch (err) {
+      console.error('error updating email status', err)
+    }
 
+    try {
       await db
         .emailHeaders()
         .insert(
@@ -287,8 +305,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
             objectCamelToSnake(header),
           ),
         )
-    } catch (err) {
-      console.error(err)
+    } catch(err) {
+      console.error('error inserting email headers', err)
     }
   }
 
