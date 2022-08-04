@@ -14,12 +14,14 @@ const isAuthenticated = rule({ cache: 'contextual' })(
   },
 )
 
-const isDecoFrontend = rule({ cache: 'contextual' })((_, args, ctx: ResolverContext) => {
-  const { referer } = ctx.headers
-  const url = new URL(referer || '')
+const isDecoFrontend = rule({ cache: 'contextual' })(
+  (_, args, ctx: ResolverContext) => {
+    const { referer } = ctx.headers
+    const url = new URL(referer || '')
 
-  return url.host === FRONTEND_DOMAIN
-})
+    return url.host === FRONTEND_DOMAIN
+  },
+)
 
 const permissions = shield(
   {
