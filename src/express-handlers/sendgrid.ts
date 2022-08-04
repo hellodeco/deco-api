@@ -7,7 +7,7 @@ import { EmailStatus, S3_BUCKET } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
 import type { MulterFile } from '../types/shared'
-import type { EmailAttachment } from '../types/database'
+import type { EmailAttachment, Subscription } from '../types/database'
 import s3Client from '../s3-client'
 
 interface InboundSendgridParsedEmail {
@@ -266,20 +266,33 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       console.error('error inserting email attachments', err)
     }
 
+    let subscription: Subscription
+    try {
+      subscription = await db
+        .subscriptions()
+        .where({ userfront_user_id: emailRecipient.userfrontUserId })
+        .select('subscription_status')
+        .first()
+    } catch (err) {
+      console.error('error querying for subscription', err)
+    }
+
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
     let notionPageId = null
 
-    try {
-      const { id } = await addEmailToNotion({
-        newEmail: incomingEmail,
-        userfrontID: emailRecipient.userfrontUserId,
-        attachments: preppedFiles,
-      })
+    if (subscription?.subscriptionStatus === 'active') {
+      try {
+        const { id } = await addEmailToNotion({
+          newEmail: incomingEmail,
+          userfrontID: emailRecipient.userfrontUserId,
+          attachments: preppedFiles,
+        })
 
-      emailStatus = EmailStatus.RECEIVED_TO_NOTION
-      notionPageId = id
-    } catch (err) {
-      console.error(err)
+        emailStatus = EmailStatus.RECEIVED_TO_NOTION
+        notionPageId = id
+      } catch (err) {
+        console.error(err)
+      }
     }
 
     try {
