@@ -92,7 +92,6 @@ async function storeFiles(files: Array<MulterFile>) {
     const key = `${uuid}-${file.originalname}`
 
     try {
-
       await s3Client.send(
         new PutObjectCommand({
           Bucket: S3_BUCKET,
@@ -281,7 +280,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       notionPageId = id
     } catch (err) {
       console.error(err)
-    } finally {}
+    }
 
     try {
       await db
@@ -305,7 +304,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
             objectCamelToSnake(header),
           ),
         )
-    } catch(err) {
+    } catch (err) {
       console.error('error inserting email headers', err)
     }
   }
