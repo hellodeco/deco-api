@@ -2,12 +2,15 @@ import busboy from 'busboy'
 import type { MulterFile } from '../types/shared'
 
 interface opts {
-  limits: {
-    fileSize: number // in bytes
+  limits?: {
+    fileSize?: number // in bytes
   }
 }
 
-export function sendgridFormDataMiddleware({ fileSize }: opts) {
+export function sendgridFormDataMiddleware({
+  limits: { fileSize = Infinity } = {},
+}: opts = {}) {
+  console.log('abc...................')
   return async (req, res, next) => {
     const bb = busboy({ headers: req.headers })
     const files: Array<MulterFile> = []
@@ -18,18 +21,28 @@ export function sendgridFormDataMiddleware({ fileSize }: opts) {
         let fileBuffer = null
         let size = 0
 
-        file.on('data', data => {
+        file.on('data', (data) => {
           size += data.length
+
+          if (fileSize && size > fileSize) {
+            file.destroy()
+            fileBuffer = null
+            return
+          }
 
           if (!fileBuffer) {
             fileBuffer = data
-            return 
+            return
           }
 
           fileBuffer = Buffer.concat([fileBuffer, data])
         })
 
         file.on('close', () => {
+          if (!fileBuffer) {
+            return
+          }
+
           files.push({
             // fieldname is assigned internally by Sendgrid
             // this string value is used as the key for file metadata that Sendgrid sends in the "attachment-info" field
