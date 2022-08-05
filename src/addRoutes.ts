@@ -5,7 +5,6 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import fetch from 'node-fetch'
-import multer from 'multer'
 import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
 import { GetObjectCommand } from '@aws-sdk/client-s3'
@@ -27,7 +26,6 @@ import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
 import s3Client from './s3-client'
-import { multerS3 } from './uploads/multer-storage-engine-s3'
 import { sendgridFormDataMiddleware } from './express-middleware/sendgrid-formdata-middleware'
 import type { NotionIntegration } from './types/database'
 
@@ -67,24 +65,6 @@ export async function upsertNotionIntegration(
 }
 
 export function addRoutes(app: Express) {
-  const upload = multer({
-    // can't use this rn because req.body is not always fully populated before it is used
-    // to process each file and we need req.body.attachment-info (as given to us by Sendgrid)
-    // to use this because we need the file size before uploading to S3
-    storage: multerS3(),
-    fileFilter: (req, file, cb) => {
-      // ignore all files
-      // cb(null, false)
-
-      // TODO: do we need to reject some files here?
-      cb(null, true)
-    },
-    // limits: {
-    //   // fileSize: 1048576, // 25mb
-    //   // fileSize: 1024, // 25mb
-    // },
-  })
-
   // this endpoint needs to be added before other parsing middleware is added because Stripe is a huge diva and relies on raw body data
   app.post(
     '/stripe/webhook',
