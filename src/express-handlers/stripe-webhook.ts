@@ -5,6 +5,7 @@ import {
   getSubscriptionByStripeSubscriptionId,
   createOrUpdateSubscription,
   getUserBySignupEmail,
+  getUserByUserfrontID,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
 import { FRONTEND_DOMAIN, IS_LOCAL } from '../constants'
@@ -40,9 +41,9 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       try {
         const session = event.data.object
 
-        const { email } = session.customer_details
+        const { userfrontUserId } = session.metadata
 
-        const existingUser = await getUserBySignupEmail(email)
+        const existingUser = await getUserByUserfrontID(userfrontUserId)
 
         if (existingUser) {
           await createOrUpdateSubscription({
