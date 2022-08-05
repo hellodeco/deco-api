@@ -8,6 +8,7 @@ interface File {
   originalname: string
   encoding: string
   mimetype: string
+  size: string
 
   // TODO: does this exist?
   stream: ReadStream
@@ -18,15 +19,23 @@ const wait = (ms = 5000) => new Promise((resolve) => setTimeout(resolve, ms))
 class StorageEngineS3 {
   constructor() {}
 
-  _handleFile(req: Request, file: File, cb: () => void) {
+  _handleFile(req: Request, file: File, cb: (error?: any, info?: any) => void) {
     // noop
-    console.log('in the file handler...', file, file.stream)
-    if (!req.body.files) {
-      req.body.files = []
-    }
+    // console.log('in the file handler...', file, file.stream)
+    // if (!req.body.files) {
+    //   req.body.files = []
+    // }
+    console.log('handling file...', file)
 
-    req.body.files.push(file)
-    cb()
+    // req.body.files.push(file)
+    cb(null, {
+      fieldname: file.fieldname,
+      originalname: file.originalname,
+      encoding: file.encoding,
+      mimetype: file.mimetype,
+      size: file.size,
+      stream: file.stream,
+    })
   }
 
   // async _handleFileOld(req: Request, file: File, cb: () => void) {
@@ -62,7 +71,7 @@ class StorageEngineS3 {
 
   _removeFile(req, file, cb) {
     // noop
-    cb()
+    cb(null, null)
   }
 }
 

@@ -143,6 +143,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
   // @ts-ignore
   const files = await storeFiles(req.files as Array<MulterFile>)
+  // const files = []
 
   const headersMap = parseHeaderString(headers)
 
