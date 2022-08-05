@@ -4,7 +4,6 @@ import Stripe from 'stripe'
 import {
   getSubscriptionByStripeSubscriptionId,
   createOrUpdateSubscription,
-  getUserBySignupEmail,
   getUserByUserfrontID,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
@@ -58,6 +57,7 @@ export async function handleStripeWebhook(req: Request, res: Response) {
       break
     }
 
+    case 'customer.subscription.deleted':
     case 'customer.subscription.updated':
     case 'customer.subscription.created': {
       // TODO: we should also make sure that we dedupe any duplicate subscriptions for
