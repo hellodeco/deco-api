@@ -120,9 +120,7 @@ async function storeFiles(files: Array<MulterFile>) {
 
 export async function emailReceiveHandler(req: Request, res: Response) {
   const { body } = req
-  const { headers, from, subject, text, html, cc, envelope: envelopeStr } = body
-  // TODO: we need this data when streaming files to s3 instead of buffering them in memory first (like we do now)
-  // const attachmentInfo = body['attachment-info']
+  const { headers, from, subject, text, html, envelope: envelopeStr } = body
 
   // req.body contains:
   // - headers
@@ -143,7 +141,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
   // @ts-ignore
   const files = await storeFiles(req.files as Array<MulterFile>)
-  // const files = []
 
   const headersMap = parseHeaderString(headers)
 

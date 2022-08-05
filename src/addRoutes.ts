@@ -31,6 +31,8 @@ import { multerS3 } from './uploads/multer-storage-engine-s3'
 import { sendgridFormDataMiddleware } from './express-middleware/sendgrid-formdata-middleware'
 import type { NotionIntegration } from './types/database'
 
+const TWENTY_FIVE_MB = 1048576 // 25mb
+
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
   params.append('message', message)
@@ -418,5 +420,9 @@ export function addRoutes(app: Express) {
     },
   )
 
-  app.post('/inbound', sendgridFormDataMiddleware(), emailReceiveHandler)
+  app.post(
+    '/inbound',
+    sendgridFormDataMiddleware({ limits: { fileSize: TWENTY_FIVE_MB } }),
+    emailReceiveHandler,
+  )
 }
