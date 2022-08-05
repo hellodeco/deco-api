@@ -1,7 +1,6 @@
 import express from 'express'
 import type { Request, Response } from 'express'
 import type { Express } from 'express'
-import busboy from 'busboy'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
@@ -29,8 +28,8 @@ import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
 import s3Client from './s3-client'
 import { multerS3 } from './uploads/multer-storage-engine-s3'
+import { sendgridFormDataMiddleware } from './express-middleware/sendgrid-formdata-middleware'
 import type { NotionIntegration } from './types/database'
-import type { MulterFile } from './types/shared'
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
@@ -416,65 +415,5 @@ export function addRoutes(app: Express) {
     },
   )
 
-  app.post('/inbound', bbMiddleware(null, null, null), emailReceiveHandler)
-}
-
-function bbMiddleware(req, res, next) {
-  return async (req, res, next) => {
-    const bb = busboy({ headers: req.headers })
-    const files: Array<MulterFile> = []
-
-    await new Promise<void>((resolve, reject) => {
-      bb.on('file', (name, file, info) => {
-        const { filename, encoding, mimeType } = info
-        let fileBuffer = null
-        let size = 0
-
-        file.on('data', data => {
-          size += data.length
-
-          if (!fileBuffer) {
-            fileBuffer = data
-            return 
-          }
-
-          fileBuffer = Buffer.concat([fileBuffer, data])
-        })
-
-        file.on('close', () => {
-          files.push({
-            // fieldname is assigned internally by Sendgrid
-            fieldname: name,
-            originalname: filename,
-            encoding,
-            mimetype: mimeType,
-            size,
-            buffer: fileBuffer,
-          })
-        })
-      })
-
-      // field found: attachment-info {"attachment1":{"filename":"verizon-invoice.pdf","name":"verizon-invoice.pdf","type":"application/pdf","content-id":"f_l6gk8e7o0"}} {
-      //   nameTruncated: false,
-      //   valueTruncated: false,
-      //   encoding: '7bit',
-      //   mimeType: 'text/plain'
-      // }
-
-
-      bb.on('field', (name, val, info) => {
-        req.body[name] = val
-      })
-
-      bb.on('close', () => {
-        resolve()
-      })
-
-      req.pipe(bb)
-    })
-
-    req.files = files
-
-    next()
-  }
+  app.post('/inbound', sendgridFormDataMiddleware(), emailReceiveHandler)
 }
