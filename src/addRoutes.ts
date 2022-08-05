@@ -1,6 +1,7 @@
 import express from 'express'
 import type { Request, Response } from 'express'
 import type { Express } from 'express'
+import busboy from 'busboy'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
@@ -27,7 +28,9 @@ import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
 import s3Client from './s3-client'
+import { multerS3 } from './uploads/multer-storage-engine-s3'
 import type { NotionIntegration } from './types/database'
+import type { MulterFile } from './types/shared'
 
 function createNotionAuthFailedRedirectURL({ message }: { message: string }) {
   const params = new URLSearchParams()
@@ -67,7 +70,7 @@ export function addRoutes(app: Express) {
     // can't use this rn because req.body is not always fully populated before it is used
     // to process each file and we need req.body.attachment-info (as given to us by Sendgrid)
     // to use this because we need the file size before uploading to S3
-    // storage: multerS3(),
+    storage: multerS3(),
     fileFilter: (req, file, cb) => {
       // ignore all files
       // cb(null, false)
@@ -75,6 +78,10 @@ export function addRoutes(app: Express) {
       // TODO: do we need to reject some files here?
       cb(null, true)
     },
+    // limits: {
+    //   // fileSize: 1048576, // 25mb
+    //   // fileSize: 1024, // 25mb
+    // },
   })
 
   // this endpoint needs to be added before other parsing middleware is added because Stripe is a huge diva and relies on raw body data
@@ -412,5 +419,65 @@ export function addRoutes(app: Express) {
     },
   )
 
-  app.post('/inbound', upload.any(), emailReceiveHandler)
+  app.post('/inbound', bbMiddleware(null, null, null), emailReceiveHandler)
+}
+
+function bbMiddleware(req, res, next) {
+  return async (req, res, next) => {
+    const bb = busboy({ headers: req.headers })
+    const files: Array<MulterFile> = []
+
+    await new Promise<void>((resolve, reject) => {
+      bb.on('file', (name, file, info) => {
+        const { filename, encoding, mimeType } = info
+        let fileBuffer = null
+        let size = 0
+
+        file.on('data', data => {
+          size += data.length
+
+          if (!fileBuffer) {
+            fileBuffer = data
+            return 
+          }
+
+          fileBuffer = Buffer.concat([fileBuffer, data])
+        })
+
+        file.on('close', () => {
+          files.push({
+            // fieldname is assigned internally by Sendgrid
+            fieldname: name,
+            originalname: filename,
+            encoding,
+            mimetype: mimeType,
+            size,
+            buffer: fileBuffer,
+          })
+        })
+      })
+
+      // field found: attachment-info {"attachment1":{"filename":"verizon-invoice.pdf","name":"verizon-invoice.pdf","type":"application/pdf","content-id":"f_l6gk8e7o0"}} {
+      //   nameTruncated: false,
+      //   valueTruncated: false,
+      //   encoding: '7bit',
+      //   mimeType: 'text/plain'
+      // }
+
+
+      bb.on('field', (name, val, info) => {
+        req.body[name] = val
+      })
+
+      bb.on('close', () => {
+        resolve()
+      })
+
+      req.pipe(bb)
+    })
+
+    req.files = files
+
+    next()
+  }
 }
