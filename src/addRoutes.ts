@@ -301,6 +301,7 @@ export function addRoutes(app: Express) {
   })
 
   app.post('/stripe/checkout-session', async (req, res) => {
+    const { userfrontUserId, email } = req.body
     const session = await stripe.checkout.sessions.create({
       line_items: [
         {
@@ -312,6 +313,8 @@ export function addRoutes(app: Express) {
       success_url: `${FRONTEND_BASE_URL}/email`,
       cancel_url: `${FRONTEND_BASE_URL}/checkout-failed`,
       allow_promotion_codes: true,
+      customer_email: email,
+      metadata: { userfrontUserId: userfrontUserId },
     })
 
     return res.status(200).json({ sessionUrl: session.url })
