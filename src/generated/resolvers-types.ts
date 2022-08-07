@@ -121,11 +121,17 @@ export type Query = {
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
   getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
+  hasFileAccess?: Maybe<Scalars['Boolean']>;
 };
 
 
 export type QueryEmailUsernameAvailableArgs = {
   username: Scalars['String'];
+};
+
+
+export type QueryHasFileAccessArgs = {
+  attachmentId: Scalars['String'];
 };
 
 export enum UpdateDecoEmailErrorReasons {
@@ -335,6 +341,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
+  hasFileAccess?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryHasFileAccessArgs, 'attachmentId'>>;
 }>;
 
 export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any> {
