@@ -425,11 +425,10 @@ export function addRoutes(app: Express) {
         if (err instanceof multer.MulterError) {
           console.log('MulterError encountered during file upload:', err)
         } else if (err) {
-          console.log('error uploading file:', err)
-          next(err)
+          console.log('Error encountered during file upload:', err)
         }
 
-        next()
+        next(err)
       })
     },
     emailReceiveHandler,
