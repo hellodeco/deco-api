@@ -32,6 +32,7 @@ const permissions = shield(
       getCurrentUserNotionDatabaseInfo: isAuthenticated,
       emailDomain: isAuthenticated,
       connectedNotionPages: isAuthenticated,
+      hasFileAccess: isAuthenticated,
     },
     Mutation: {
       wipeNotionDatabase: isAuthenticated,

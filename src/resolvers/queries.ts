@@ -2,6 +2,7 @@ import { QueryResolvers } from '../generated/resolvers-types'
 import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
+import { User, EmailAttachment } from '../types/database'
 
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
@@ -196,5 +197,36 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
   },
   emailDomain: async () => {
     return EMAIL_DOMAIN
+  },
+  hasFileAccess: async (parent, { attachmentId }, { db, user }) => {
+    console.log('args and such...', attachmentId, user)
+    let dbUser: User
+    try {
+      dbUser = await db.users().where('userfront_user_id', user.userfrontID).select('userfront_user_id').first()
+    } catch (err) {
+      console.error(err)
+    }
+
+    console.log('dbUser', dbUser)
+
+    if (!dbUser) {
+      return false
+    }
+
+    let attachment: EmailAttachment
+
+    try {
+      attachment = await db
+        .emailAttachments()
+        // @ts-ignore
+        .where({ userfront_user_id: user.userfrontID, uuid: attachmentId, })
+        .first()
+    } catch (err) {
+      console.error(err)
+    }
+
+    console.log('attachment', attachment)
+
+    return Boolean(attachment)
   },
 }
