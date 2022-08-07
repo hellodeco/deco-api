@@ -266,13 +266,16 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       console.error('error inserting email attachments', err)
     }
 
-    let subscription: Subscription
+    let subscriptions: Array<Subscription>
     try {
-      subscription = await db
+      // multiple subscriptions can sometimes exist for one user so we need
+      // to check all of them here
+      subscriptions = await db
         .subscriptions()
         .where({ userfront_user_id: emailRecipient.userfrontUserId })
         .select('subscription_status')
-        .first()
+      
+      console.log('subscriptions', subscriptions)
     } catch (err) {
       console.error('error querying for subscription', err)
     }
@@ -280,7 +283,9 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
     let notionPageId = null
 
-    if (subscription?.subscriptionStatus === 'active') {
+    const hasActiveSub = subscriptions.some(({ subscriptionStatus }) => subscriptionStatus === 'active')
+    console.log(hasActiveSub)
+    if (hasActiveSub) {
       try {
         const { id } = await addEmailToNotion({
           newEmail: incomingEmail,
@@ -293,6 +298,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       } catch (err) {
         console.error(err)
       }
+    } else {
+      console.warn(`warn: email not delivered to Notion because ${toAddresses} does not have an active subscription`)
     }
 
     try {
