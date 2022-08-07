@@ -10,7 +10,6 @@ interface opts {
 export function sendgridFormDataMiddleware({
   limits: { fileSize = Infinity } = {},
 }: opts = {}) {
-  console.log('abc...................')
   return async (req, res, next) => {
     const bb = busboy({ headers: req.headers })
     const files: Array<MulterFile> = []
