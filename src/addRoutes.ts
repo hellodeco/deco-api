@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import fetch from 'node-fetch'
+import multer from 'multer'
 import { v4 as uuid } from 'uuid'
 import Stripe from 'stripe'
 import { GetObjectCommand } from '@aws-sdk/client-s3'
@@ -26,7 +27,6 @@ import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
 import s3Client from './s3-client'
-import { sendgridFormDataMiddleware } from './express-middleware/sendgrid-formdata-middleware'
 import type { NotionIntegration } from './types/database'
 
 const TWENTY_FIVE_MB = 1048576 // 25mb
@@ -65,6 +65,23 @@ export async function upsertNotionIntegration(
 }
 
 export function addRoutes(app: Express) {
+  const upload = multer({
+    // can't use this rn because req.body is not always fully populated before it is used
+    // to process each file and we need req.body.attachment-info (as given to us by Sendgrid)
+    // to use this because we need the file size before uploading to S3
+    // storage: multerS3(),
+    fileFilter: (req, file, cb) => {
+      // ignore all files
+      // cb(null, false)
+
+      // TODO: do we need to reject some files here?
+      cb(null, true)
+    },
+    limits: {
+      fileSize: TWENTY_FIVE_MB,
+    },
+  }).any()
+
   // this endpoint needs to be added before other parsing middleware is added because Stripe is a huge diva and relies on raw body data
   app.post(
     '/stripe/webhook',
@@ -399,7 +416,19 @@ export function addRoutes(app: Express) {
 
   app.post(
     '/inbound',
-    sendgridFormDataMiddleware({ limits: { fileSize: TWENTY_FIVE_MB } }),
+    // custom upload middleware so that any errors are explicity passed along to Express and do not crash a server
+    (req, res, next) => {
+      upload(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+          console.log('MulterError encountered during file upload:', err)
+        } else if (err) {
+          console.log('error uploading file:', err)
+          next(err)
+        }
+
+        next()
+      })
+    },
     emailReceiveHandler,
   )
 }
