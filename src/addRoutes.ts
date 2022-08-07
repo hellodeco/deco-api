@@ -425,7 +425,7 @@ export function addRoutes(app: Express) {
           console.log('Error encountered during file upload:', err)
         }
 
-        next(err)
+        next()
       })
     },
     emailReceiveHandler,
