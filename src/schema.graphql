@@ -96,8 +96,7 @@ type Query {
   emailDomain: String
   # will return list of databases and pages that the current user has shared
   connectedNotionPages: [NotionPage]
-
-  hasFileAccess(attachmentId: String!): Boolean 
+  currentUserHasFileAccess(attachmentId: String!): Boolean 
 }
 
 type Mutation {
