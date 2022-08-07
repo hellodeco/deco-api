@@ -299,7 +299,9 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         console.error(err)
       }
     } else {
-      console.warn(`warn: email not delivered to Notion because ${toAddresses} does not have an active subscription`)
+      console.warn(
+        `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription`,
+      )
     }
 
     try {

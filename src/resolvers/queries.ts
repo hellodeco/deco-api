@@ -3,6 +3,7 @@ import { EMAIL_DOMAIN } from '../constants'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 import { User, EmailAttachment } from '../types/database'
+import { objectCamelToSnake } from '../utils'
 
 export const REQUIRED_NOTION_DATABASE_PROPERTIES = [
   'From',
@@ -201,7 +202,11 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
   currentUserHasFileAccess: async (parent, { attachmentId }, { db, user }) => {
     let dbUser: User
     try {
-      dbUser = await db.users().where('userfront_user_id', user.userfrontID).select('userfront_user_id').first()
+      dbUser = await db
+        .users()
+        .where('userfront_user_id', user.userfrontID)
+        .select('userfront_user_id')
+        .first()
     } catch (err) {
       console.error(err)
     }
@@ -215,8 +220,12 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
     try {
       attachment = await db
         .emailAttachments()
-        // @ts-ignore
-        .where({ userfront_user_id: user.userfrontID, uuid: attachmentId, })
+        .where(
+          objectCamelToSnake({
+            userfrontUserId: user.userfrontID,
+            uuid: attachmentId,
+          }),
+        )
         .first()
     } catch (err) {
       console.error(err)
