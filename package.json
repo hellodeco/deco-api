@@ -5,7 +5,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "watch": "concurrently --names \"compile,watch\" --prefix-colors \"bold.yellow,bold.blue\" \"yarn compile --watch\" \"nodemon dist/index.js\"",
+    "watch": "concurrently --names \"copy-schema,compile,watch\" --prefix-colors \"bold.cyan,bold.yellow,bold.blue\" \"yarn copy-schema\" \"yarn compile --watch\" \"nodemon dist/index.js\"",
     "build": "yarn compile && yarn copy-schema",
     "postinstall": "yarn build",
     "compile": "tsc -p tsconfig.build.json",
