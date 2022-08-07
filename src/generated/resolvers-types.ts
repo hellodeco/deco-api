@@ -117,21 +117,21 @@ export type Query = {
   __typename?: 'Query';
   connectedNotionPages?: Maybe<Array<Maybe<NotionPage>>>;
   currentUser?: Maybe<User>;
+  currentUserHasFileAccess?: Maybe<Scalars['Boolean']>;
   emailDomain?: Maybe<Scalars['String']>;
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
   getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
   getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
-  hasFileAccess?: Maybe<Scalars['Boolean']>;
+};
+
+
+export type QueryCurrentUserHasFileAccessArgs = {
+  attachmentId: Scalars['String'];
 };
 
 
 export type QueryEmailUsernameAvailableArgs = {
   username: Scalars['String'];
-};
-
-
-export type QueryHasFileAccessArgs = {
-  attachmentId: Scalars['String'];
 };
 
 export enum UpdateDecoEmailErrorReasons {
@@ -337,11 +337,11 @@ export type NotionPageResolvers<ContextType = any, ParentType extends ResolversP
 export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   connectedNotionPages?: Resolver<Maybe<Array<Maybe<ResolversTypes['NotionPage']>>>, ParentType, ContextType>;
   currentUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
+  currentUserHasFileAccess?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryCurrentUserHasFileAccessArgs, 'attachmentId'>>;
   emailDomain?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
   getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
-  hasFileAccess?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryHasFileAccessArgs, 'attachmentId'>>;
 }>;
 
 export interface UuidScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['UUID'], any> {

@@ -198,16 +198,13 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
   emailDomain: async () => {
     return EMAIL_DOMAIN
   },
-  hasFileAccess: async (parent, { attachmentId }, { db, user }) => {
-    console.log('args and such...', attachmentId, user)
+  currentUserHasFileAccess: async (parent, { attachmentId }, { db, user }) => {
     let dbUser: User
     try {
       dbUser = await db.users().where('userfront_user_id', user.userfrontID).select('userfront_user_id').first()
     } catch (err) {
       console.error(err)
     }
-
-    console.log('dbUser', dbUser)
 
     if (!dbUser) {
       return false
