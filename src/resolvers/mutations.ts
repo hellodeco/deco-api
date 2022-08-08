@@ -1,5 +1,7 @@
 import { isArray } from 'lodash'
-import { EMAIL_DOMAIN, FRONTEND_BASE_URL, IS_LOCAL } from '../constants'
+import Userfront from '@userfront/core'
+import sendgridClient from '@sendgrid/mail'
+import { EMAIL_DOMAIN, SENDGRID_API_KEY } from '../constants'
 import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
@@ -7,8 +9,10 @@ import {
 import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
+import { User } from '../types/database'
 import { objectCamelToSnake } from '../utils'
-import Userfront from '@userfront/core'
+
+sendgridClient.setApiKey(SENDGRID_API_KEY)
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -197,14 +201,92 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       return false
     }
   },
-  sendMail: async (_, { email }, { dbAccess, user }) => {
-    console.log(
-      JSON.stringify(email, null, 2),
-    )
+  sendMail: async (_, { email }, { db, user }) => {
+    const { subject, to, cc, bcc, plainTextContent } = email
+    let { attachments } = email
 
+    if (!attachments) {
+      attachments = []
+    }
+
+    let dbUser: Pick<User, 'id' | 'emailAddress' | 'fullName'>
+
+    try {
+      dbUser = await db
+        .users()
+        .where('userfront_user_id', user.userfrontID)
+        .first()
+        .select(['id', 'email_address', 'full_name'])
+
+      console.log('dbUser', dbUser)
+    } catch (err) {
+      console.error(err)
+    }
+    
+    if (!dbUser) {
+      return {
+        success: false,
+        errorReason: 'No user found',
+      }
+    }
+
+    const personalizations = [
+      {
+        to: [...to],
+      }
+    ]
+
+    try {
+      let sgRes = await sendgridClient.send({
+        personalizations,
+        // TODO: set up domain authentication for sendgrid
+        // https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication
+        from: {
+
+          email: dbUser.emailAddress,
+          name: dbUser.fullName,
+        },
+        subject,
+        content: [
+          {
+            type: 'text/plain',
+            value: plainTextContent,
+          },
+        ],
+        // attachments,
+      })
+      console.log(sgRes)
+    } catch (err) {
+      console.error(err)
+      console.log(JSON.stringify(err, null, 2))
+
+      return {
+        success: false,
+        message: 'mail failed to send',
+      }
+    }
+ 
     return {
       success: true,
-      message: '',
+      message: 'success',
     }
   },
 }
+
+// mutation sendMail {
+//   sendMail(email: {
+//     subject: "hello there!",
+//    	to: [
+//       
+//     	{
+//         email: "ehlinger.matt@gmail.com",
+//       }
+//     ],
+//     attachments: [],
+//     plainTextContent: "dear mr. bean,\n\nhow are you this monday?\n\nwith all love,\n\njohn prine"
+//     
+//   }) {
+//     success
+//     message
+//   }
+// }
