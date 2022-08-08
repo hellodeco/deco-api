@@ -197,4 +197,14 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       return false
     }
   },
+  sendMail: async (_, { email }, { dbAccess, user }) => {
+    console.log(
+      JSON.stringify(email, null, 2),
+    )
+
+    return {
+      success: true,
+      message: '',
+    }
+  },
 }

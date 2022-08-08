@@ -40,12 +40,30 @@ type NotionDatabaseInfo {
   needsManualFormatting: Boolean
 }
 
+input AttachmentInput {
+  id: String!
+  name: String!
+  mimetype: String!
+  size: Int
+}
+
+input RecipientInput {
+  email: String!
+  name: String
+}
+
 input Email {
   subject: String
-  from: String
-  emailID: Int
-  emailThreadID: Int
+  to: [RecipientInput!]!
+  cc: [RecipientInput]
+  bcc: [RecipientInput]
   plainTextContent: String
+  attachments: [AttachmentInput]
+}
+
+type SendMailResult {
+  success: Boolean
+  message: String
 }
 
 enum UpdateDecoEmailErrorReasons {
@@ -88,6 +106,7 @@ type NotionPage {
   icon: NotionIcon
 }
 
+
 type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
@@ -109,4 +128,5 @@ type Mutation {
     email: String
     password: String
   ): CreateUserfrontAndDecoUserResult
+  sendMail(email: Email!): SendMailResult
 }
