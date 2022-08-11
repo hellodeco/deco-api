@@ -34,6 +34,23 @@ export async function createOrUpdateSubscription(subscription: Subscription) {
   )
 }
 
+export async function updateSubscriptionByUserfrontId(
+  subscription: Subscription,
+) {
+  const existingSub = await dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
+    .where('userfront_user_id', subscription.userfrontUserId)
+    .select('*')
+    .first()
+
+  if (existingSub) {
+    return dbConnection<Subscription>(Tables.SUBSCRIPTIONS)
+      .where('userfront_user_id', subscription.userfrontUserId)
+      .update(objectCamelToSnake(subscription))
+  }
+
+  return null
+}
+
 export function createUser(userMeta: User) {
   return dbConnection<User>('users').insert(objectCamelToSnake(userMeta))
 }

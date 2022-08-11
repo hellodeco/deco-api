@@ -5,6 +5,8 @@ import {
   getSubscriptionByStripeSubscriptionId,
   createOrUpdateSubscription,
   getUserByUserfrontID,
+  getSubscriptionByUserfrontUserId,
+  updateSubscriptionByUserfrontId,
 } from './../db-access/db-access'
 import Userfront from '@userfront/core'
 import { FRONTEND_DOMAIN, IS_LOCAL } from '../constants'
@@ -44,11 +46,25 @@ export async function handleStripeWebhook(req: Request, res: Response) {
 
         const existingUser = await getUserByUserfrontID(userfrontUserId)
 
+        const existingSub = await getSubscriptionByUserfrontUserId(
+          userfrontUserId,
+        )
+
+        if (existingSub) {
+          updateSubscriptionByUserfrontId({
+            userfrontUserId: userfrontUserId,
+            stripeSubscriptionId: session.subscription,
+          })
+          break
+        }
+
         if (existingUser) {
           await createOrUpdateSubscription({
             userfrontUserId: existingUser.userfrontUserId,
             stripeSubscriptionId: session.subscription,
           })
+
+          break
         }
       } catch (err) {
         console.log(err)
