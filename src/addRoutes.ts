@@ -308,7 +308,7 @@ export function addRoutes(app: Express) {
   app.post('/stripe/checkout-session', async (req, res) => {
     const { userfrontUserId, email } = req.body
 
-    const sessionPayload = {
+    const sessionPayload: Stripe.Checkout.SessionCreateParams = {
       line_items: [
         {
           price: process.env.STRIPE_PRICE_ID,
