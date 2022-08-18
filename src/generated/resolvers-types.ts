@@ -35,7 +35,7 @@ export type CreateUserfrontAndDecoUserResult = {
 };
 
 export type Email = {
-  attachments: Array<InputMaybe<AttachmentInput>>;
+  attachments?: InputMaybe<Array<InputMaybe<AttachmentInput>>>;
   bcc?: InputMaybe<Array<InputMaybe<RecipientInput>>>;
   cc?: InputMaybe<Array<InputMaybe<RecipientInput>>>;
   plainTextContent?: InputMaybe<Scalars['String']>;
@@ -67,6 +67,7 @@ export type MutationSelectNotionDatabaseArgs = {
 
 
 export type MutationSendMailArgs = {
+  args?: InputMaybe<SendEmailArgs>;
   email: Email;
 };
 
@@ -151,6 +152,10 @@ export type QueryEmailUsernameAvailableArgs = {
 export type RecipientInput = {
   email: Scalars['String'];
   name?: InputMaybe<Scalars['String']>;
+};
+
+export type SendEmailArgs = {
+  inReplyToEmailId?: InputMaybe<Scalars['Int']>;
 };
 
 export type SendMailResult = {
@@ -267,6 +272,7 @@ export type ResolversTypes = ResolversObject<{
   NotionPage: ResolverTypeWrapper<NotionPage>;
   Query: ResolverTypeWrapper<{}>;
   RecipientInput: RecipientInput;
+  SendEmailArgs: SendEmailArgs;
   SendMailResult: ResolverTypeWrapper<SendMailResult>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
@@ -291,6 +297,7 @@ export type ResolversParentTypes = ResolversObject<{
   NotionPage: NotionPage;
   Query: {};
   RecipientInput: RecipientInput;
+  SendEmailArgs: SendEmailArgs;
   SendMailResult: SendMailResult;
   String: Scalars['String'];
   UUID: Scalars['UUID'];

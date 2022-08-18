@@ -61,6 +61,10 @@ input Email {
   attachments: [AttachmentInput]
 }
 
+input SendEmailArgs {
+  inReplyToEmailId: Int
+}
+
 type SendMailResult {
   success: Boolean
   message: String
@@ -128,5 +132,5 @@ type Mutation {
     email: String
     password: String
   ): CreateUserfrontAndDecoUserResult
-  sendMail(email: Email!): SendMailResult
+  sendMail(email: Email!, args: SendEmailArgs): SendMailResult
 }

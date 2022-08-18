@@ -9,8 +9,8 @@ import {
 import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
-import { User } from '../types/database'
-import { objectCamelToSnake } from '../utils'
+import { User, DecoDBEmail } from '../types/database'
+import { objectCamelToSnake, objectSnakeToCamel } from '../utils'
 
 sendgridClient.setApiKey(SENDGRID_API_KEY)
 
@@ -201,9 +201,12 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       return false
     }
   },
-  sendMail: async (_, { email }, { db, user }) => {
+  sendMail: async (_, { email, args }, { db, user }) => {
+    // Useful info on how threads are created in Gmail:
+    // https://webapps.stackexchange.com/questions/965/how-does-gmail-decide-to-thread-email-messages/5036#5036
     const { subject, to, cc, bcc, plainTextContent } = email
     let { attachments } = email
+    const { inReplyToEmailId } = args
 
     if (!attachments) {
       attachments = []
@@ -230,6 +233,33 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       }
     }
 
+    let dbEmail: Pick<DecoDBEmail, 'id' | 'messageId' | 'subject'>
+
+    try {
+      dbEmail = await db 
+        .emails()
+        .where(objectCamelToSnake({
+          userId: dbUser.id,
+          id: inReplyToEmailId,
+        }))
+        .first()
+        .select(['id', 'message_id', 'subject'])
+    } catch (err) {
+      console.error(err)
+    }
+
+    console.log('dbEmail', dbEmail)
+
+    if (!dbEmail) {
+      // user doesn't "own" this email and we shouldn't let them respond
+      return {
+        success: false,
+        errorReason: 'You do not have permission to respond to this email',
+      }
+    }
+
+    // https://docs.sendgrid.com/api-reference/mail-send/mail-send
+    // https://docs.sendgrid.com/for-developers/sending-email/personalizations
     const personalizations = [
       {
         to: [...to],
@@ -246,13 +276,18 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           email: dbUser.emailAddress,
           name: dbUser.fullName,
         },
-        subject,
+        // prefer the subject of an email that is being replied to as it helps other emails clients
+        // thread emails correctly
+        subject: dbEmail.subject || subject,
         content: [
           {
             type: 'text/plain',
             value: plainTextContent,
           },
         ],
+        headers: {
+          'In-Reply-To': dbEmail.messageId,
+        },
         // attachments,
       })
       console.log(sgRes)
@@ -272,6 +307,30 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     }
   },
 }
+
+
+// --------------------------------------------------------------------
+// Send Mail Example Response
+// --------------------------------------------------------------------
+//
+// Response {
+//   statusCode: 202,
+//   body: '',
+//   headers: {
+//     server: 'nginx',
+//     date: 'Thu, 18 Aug 2022 19:59:12 GMT',
+//     'content-length': '0',
+//     connection: 'close',
+//     'x-message-id': 'eXzkz7aYTeyO80KbeoMcbQ',
+//     'access-control-allow-origin': 'https://sendgrid.api-docs.io',
+//     'access-control-allow-methods': 'POST',
+//     'access-control-allow-headers': 'Authorization, Content-Type, On-behalf-of, x-sg-elas-acl',
+//     'access-control-max-age': '600',
+//     'x-no-cors-reason': 'https://sendgrid.com/docs/Classroom/Basics/API/cors.html',
+//     'strict-transport-security': 'max-age=600; includeSubDomains'
+//   }
+// },
+
 
 // mutation sendMail {
 //   sendMail(email: {
