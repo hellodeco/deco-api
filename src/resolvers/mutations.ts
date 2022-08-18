@@ -201,7 +201,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       return false
     }
   },
-  sendMail: async (_, { email, args }, { db, user }) => {
+  sendMailBeta: async (_, { email, args }, { db, user }) => {
     // Useful info on how threads are created in Gmail:
     // https://webapps.stackexchange.com/questions/965/how-does-gmail-decide-to-thread-email-messages/5036#5036
     const { subject, to, cc, bcc, plainTextContent } = email

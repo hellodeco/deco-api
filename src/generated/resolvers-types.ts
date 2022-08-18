@@ -15,13 +15,6 @@ export type Scalars = {
   UUID: any;
 };
 
-export type AttachmentInput = {
-  id: Scalars['String'];
-  mimetype: Scalars['String'];
-  name: Scalars['String'];
-  size?: InputMaybe<Scalars['Int']>;
-};
-
 export type ConnectedNotionEntities = {
   __typename?: 'ConnectedNotionEntities';
   databases?: Maybe<Array<Maybe<NotionDatabaseInfo>>>;
@@ -34,22 +27,13 @@ export type CreateUserfrontAndDecoUserResult = {
   success: Scalars['Boolean'];
 };
 
-export type Email = {
-  attachments?: InputMaybe<Array<InputMaybe<AttachmentInput>>>;
-  bcc?: InputMaybe<Array<InputMaybe<RecipientInput>>>;
-  cc?: InputMaybe<Array<InputMaybe<RecipientInput>>>;
-  plainTextContent?: InputMaybe<Scalars['String']>;
-  subject?: InputMaybe<Scalars['String']>;
-  to: Array<RecipientInput>;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   createUserfrontAndDecoUser?: Maybe<CreateUserfrontAndDecoUserResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
   selectNotionDatabase?: Maybe<Scalars['Boolean']>;
-  sendMail?: Maybe<SendMailResult>;
+  sendMailBeta?: Maybe<SendMailBetaResult>;
   setDecoEmail?: Maybe<UpdateDecoEmailResult>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
@@ -66,9 +50,9 @@ export type MutationSelectNotionDatabaseArgs = {
 };
 
 
-export type MutationSendMailArgs = {
-  args?: InputMaybe<SendEmailArgs>;
-  email: Email;
+export type MutationSendMailBetaArgs = {
+  args?: InputMaybe<SendMailBetaArgs>;
+  email: SendMailBetaEmail;
 };
 
 
@@ -149,17 +133,33 @@ export type QueryEmailUsernameAvailableArgs = {
   username: Scalars['String'];
 };
 
-export type RecipientInput = {
+export type SendMailBetaArgs = {
+  inReplyToEmailId?: InputMaybe<Scalars['Int']>;
+};
+
+export type SendMailBetaAttachmentInput = {
+  id: Scalars['String'];
+  mimetype: Scalars['String'];
+  name: Scalars['String'];
+  size?: InputMaybe<Scalars['Int']>;
+};
+
+export type SendMailBetaEmail = {
+  attachments?: InputMaybe<Array<InputMaybe<SendMailBetaAttachmentInput>>>;
+  bcc?: InputMaybe<Array<InputMaybe<SendMailBetaRecipientInput>>>;
+  cc?: InputMaybe<Array<InputMaybe<SendMailBetaRecipientInput>>>;
+  plainTextContent?: InputMaybe<Scalars['String']>;
+  subject?: InputMaybe<Scalars['String']>;
+  to: Array<SendMailBetaRecipientInput>;
+};
+
+export type SendMailBetaRecipientInput = {
   email: Scalars['String'];
   name?: InputMaybe<Scalars['String']>;
 };
 
-export type SendEmailArgs = {
-  inReplyToEmailId?: InputMaybe<Scalars['Int']>;
-};
-
-export type SendMailResult = {
-  __typename?: 'SendMailResult';
+export type SendMailBetaResult = {
+  __typename?: 'SendMailBetaResult';
   message?: Maybe<Scalars['String']>;
   success?: Maybe<Scalars['Boolean']>;
 };
@@ -257,11 +257,9 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
-  AttachmentInput: AttachmentInput;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
   ConnectedNotionEntities: ResolverTypeWrapper<ConnectedNotionEntities>;
   CreateUserfrontAndDecoUserResult: ResolverTypeWrapper<CreateUserfrontAndDecoUserResult>;
-  Email: Email;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   Mutation: ResolverTypeWrapper<{}>;
   NotionDatabaseInfo: ResolverTypeWrapper<NotionDatabaseInfo>;
@@ -271,9 +269,11 @@ export type ResolversTypes = ResolversObject<{
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
   NotionPage: ResolverTypeWrapper<NotionPage>;
   Query: ResolverTypeWrapper<{}>;
-  RecipientInput: RecipientInput;
-  SendEmailArgs: SendEmailArgs;
-  SendMailResult: ResolverTypeWrapper<SendMailResult>;
+  SendMailBetaArgs: SendMailBetaArgs;
+  SendMailBetaAttachmentInput: SendMailBetaAttachmentInput;
+  SendMailBetaEmail: SendMailBetaEmail;
+  SendMailBetaRecipientInput: SendMailBetaRecipientInput;
+  SendMailBetaResult: ResolverTypeWrapper<SendMailBetaResult>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
   UpdateDecoEmailErrorReasons: UpdateDecoEmailErrorReasons;
@@ -283,11 +283,9 @@ export type ResolversTypes = ResolversObject<{
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
-  AttachmentInput: AttachmentInput;
   Boolean: Scalars['Boolean'];
   ConnectedNotionEntities: ConnectedNotionEntities;
   CreateUserfrontAndDecoUserResult: CreateUserfrontAndDecoUserResult;
-  Email: Email;
   Int: Scalars['Int'];
   Mutation: {};
   NotionDatabaseInfo: NotionDatabaseInfo;
@@ -296,9 +294,11 @@ export type ResolversParentTypes = ResolversObject<{
   NotionIntegration: NotionIntegration;
   NotionPage: NotionPage;
   Query: {};
-  RecipientInput: RecipientInput;
-  SendEmailArgs: SendEmailArgs;
-  SendMailResult: SendMailResult;
+  SendMailBetaArgs: SendMailBetaArgs;
+  SendMailBetaAttachmentInput: SendMailBetaAttachmentInput;
+  SendMailBetaEmail: SendMailBetaEmail;
+  SendMailBetaRecipientInput: SendMailBetaRecipientInput;
+  SendMailBetaResult: SendMailBetaResult;
   String: Scalars['String'];
   UUID: Scalars['UUID'];
   UpdateDecoEmailResult: UpdateDecoEmailResult;
@@ -322,7 +322,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   selectNotionDatabase?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSelectNotionDatabaseArgs, 'databaseId'>>;
-  sendMail?: Resolver<Maybe<ResolversTypes['SendMailResult']>, ParentType, ContextType, RequireFields<MutationSendMailArgs, 'email'>>;
+  sendMailBeta?: Resolver<Maybe<ResolversTypes['SendMailBetaResult']>, ParentType, ContextType, RequireFields<MutationSendMailBetaArgs, 'email'>>;
   setDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationSetDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
@@ -383,7 +383,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
 }>;
 
-export type SendMailResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendMailResult'] = ResolversParentTypes['SendMailResult']> = ResolversObject<{
+export type SendMailBetaResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendMailBetaResult'] = ResolversParentTypes['SendMailBetaResult']> = ResolversObject<{
   message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   success?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -418,7 +418,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   NotionIntegration?: NotionIntegrationResolvers<ContextType>;
   NotionPage?: NotionPageResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  SendMailResult?: SendMailResultResolvers<ContextType>;
+  SendMailBetaResult?: SendMailBetaResultResolvers<ContextType>;
   UUID?: GraphQLScalarType;
   UpdateDecoEmailResult?: UpdateDecoEmailResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;

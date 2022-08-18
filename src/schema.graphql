@@ -40,32 +40,32 @@ type NotionDatabaseInfo {
   needsManualFormatting: Boolean
 }
 
-input AttachmentInput {
+input SendMailBetaAttachmentInput {
   id: String!
   name: String!
   mimetype: String!
   size: Int
 }
 
-input RecipientInput {
+input SendMailBetaRecipientInput {
   email: String!
   name: String
 }
 
-input Email {
+input SendMailBetaEmail {
   subject: String
-  to: [RecipientInput!]!
-  cc: [RecipientInput]
-  bcc: [RecipientInput]
+  to: [SendMailBetaRecipientInput!]!
+  cc: [SendMailBetaRecipientInput]
+  bcc: [SendMailBetaRecipientInput]
   plainTextContent: String
-  attachments: [AttachmentInput]
+  attachments: [SendMailBetaAttachmentInput]
 }
 
-input SendEmailArgs {
+input SendMailBetaArgs {
   inReplyToEmailId: Int
 }
 
-type SendMailResult {
+type SendMailBetaResult {
   success: Boolean
   message: String
 }
@@ -132,5 +132,5 @@ type Mutation {
     email: String
     password: String
   ): CreateUserfrontAndDecoUserResult
-  sendMail(email: Email!, args: SendEmailArgs): SendMailResult
+  sendMailBeta(email: SendMailBetaEmail!, args: SendMailBetaArgs): SendMailBetaResult
 }
