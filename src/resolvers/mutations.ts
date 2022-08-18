@@ -206,7 +206,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     // https://webapps.stackexchange.com/questions/965/how-does-gmail-decide-to-thread-email-messages/5036#5036
     const { subject, to, cc, bcc, plainTextContent } = email
     let { attachments } = email
-    const { inReplyToEmailId } = args
 
     if (!attachments) {
       attachments = []
@@ -233,25 +232,33 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       }
     }
 
-    let dbEmail: Pick<DecoDBEmail, 'id' | 'messageId' | 'subject'>
+    let inReplyToEmail: Pick<DecoDBEmail, 'id' | 'messageId' | 'subject'>
 
-    try {
-      dbEmail = await db 
-        .emails()
-        .where(objectCamelToSnake({
+    if (args?.inReplyToEmailId) {
+      try {
+        const where: { userId: string, id?: number } = {
           userId: dbUser.id,
-          id: inReplyToEmailId,
-        }))
-        .first()
-        .select(['id', 'message_id', 'subject'])
-    } catch (err) {
-      console.error(err)
+        }
+
+        if (args?.inReplyToEmailId) {
+          where.id = args.inReplyToEmailId
+        }
+
+        inReplyToEmail = await db 
+          .emails()
+          .where(objectCamelToSnake(where))
+          .first()
+          .select(['id', 'message_id', 'subject'])
+      } catch (err) {
+        console.error(err)
+      }
+
     }
 
-    console.log('dbEmail', dbEmail)
+    console.log('dbEmail', inReplyToEmail)
 
-    if (!dbEmail) {
-      // user doesn't "own" this email and we shouldn't let them respond
+    // user doesn't "own" the email they are attempting to respond to and we shouldn't let them respond
+    if (args?.inReplyToEmailId && !inReplyToEmail) {
       return {
         success: false,
         errorReason: 'You do not have permission to respond to this email',
@@ -278,7 +285,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         },
         // prefer the subject of an email that is being replied to as it helps other emails clients
         // thread emails correctly
-        subject: dbEmail.subject || subject,
+        subject: inReplyToEmail?.subject || subject,
         content: [
           {
             type: 'text/plain',
@@ -286,7 +293,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           },
         ],
         headers: {
-          'In-Reply-To': dbEmail.messageId,
+          'In-Reply-To': inReplyToEmail?.messageId,
         },
         // attachments,
       })

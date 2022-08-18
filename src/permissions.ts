@@ -23,6 +23,13 @@ const isDecoFrontend = rule({ cache: 'contextual' })(
   },
 )
 
+const noAuth = rule({ cache: 'contextual' })(
+  (_, args, ctx: ResolverContext) => {
+    console.log('helllo')
+    return true
+  },
+)
+
 const permissions = shield(
   {
     Query: {
@@ -47,6 +54,7 @@ const permissions = shield(
   {
     // I want this to work but it's causing some GD issues so commenting it out for now
     // fallbackRule: isAuthenticated,
+    debug: true,
   },
 )
 
