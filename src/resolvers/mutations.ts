@@ -95,22 +95,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       }
     }
 
-    const subscription = await db
-      .subscriptions()
-      .where({
-        userfront_user_id: userfrontID,
-        subscription_status: 'active',
-      })
-      .select('*')
-      .first()
-
-    if (!subscription || subscription?.subscriptionStatus !== 'active') {
-      return {
-        success: false,
-        errorReason: UpdateDecoEmailErrorReasons.NoSubscription,
-      }
-    }
-
     if (username.length < 3) {
       return {
         success: false,
