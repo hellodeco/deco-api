@@ -4,7 +4,7 @@ import { PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
 import { db } from '../db-connection'
 import { EmailStatus, S3_BUCKET } from '../constants'
-import { addEmailToNotion } from '../notion/notion'
+import { addEmailToNotion, notionClient } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
 import type { MulterFile } from '../types/shared'
 import type { EmailAttachment, Subscription } from '../types/database'
@@ -283,7 +283,33 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
     let notionPageId = null
 
-    if (subscription) {
+    // ====================================
+    // this is a fast and messy way to get the count of rows in the notion database inbox
+
+    const notionIntegration = await db
+      .notionIntegrations()
+      .where('userfront_user_id', emailRecipient.userfrontUserId)
+      .select('id', 'access_token')
+      .first()
+
+    const notionDatabase = await db
+      .notionDatabases()
+      .where('notion_integration_id', notionIntegration.id)
+      .select('notion_database_id')
+      .first()
+
+    const { notionDatabaseId } = notionDatabase
+
+    const notion = await notionClient(emailRecipient.userfrontUserId)
+
+    // this is an array of objects where each object represents a row in the email inbox database
+    const { results: notionRowData } = await notion.databases.query({
+      database_id: notionDatabaseId,
+    })
+
+    // ====================================
+    // if subscription active OR connected DB contains 10 rows or less
+    if (subscription || notionRowData.length < 10) {
       try {
         const { id } = await addEmailToNotion({
           newEmail: incomingEmail,
