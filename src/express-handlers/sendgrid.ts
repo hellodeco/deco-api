@@ -7,7 +7,12 @@ import { EmailStatus, S3_BUCKET } from '../constants'
 import { addEmailToNotion, notionClient } from '../notion/notion'
 import { objectCamelToSnake } from '../utils'
 import type { MulterFile } from '../types/shared'
-import type { EmailAttachment, Subscription } from '../types/database'
+import type {
+  EmailAttachment,
+  Subscription,
+  NotionDatabase,
+  NotionIntegration,
+} from '../types/database'
 import s3Client from '../s3-client'
 
 interface InboundSendgridParsedEmail {
@@ -206,7 +211,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           .returning('*')
           .insert(objectCamelToSnake(incomingEmail))
       } catch (err) {
-        console.error('eror inserting email', err)
+        console.error('error inserting email', err)
       }
 
       continue
@@ -280,36 +285,57 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       console.error('error querying for subscription', err)
     }
 
+    // We will deliver email to notion under the following conditions:
+    // 1. user has a subscription with a status of "active"
+    // 2. user has no subscription OR active subscription AND has a notion_integration AND notion_database AND less than 10 emails in their connection Notion database
+    let shouldDelieverToNotion = Boolean(subscription)
+
+    let notionIntegration: Pick<NotionIntegration, 'id' | 'accessToken'>
+    if (!subscription) {
+      try {
+        notionIntegration = await db
+          .notionIntegrations()
+          .where('userfront_user_id', emailRecipient.userfrontUserId)
+          .select('id', 'access_token')
+          .first()
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    let notionDatabase: Pick<NotionDatabase, 'notionDatabaseId'>
+    if (!subscription && notionIntegration) {
+      try {
+        notionDatabase = await db
+          .notionDatabases()
+          .where('notion_integration_id', notionIntegration.id)
+          .select('notion_database_id')
+          .first()
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    if (!subscription && notionDatabase) {
+      const { notionDatabaseId } = notionDatabase
+
+      // this is a fast and messy way to get the count of rows in the notion database inbox
+      const notion = await notionClient(emailRecipient.userfrontUserId)
+
+      // this is an array of objects where each object represents a row in the email inbox database
+      const { results: notionRowData } = await notion.databases.query({
+        database_id: notionDatabaseId,
+        // limit to 11 since we only want to know if the database has more than 10 rows
+        page_size: 11,
+      })
+
+      shouldDelieverToNotion = notionRowData.length < 10
+    }
+
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
     let notionPageId = null
 
-    // ====================================
-    // this is a fast and messy way to get the count of rows in the notion database inbox
-
-    const notionIntegration = await db
-      .notionIntegrations()
-      .where('userfront_user_id', emailRecipient.userfrontUserId)
-      .select('id', 'access_token')
-      .first()
-
-    const notionDatabase = await db
-      .notionDatabases()
-      .where('notion_integration_id', notionIntegration.id)
-      .select('notion_database_id')
-      .first()
-
-    const { notionDatabaseId } = notionDatabase
-
-    const notion = await notionClient(emailRecipient.userfrontUserId)
-
-    // this is an array of objects where each object represents a row in the email inbox database
-    const { results: notionRowData } = await notion.databases.query({
-      database_id: notionDatabaseId,
-    })
-
-    // ====================================
-    // if subscription active OR connected DB contains 10 rows or less
-    if (subscription || notionRowData.length < 10) {
+    if (shouldDelieverToNotion) {
       try {
         const { id } = await addEmailToNotion({
           newEmail: incomingEmail,
@@ -324,7 +350,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       }
     } else {
       console.warn(
-        `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription`,
+        `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription or has exceeded their free tier limit of 10 emails in their inbox`,
       )
     }
 
