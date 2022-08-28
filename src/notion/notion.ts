@@ -2,6 +2,7 @@ import { Client } from '@notionhq/client'
 import type {
   GetDatabaseResponse,
   GetPageResponse,
+  CreatePageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { FRONTEND_BASE_URL } from '../constants'
@@ -137,15 +138,22 @@ export async function getNotionDatabaseIdFromNotion({
 }
 
 export async function notionClient(userfrontID: string): Promise<Client> {
-  const notionIntegration = await db
-    .notionIntegrations()
-    .where('userfront_user_id', userfrontID)
-    .select('access_token')
-    .first()
+  let notionIntegration: NotionIntegration
+  try {
+    notionIntegration = await db
+      .notionIntegrations()
+      .where('userfront_user_id', userfrontID)
+      .select('access_token')
+      .first()
+  } catch (err) {
+    console.error(err)
+  }
 
-  const notion = new Client({ auth: notionIntegration.accessToken })
+  if (!notionIntegration) {
+    throw new Error(`No notion integration found for user id: ${userfrontID}`)
+  }
 
-  return notion
+  return new Client({ auth: notionIntegration.accessToken })
 }
 
 async function getNotionDatabaseId(
@@ -268,8 +276,15 @@ export async function addEmailToNotion({
   newEmail: NewEmail
   userfrontID: string
   attachments?: Array<EmailAttachment>
-}) {
-  const notion = await notionClient(userfrontID)
+}): Promise<CreatePageResponse | null> {
+  let notion: Client
+  try {
+    notion = await notionClient(userfrontID)
+  } catch (err) {
+    console.error(err)
+    return null
+  }
+
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
   const { subject, from, emailId } = newEmail
