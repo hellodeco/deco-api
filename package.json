@@ -14,7 +14,8 @@
     "generate-graphql": "graphql-codegen",
     "format": "prettier --write src",
     "knex": "knex --knexfile src/knexfile.ts",
-    "test": "yarn jest --config ./jest.config.ts"
+    "test": "yarn jest --config ./jest.config.ts",
+    "parser-watch": "concurrently --names \"compile,watch\" --prefix-colors \"bold.yellow,bold.blue\" \"yarn compile --watch\" \"nodemon dist/notion/html-parser.js\""
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
@@ -49,11 +50,14 @@
     "graphql-middleware": "^6.1.14",
     "graphql-scalars": "^1.14.1",
     "graphql-shield": "^7.5.0",
+    "html5parser": "^2.0.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^1.0.3",
     "lodash": "^4.17.21",
     "multer": "^1.4.5-lts.1",
     "node-fetch": "2.6.7",
+    "node-html-markdown": "^1.2.0",
+    "node-html-parser": "^5.4.2-0",
     "pg": "^8.7.3",
     "shx": "^0.3.4",
     "snake-case": "^3.0.4",

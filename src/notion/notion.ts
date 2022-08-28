@@ -400,6 +400,9 @@ export async function addEmailToNotion({
     },
     children: [
       ...attachmentContent,
+      // ----------------------------------------------
+      // here we should render either plain text content like we do now OR
+      // get that html content hot in there
       {
         object: 'block',
         type: 'paragraph',
