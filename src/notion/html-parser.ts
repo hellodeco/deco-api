@@ -5,7 +5,7 @@ import { Client } from '@notionhq/client'
 // import { parse } from 'node-html-parser'
 import type { HTMLElement } from 'node-html-parser'
 import { NodeHtmlMarkdown, NodeHtmlMarkdownOptions } from 'node-html-markdown'
-import { parse, walk, SyntaxKind, INode } from 'html5parser';
+import { parse, walk, SyntaxKind, INode, IText } from 'html5parser';
 
 const nhm = new NodeHtmlMarkdown();
 
@@ -28,7 +28,8 @@ interface NotionContent {
   text: string 
 }
 
-const blockTypes = [
+// a list of html types that we will want to translate to notion blocks (e.g. h1 === heading_1)
+const blockTypes = new Set([
   'h1',
   'h2',
   'h3',
@@ -39,7 +40,7 @@ const blockTypes = [
   // 'ul',
   // 'ol',
   // 'span',
-]
+])
 
 const translationTable = {
   title: 'h1',
@@ -59,61 +60,92 @@ const translationTable = {
 
 export async function parseEmailHTML(html: string) {
   console.log('parsing...')
-  const textEls: Array<Node> = []
+  let textEls: Array<IText & NodeExtras> = []
 
   const ast = parse(html)
   
   walk(ast, {
     enter: (node: Node, parent: Node) => {
+      // adding the parent allows us to traverse back up a tree to determine what
+      // the notion block type of a text node
       node.parent = parent
 
-      if (blockTypes.includes(node.name)) {
-        node.notionMappingType = node.name
+      // if (blockTypes.has(node.name)) {
+      //   node.notionMappingType = node.name
+      // }
+
+      if (node.type === 'Text') {
+        textEls.push(node)
       }
 
-      if (node.type !== 'Text') {
-        return
-      }
+      // let notionMappingType
+      // let currNode: Node = node
 
-      let notionMappingType
-      let currNode: Node = node
+      // while (!notionMappingType && currNode) {
 
-      while (!notionMappingType && currNode) {
+      //   if (currNode.notionMappingType) {
+      //     notionMappingType = currNode.notionMappingType
+      //     break
+      //   }
 
-        if (currNode.notionMappingType) {
-          notionMappingType = currNode.notionMappingType
-          break
-        }
+      //   currNode = currNode.parent
+      // }
 
-        currNode = currNode.parent
-      }
+      // if (!notionMappingType) {
+      //   notionMappingType = 'p'
 
-      if (!notionMappingType) {
-        notionMappingType = 'p'
+      // }
 
-      }
+      // node.notionMappingType = notionMappingType
 
-      node.notionMappingType = notionMappingType
+      // textEls.push(node)
 
-      textEls.push(node)
-
-      console.log(node)
+      // console.log(node)
     },
     leave: (node, parent) => {
     },
   })
 
 
+  textEls = textEls.filter(({ value }) => {
+      return !emptyVal(value)
+
+      return !value.match(/\n/g)    
+  })
+
   console.log(
     'textEls',
     textEls
-    .map((node) => node)
-    .filter(({ value }) => value !== '\n'
-  ))
+  )
 
   // const resp = await notion.pages.create({
   //   parent: { database_id: notionDatabaseId },
   // })
+}
+
+function emptyVal(s: string) {
+  let isEmpty = true
+
+  let prev
+
+  for (let i = 0; i < s.length; i++) {
+    let char = s.charAt(i)
+
+    let isNewLine = char === '\n' || (prev === '\\' && char === 'n')
+
+    if (isNewLine) {
+      console.log(isNewLine, char, prev)
+    }
+
+    if (!isNewLine || char !== ' ') {
+      isEmpty = false
+      break
+    }
+
+    prev = char
+  }
+
+  return isEmpty
 }
 
 function flattenTree(root: HTMLElement): Array<HTMLElement> {
