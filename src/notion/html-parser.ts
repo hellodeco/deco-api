@@ -2,12 +2,18 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { Client } from '@notionhq/client'
-// import { parse } from 'node-html-parser'
-import type { HTMLElement } from 'node-html-parser'
-import { NodeHtmlMarkdown, NodeHtmlMarkdownOptions } from 'node-html-markdown'
+import { isArray } from 'lodash'
 import { parse, walk, SyntaxKind, INode, IText } from 'html5parser';
 
-const nhm = new NodeHtmlMarkdown();
+
+
+/**
+ * - anything in a <style> tag should be ignored
+ * - anything in a <script> tag should be ignored
+ * - we should traverse as far up the tree as possible to determine if something is an <a> tag
+ * 
+ */
+
 
 const NOTION_API_KEY = ''
 const NOTION_DATABASE_ID = ''
@@ -63,44 +69,18 @@ export async function parseEmailHTML(html: string) {
   let textEls: Array<IText & NodeExtras> = []
 
   const ast = parse(html)
-  
+
+  fs.writeFileSync(path.join(__dirname, 'ast.json'), JSON.stringify(ast, null, 2))
+
   walk(ast, {
     enter: (node: Node, parent: Node) => {
       // adding the parent allows us to traverse back up a tree to determine what
       // the notion block type of a text node
       node.parent = parent
 
-      // if (blockTypes.has(node.name)) {
-      //   node.notionMappingType = node.name
-      // }
-
-      if (node.type === 'Text') {
+      if (node.type === SyntaxKind.Text) {
         textEls.push(node)
       }
-
-      // let notionMappingType
-      // let currNode: Node = node
-
-      // while (!notionMappingType && currNode) {
-
-      //   if (currNode.notionMappingType) {
-      //     notionMappingType = currNode.notionMappingType
-      //     break
-      //   }
-
-      //   currNode = currNode.parent
-      // }
-
-      // if (!notionMappingType) {
-      //   notionMappingType = 'p'
-
-      // }
-
-      // node.notionMappingType = notionMappingType
-
-      // textEls.push(node)
-
-      // console.log(node)
     },
     leave: (node, parent) => {
     },
@@ -108,61 +88,41 @@ export async function parseEmailHTML(html: string) {
 
 
   textEls = textEls.filter(({ value }) => {
-      return !emptyVal(value)
 
-      return !value.match(/\n/g)    
+    return true
+
+
+    // return !emptyVal(value)
+
+    // return !value.match(/\n/g)    
   })
 
-  console.log(
-    'textEls',
-    textEls
-  )
+  const t = textEls.reduce((str, { value }) => {
+    str += value.trim()
+    
+    return str
+  }, '')
 
-  // const resp = await notion.pages.create({
-  //   parent: { database_id: notionDatabaseId },
-  // })
+
+
+  console.log(ast)
+
 }
 
 function emptyVal(s: string) {
   let isEmpty = true
 
-  let prev
-
   for (let i = 0; i < s.length; i++) {
     let char = s.charAt(i)
 
-    let isNewLine = char === '\n' || (prev === '\\' && char === 'n')
-
-    if (isNewLine) {
-      console.log(isNewLine, char, prev)
-    }
-
-    if (!isNewLine || char !== ' ') {
+    if (char !== ' ' && char !== '\n') {
       isEmpty = false
       break
     }
-
-    prev = char
   }
 
   return isEmpty
 }
-
-function flattenTree(root: HTMLElement): Array<HTMLElement> {
-  
-  return []
-
-}
-
-
-
-// We care about:
-// 1. images
-// 2. text
-
-
-// ul 
-
 
 
 function test() {
