@@ -3,17 +3,17 @@ import path from 'path'
 import crypto from 'crypto'
 import { Client } from '@notionhq/client'
 import { isArray } from 'lodash'
-import { parse, walk, SyntaxKind, INode, IText } from 'html5parser';
-
-
+import { parse, walk, SyntaxKind, INode, IText } from 'html5parser'
 
 /**
  * - anything in a <style> tag should be ignored
  * - anything in a <script> tag should be ignored
  * - we should traverse as far up the tree as possible to determine if something is an <a> tag
- * 
+ * - images likely won't be represented by text nodes with h1, h2, etc parent nodes and will require special detection
+ *    - e.g. detect image node.name === 'img' and then traverse it's attributes to find the src url (also grabbing alt text attribute if possible)
+ * - HTML comments are making it into the text nodes so those will need to be filtered out
+ *
  */
-
 
 const NOTION_API_KEY = ''
 const NOTION_DATABASE_ID = ''
@@ -31,7 +31,7 @@ type Node = INode & NodeExtras
 
 interface NotionContent {
   blockType: string // eventually should be an enum
-  text: string 
+  text: string
 }
 
 // a list of html types that we will want to translate to notion blocks (e.g. h1 === heading_1)
@@ -63,14 +63,11 @@ const translationTable = {
   // strong: 'bold',
 }
 
-
 export async function parseEmailHTML(html: string) {
   console.log('parsing...')
-  let textEls: Array<IText & NodeExtras> = []
+  const textNodes: Array<IText & NodeExtras> = []
 
   const ast = parse(html)
-
-  fs.writeFileSync(path.join(__dirname, 'ast.json'), JSON.stringify(ast, null, 2))
 
   walk(ast, {
     enter: (node: Node, parent: Node) => {
@@ -79,34 +76,24 @@ export async function parseEmailHTML(html: string) {
       node.parent = parent
 
       if (node.type === SyntaxKind.Text) {
-        textEls.push(node)
+        textNodes.push(node)
       }
     },
-    leave: (node, parent) => {
-    },
   })
 
+  const filteredNodes = textNodes
+    .filter(({ value }) => {
+      return !emptyVal(value)
+    })
+    .map((node) => {
+      node.value = node.value.replace(/^\s+|\s+$/g, '')
+      return node
+    })
 
-  textEls = textEls.filter(({ value }) => {
-
-    return true
-
-
-    // return !emptyVal(value)
-
-    // return !value.match(/\n/g)    
-  })
-
-  const t = textEls.reduce((str, { value }) => {
-    str += value.trim()
-    
-    return str
-  }, '')
-
-
-
-  console.log(ast)
-
+  console.log(filteredNodes)
+  console.log(
+    `all nodes length: ${textNodes.length}, filtered nodes length: ${filteredNodes.length}`,
+  )
 }
 
 function emptyVal(s: string) {
@@ -124,10 +111,9 @@ function emptyVal(s: string) {
   return isEmpty
 }
 
-
 function test() {
   const html = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '1.html')
+    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '1.html'),
   )
 
   parseEmailHTML(html.toString())
