@@ -63,6 +63,7 @@ export interface NewEmail {
   emailId?: number
   emailThreadId?: number
   plainTextContent: string
+  htmlContent: string
 }
 
 export async function getSharedNotionDatabases(userfrontID: string) {
