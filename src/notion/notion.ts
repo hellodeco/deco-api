@@ -10,6 +10,7 @@ import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
 import { chunkStr } from '../utils'
+import { parseEmailHTML, convertNodesToNotionBlocks } from './html-parser'
 
 /**
  * Notion formatting setup order of operations:
@@ -63,7 +64,7 @@ export interface NewEmail {
   emailId?: number
   emailThreadId?: number
   plainTextContent: string
-  htmlContent: string
+  htmlContent?: string
 }
 
 export async function getSharedNotionDatabases(userfrontID: string) {
@@ -361,19 +362,22 @@ export async function addEmailToNotion({
     plainTextContent = ''
   }
 
+  const nodes = await parseEmailHTML(newEmail.htmlContent)
+  const blocks = convertNodesToNotionBlocks(nodes)
+
   // Notion limits each rich text entry to 2000 chars maximum
-  const bodyChunks = chunkStr(plainTextContent, 2000)
+  // const bodyChunks = chunkStr(plainTextContent, 2000)
 
-  const bodyContentRichText = []
+  // const bodyContentRichText = []
 
-  for (let chunk of bodyChunks) {
-    bodyContentRichText.push({
-      type: 'text',
-      text: {
-        content: chunk,
-      },
-    })
-  }
+  // for (let chunk of bodyChunks) {
+  //   bodyContentRichText.push({
+  //     type: 'text',
+  //     text: {
+  //       content: chunk,
+  //     },
+  //   })
+  // }
 
   return notion.pages.create({
     parent: { database_id: notionDatabaseId },
@@ -401,16 +405,18 @@ export async function addEmailToNotion({
     },
     children: [
       ...attachmentContent,
+      ...blocks,
       // ----------------------------------------------
       // here we should render either plain text content like we do now OR
       // get that html content hot in there
-      {
-        object: 'block',
-        type: 'paragraph',
-        paragraph: {
-          rich_text: [...bodyContentRichText],
-        },
-      },
+      // {
+      //   object: 'block',
+      //   type: 'paragraph',
+      //   paragraph: {
+      //     rich_text: [...bodyContentRichText],
+      //   },
+      // },
+
     ],
   })
 }
