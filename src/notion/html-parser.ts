@@ -125,11 +125,6 @@ export async function parseEmailHTML(html: string) {
     }
   }
 
-  console.log(filteredNodes)
-  console.log(
-    `all nodes length: ${textNodes.length}, filtered nodes length: ${filteredNodes.length}`,
-  )
-
   return filteredNodes
 }
 
@@ -145,32 +140,7 @@ const translationTable = {
   ol: 'numbered_list_item',
 }
 
-function generateBlock({
-  type,
-  content,
-  link,
-}: {
-  type: string
-  content: string
-  link?: string
-}) {
-  return {
-    type,
-    [type]: {
-      rich_text: [
-        {
-          type: 'text',
-          text: {
-            content,
-            link,
-          },
-        },
-      ],
-    },
-  }
-}
-
-function convertNodesToNotionBlocks(nodes: Array<Node>) {
+export function convertNodesToNotionBlocks(nodes: Array<Node>) {
   const blocks = []
 
   for (const node of nodes) {
@@ -178,27 +148,35 @@ function convertNodesToNotionBlocks(nodes: Array<Node>) {
 
     let link = null
     if (isLink && href) {
-      link = href
-    }
-
-    switch (node.notionMappingType) {
-      case 'h1': {
-        blocks.push(
-          generateBlock({
-            type: 'heading_1',
-            link,
-            content: node.value,
-          }),
-        )
-
-        break
-      }
-      default: {
-        // do a paragraph
-        break
+      link = {
+        type: 'url',
+        url: href,
       }
     }
+
+    const type = translationTable[node.notionMappingType] || 'paragraph'
+
+    // TODO: actually group <ul> and <ol> nodes into a single list block
+
+    // TODO: use chunkStr() here to ensure that we don't exceed the 2000 character limit
+    // for each rich_text object
+    blocks.push({
+      type,
+      [type]: {
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: node.value,
+              link,
+            },
+          },
+        ],
+      },
+    })
   }
+
+  return blocks
 }
 
 async function test() {
@@ -210,4 +188,4 @@ async function test() {
   convertNodesToNotionBlocks(nodes)
 }
 
-test()
+// test()
