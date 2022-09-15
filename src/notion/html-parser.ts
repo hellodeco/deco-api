@@ -4,6 +4,9 @@ import crypto from 'crypto'
 import { Client } from '@notionhq/client'
 import { isArray } from 'lodash'
 import { parse, walk, SyntaxKind, INode, IText } from 'html5parser'
+import puppeteer from 'puppeteer'
+import { createWorker } from 'tesseract.js';
+import Fuse from 'fuse.js'
 import dotenv from 'dotenv'
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
@@ -26,6 +29,17 @@ const NOTION_CLIENT_SECRET = process.env.NOTION_CLIENT_SECRET
 const NOTION_ACCESS_TOKEN = process.env.NOTION_ACCESS_TOKEN
 
 const notion = new Client({ auth: NOTION_ACCESS_TOKEN })
+
+let browser
+
+async function getBrowser() {
+  if (!browser) {
+    browser = await puppeteer.launch()
+  }
+
+  return browser
+}
+
 
 interface NodeExtras {
   id?: string
@@ -110,6 +124,7 @@ export async function parseEmailHTML(html: string) {
 
       if (parent.name === 'a') {
         node.isLink = true
+        // @ts-ignore
         const hrefAttr = parent.attributes?.find(({ name, value }) => {
           return name?.value === 'href' && value?.value
         })
@@ -167,6 +182,7 @@ export function convertNodesToNotionBlocks(nodes: Array<Node>) {
           {
             type: 'text',
             text: {
+              // @ts-ignore
               content: node.value,
               link,
             },
@@ -179,13 +195,93 @@ export function convertNodesToNotionBlocks(nodes: Array<Node>) {
   return blocks
 }
 
+function getScreenshotPath(dir: string) {
+  let i = 1
+  let fileName = 'screenshot.png'
+
+  while (fs.existsSync(path.join(dir, fileName))) {
+    fileName = `screenshot-${i}.png`
+    i++
+  }
+
+  return path.join(dir, fileName)
+}
+
+async function screenshotHTML(html: Buffer) {
+  const screenshotDir = path.join(__dirname, '..', '..', 'src', 'notion', 'dom-screenshots')
+
+  const browser = await getBrowser()
+
+  const page = await browser.newPage()
+  await page.setViewport({
+      width: 3000,
+      height: 3000,
+      deviceScaleFactor: 1,
+  })
+
+  await page.setContent(html.toString())
+
+  const filePath = getScreenshotPath(screenshotDir)
+
+  await page.screenshot({ path: filePath })
+
+  return filePath
+}
+
+const worker = createWorker({
+  logger: m => console.log(m)
+});
+
+async function textDetection(filePath: string) {
+  await worker.load()
+  await worker.loadLanguage('eng')
+  await worker.initialize('eng')
+  const result = await worker.recognize(filePath)
+
+  const lines = result.data.lines.map((line) => {
+    const fontSizes = line.words.map(word => word.font_size)
+    const sum = fontSizes.reduce((a, b) => {
+      return a + b
+    }, 0)
+
+    const average = sum / fontSizes.length
+
+
+    return { ...line, averageFontSize: average }
+  })
+
+
+  let sizes = new Set<number>()
+  lines.forEach(line => {
+    sizes.add(line.averageFontSize)
+  })
+
+  // sort largest to smallest
+  const sortedSized = Array.from(sizes).sort((a, b) => b - a)
+  const notionBlockTypeOrder = ['h1', 'h2', 'h3', 'paragraph']
+
+  await worker.terminate()
+
+  return lines
+}
+
+// h1 h2 h3 paragraph
+
+async function abc() {
+
+}
+
 async function test() {
   const html = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '1.html'),
+    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '2.html'),
   )
+
+  const screenshotPath = await screenshotHTML(html)
+  const lines = await textDetection(screenshotPath)
+  
 
   const nodes = await parseEmailHTML(html.toString())
   convertNodesToNotionBlocks(nodes)
 }
 
-// test()
+test()
