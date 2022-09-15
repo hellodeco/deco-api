@@ -1,4 +1,6 @@
 node_modules
 dist
 **/*.env*
+src/notion/dom-screenshots
+eng.traineddata
 
