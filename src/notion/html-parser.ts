@@ -207,9 +207,7 @@ function getScreenshotPath(dir: string) {
   return path.join(dir, fileName)
 }
 
-async function screenshotHTML(html: Buffer) {
-  const screenshotDir = path.join(__dirname, '..', '..', 'src', 'notion', 'dom-screenshots')
-
+async function renderHTML(html: Buffer) {
   const browser = await getBrowser()
 
   const page = await browser.newPage()
@@ -220,6 +218,13 @@ async function screenshotHTML(html: Buffer) {
   })
 
   await page.setContent(html.toString())
+
+  return page
+}
+
+// page is a rendered page from puppeteer
+async function screenshotHTML(page: any) {
+  const screenshotDir = path.join(__dirname, '..', '..', 'src', 'notion', 'dom-screenshots')
 
   const filePath = getScreenshotPath(screenshotDir)
 
@@ -267,21 +272,58 @@ async function textDetection(filePath: string) {
 
 // h1 h2 h3 paragraph
 
-async function abc() {
-
-}
 
 async function test() {
   const html = fs.readFileSync(
     path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '2.html'),
   )
 
-  const screenshotPath = await screenshotHTML(html)
-  const lines = await textDetection(screenshotPath)
+  const page = await renderHTML(html)
+
+  const textNodes = await page.evaluate(() => {
+    const nodes = document.querySelectorAll('body *')
+    const textNodes  = []
+
+    for (let node of nodes) {
+      if (node.nodeType !== Node.TEXT_NODE) {
+        continue
+      }
+
+      const style = getComputedStyle(node)
+
+      textNodes.push({
+        text: node.innerText,
+        fontSize: style.getPropertyValue('font-size'),
+        fontWeight: style.getPropertyValue('font-weight'),
+        nodeType: node.nodeType,
+      })
+    }
+
+    return textNodes
+  })
+
+  console.log(textNodes)
+
+  // const style = await page.evaluate(() => {
+  //   const el = document.querySelector('.active-t.darkmode.btn-white2')
+  //   const style = getComputedStyle(el)
+
+  //   return {
+  //     fontSize: style.getPropertyValue('font-size'),
+  //     fontWeight: style.getPropertyValue('font-weight'),
+  //   }
+  // })
+
+  // console.log('style --------------', style)
+
+
+  // const screenshotPath = await screenshotHTML(page)
+  // const lines = await textDetection(screenshotPath)
   
 
-  const nodes = await parseEmailHTML(html.toString())
-  convertNodesToNotionBlocks(nodes)
+  // const nodes = await parseEmailHTML(html.toString())
+
+  // convertNodesToNotionBlocks(nodes)
 }
 
 test()
