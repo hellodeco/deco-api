@@ -45,11 +45,27 @@ function emptyVal(s: string) {
   return isEmpty
 }
 
-// TODO make type stronger
+// TODO make nodes type stronger
 export function convertNodesToNotionBlocks(nodes: Array<any>) {
   const blocks = []
 
   for (const node of nodes) {
+    if (node.isImage) {
+
+      // TODO: attempt to scale images to the approximate size they were in the DOM
+      blocks.push({
+        type: 'image',
+        image: {
+          type: 'external',
+          external: {
+            url: node.src,
+          },
+        },
+      })
+
+      continue
+    }
+
     const { isLink, href } = node
 
     let link = null
@@ -112,12 +128,11 @@ export async function getNotionBlocks(html: string) {
   const page = await renderHTML(html)
 
   let textNodes = await page.evaluate(() => {
-
-    const isAnchor = (node: Node, tagName: string) => {
+    const isAnchor = (node: Node) => {
       let parent = node.parentElement
 
       while (parent) {
-        if (parent.tagName === tagName) {
+        if (parent.tagName === 'A') {
           // @ts-ignore
           return [true, parent.href]
         }
@@ -128,25 +143,36 @@ export async function getNotionBlocks(html: string) {
       return [false, null]
     }
 
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ALL)
 
     const nodes = []
 
     let node = walker.nextNode()
 
     while (node !== null) {
-      const style = getComputedStyle(node.parentElement)
-      const [isLink, href] = isAnchor(node, 'A')
+      if (node.nodeType === Node.TEXT_NODE) {
+        const style = getComputedStyle(node.parentElement)
+        const [isLink, href] = isAnchor(node)
 
-      nodes.push({
-        text: node.textContent,
-        fontSize: style.getPropertyValue('font-size'),
-        fontWeight: style.getPropertyValue('font-weight'),
-        fontStyle: style.getPropertyValue('font-style'),
-        nodeType: node.nodeType,
-        isLink,
-        href, 
-      })
+        nodes.push({
+          text: node.textContent,
+          fontSize: style.getPropertyValue('font-size'),
+          fontWeight: style.getPropertyValue('font-weight'),
+          fontStyle: style.getPropertyValue('font-style'),
+          nodeType: node.nodeType,
+          isLink,
+          href, 
+        })
+      // @ts-ignore
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
+        nodes.push({
+          // @ts-ignore
+          src: node.getAttribute('src'),
+          isImage: true,
+          // @ts-ignore
+          altText: node.getAttribute('alt'),
+        })
+      }
 
       node = walker.nextNode()
     }
@@ -156,9 +182,24 @@ export async function getNotionBlocks(html: string) {
 
   textNodes = textNodes
     .filter(node => {
-      return !emptyVal(node.text)
+      if (!node.isImage) {
+        return !emptyVal(node.text)
+      }
+
+      // image extensions as taken from here:
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+      const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.avif', '.gif', '.tiff', '.webp']
+
+      const url = new URL(node.src)
+      const ext = path.extname(url.pathname)
+
+      return imageExts.includes(ext)
     })
     .map(node => {
+      if (node.isImage) {
+        return node
+      }
+
       let fontSize
       try {
         fontSize = parseInt(node.fontSize.replace('px', ''), 10)
