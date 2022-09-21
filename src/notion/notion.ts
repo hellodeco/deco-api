@@ -10,7 +10,7 @@ import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
 import { chunkStr } from '../utils'
-import { parseEmailHTML, convertNodesToNotionBlocks } from './html-parser'
+import { getNotionBlocks} from './html-parser'
 
 /**
  * Notion formatting setup order of operations:
@@ -362,8 +362,11 @@ export async function addEmailToNotion({
     plainTextContent = ''
   }
 
-  const nodes = await parseEmailHTML(newEmail.htmlContent)
-  const blocks = convertNodesToNotionBlocks(nodes)
+  const blocks = await getNotionBlocks(newEmail.htmlContent)
+
+  console.log(
+    JSON.stringify(blocks, null, 2)
+  )
 
   // Notion limits each rich text entry to 2000 chars maximum
   // const bodyChunks = chunkStr(plainTextContent, 2000)
