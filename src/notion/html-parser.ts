@@ -70,6 +70,58 @@ const blockTypes = new Set([
   'ol',
 ])
 
+function getRangeMaximums(numbers: number[], parts: number) {
+  const uniqueNums = new Set([ ...numbers ].sort((a, b) => a - b))
+  const nums = Array.from(uniqueNums)
+
+  const low = nums[0]
+  const high = nums[nums.length - 1]
+  const diff = high - low
+  // TODO account for parts being smaller than diff. rangeLen should be
+  // an integer no smaller than 1
+  const rangeLen = Math.ceil(diff / parts)
+
+  let currMax = rangeLen
+  const rangeMaxes = new Array(parts).fill(null).map(p => {
+    let max = currMax
+    currMax += rangeLen
+
+    return max 
+  })
+
+  return rangeMaxes
+}
+
+function mapFontSizeToNotionBlockType(numbers: number[]) {
+  const rangeMaxes = getRangeMaximums(numbers, 4)
+
+  const blockTypes = []
+
+  for (let num of numbers) {
+    if (num <= rangeMaxes[0]) {
+      blockTypes.push('paragraph')
+      continue
+    } else if (num <= rangeMaxes[1]) {
+      blockTypes.push('heading_3')
+      continue
+    } else if (num <= rangeMaxes[2]) {
+      blockTypes.push('heading_2')
+      continue
+    } else {
+      blockTypes.push('heading_1')
+      continue
+    }
+  }
+
+  return blockTypes
+}
+
+const nums = [4, 6, 2, 4, 23, 12, 9, 2, 4, 5, 9, 32, 60, 42, 16, 18]
+const blocks = mapFontSizeToNotionBlockType(nums)
+console.log(nums)
+console.log(blocks)
+
+
 function emptyVal(s: string) {
   let isEmpty = true
 
@@ -326,4 +378,4 @@ async function test() {
   // convertNodesToNotionBlocks(nodes)
 }
 
-test()
+// test()
