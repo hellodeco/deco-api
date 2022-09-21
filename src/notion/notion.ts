@@ -364,10 +364,6 @@ export async function addEmailToNotion({
 
   const blocks = await getNotionBlocks(newEmail.htmlContent)
 
-  console.log(
-    JSON.stringify(blocks, null, 2)
-  )
-
   // Notion limits each rich text entry to 2000 chars maximum
   // const bodyChunks = chunkStr(plainTextContent, 2000)
 
