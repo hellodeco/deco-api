@@ -4,3 +4,5 @@ dist
 src/notion/dom-screenshots
 eng.traineddata
 
+src/notion/html-emails
+

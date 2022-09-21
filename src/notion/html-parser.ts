@@ -1,12 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import crypto from 'crypto'
-import { Client } from '@notionhq/client'
-import { isArray } from 'lodash'
-import { parse, walk, SyntaxKind, INode, IText } from 'html5parser'
 import puppeteer from 'puppeteer'
-import { createWorker } from 'tesseract.js';
-import Fuse from 'fuse.js'
 import dotenv from 'dotenv'
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
@@ -24,11 +18,6 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
  *
  */
 
-const NOTION_CLIENT_ID = process.env.NOTION_CLIENT_ID
-const NOTION_CLIENT_SECRET = process.env.NOTION_CLIENT_SECRET
-const NOTION_ACCESS_TOKEN = process.env.NOTION_ACCESS_TOKEN
-
-const notion = new Client({ auth: NOTION_ACCESS_TOKEN })
 
 let browser
 
@@ -40,95 +29,13 @@ async function getBrowser() {
   return browser
 }
 
-
-interface NodeExtras {
-  id?: string
-  parent?: Node
-  notionMappingType?: string // eventually should be an enum
-  isLink?: boolean
-  href?: string
-  name?: string
-}
-
-type Node = INode & NodeExtras
-
-interface NotionContent {
-  blockType: string // eventually should be an enum
-  text: string
-}
-
-// a list of html types that we will want to translate to notion blocks (e.g. h1 === heading_1)
-const blockTypes = new Set([
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'p',
-  'ul',
-  'ol',
-])
-
-function getRangeMaximums(numbers: number[], parts: number) {
-  const uniqueNums = new Set([ ...numbers ].sort((a, b) => a - b))
-  const nums = Array.from(uniqueNums)
-
-  const low = nums[0]
-  const high = nums[nums.length - 1]
-  const diff = high - low
-  // TODO account for parts being smaller than diff. rangeLen should be
-  // an integer no smaller than 1
-  const rangeLen = Math.ceil(diff / parts)
-
-  let currMax = rangeLen
-  const rangeMaxes = new Array(parts).fill(null).map(p => {
-    let max = currMax
-    currMax += rangeLen
-
-    return max 
-  })
-
-  return rangeMaxes
-}
-
-function mapFontSizeToNotionBlockType(numbers: number[]) {
-  const rangeMaxes = getRangeMaximums(numbers, 4)
-
-  const blockTypes = []
-
-  for (let num of numbers) {
-    if (num <= rangeMaxes[0]) {
-      blockTypes.push('paragraph')
-      continue
-    } else if (num <= rangeMaxes[1]) {
-      blockTypes.push('heading_3')
-      continue
-    } else if (num <= rangeMaxes[2]) {
-      blockTypes.push('heading_2')
-      continue
-    } else {
-      blockTypes.push('heading_1')
-      continue
-    }
-  }
-
-  return blockTypes
-}
-
-const nums = [4, 6, 2, 4, 23, 12, 9, 2, 4, 5, 9, 32, 60, 42, 16, 18]
-const blocks = mapFontSizeToNotionBlockType(nums)
-console.log(nums)
-console.log(blocks)
-
-
 function emptyVal(s: string) {
   let isEmpty = true
 
   for (let i = 0; i < s.length; i++) {
     let char = s.charAt(i)
 
-    if (char !== ' ' && char !== '\n') {
+    if (char !== ' ' && char !== '\n' && char !== '\t') {
       isEmpty = false
       break
     }
@@ -137,77 +44,8 @@ function emptyVal(s: string) {
   return isEmpty
 }
 
-export async function parseEmailHTML(html: string) {
-  const textNodes: Array<IText & NodeExtras> = []
-
-  const ast = parse(html)
-
-  walk(ast, {
-    enter: (node: Node, parent: Node) => {
-      // adding the parent allows us to traverse back up a tree to determine what
-      // the notion block type of a text node
-      node.parent = parent
-
-      // only include text nodes but ignore text nodes that are actually the child of a style tag
-      // as these will contain JS and CSS
-      if (node.type === SyntaxKind.Text && parent?.name !== 'style') {
-        textNodes.push(node)
-      }
-    },
-  })
-
-  const filteredNodes = textNodes
-    .filter(({ value }) => {
-      return !emptyVal(value)
-    })
-    .map((node) => {
-      node.value = node.value.replace(/^\s+|\s+$/g, '')
-      return node
-    })
-
-  // determine each node's type
-  for (const node of filteredNodes) {
-    let parent = node.parent
-
-    while (parent) {
-      if (blockTypes.has(parent.name)) {
-        node.notionMappingType = parent.name
-      }
-
-      if (parent.name === 'a') {
-        node.isLink = true
-        // @ts-ignore
-        const hrefAttr = parent.attributes?.find(({ name, value }) => {
-          return name?.value === 'href' && value?.value
-        })
-
-        node.href = hrefAttr?.value?.value
-      }
-
-      if (node.isLink && node.notionMappingType) {
-        break
-      }
-
-      parent = parent.parent
-    }
-  }
-
-  return filteredNodes
-}
-
-const translationTable = {
-  h1: 'heading_1',
-  h2: 'heading_2',
-  h3: 'heading_3',
-  h4: 'heading_3',
-  h5: 'heading_3',
-  h6: 'heading_3',
-  p: 'paragraph',
-  ul: 'bulleted_list_item',
-  ol: 'numbered_list_item',
-}
-
-export function convertNodesToNotionBlocks(nodes: Array<Node>) {
+// TODO make type stronger
+export function convertNodesToNotionBlocks(nodes: Array<any>) {
   const blocks = []
 
   for (const node of nodes) {
@@ -221,7 +59,7 @@ export function convertNodesToNotionBlocks(nodes: Array<Node>) {
       }
     }
 
-    const type = translationTable[node.notionMappingType] || 'paragraph'
+    const type = node.notionBlockType || 'paragraph'
 
     // TODO: actually group <ul> and <ol> nodes into a single list block
 
@@ -235,7 +73,7 @@ export function convertNodesToNotionBlocks(nodes: Array<Node>) {
             type: 'text',
             text: {
               // @ts-ignore
-              content: node.value,
+              content: node.text,
               link,
             },
           },
@@ -247,19 +85,7 @@ export function convertNodesToNotionBlocks(nodes: Array<Node>) {
   return blocks
 }
 
-function getScreenshotPath(dir: string) {
-  let i = 1
-  let fileName = 'screenshot.png'
-
-  while (fs.existsSync(path.join(dir, fileName))) {
-    fileName = `screenshot-${i}.png`
-    i++
-  }
-
-  return path.join(dir, fileName)
-}
-
-async function renderHTML(html: Buffer) {
+async function renderHTML(html: string) {
   const browser = await getBrowser()
 
   const page = await browser.newPage()
@@ -269,113 +95,99 @@ async function renderHTML(html: Buffer) {
       deviceScaleFactor: 1,
   })
 
-  await page.setContent(html.toString())
+  await page.setContent(html)
 
   return page
 }
 
-// page is a rendered page from puppeteer
-async function screenshotHTML(page: any) {
-  const screenshotDir = path.join(__dirname, '..', '..', 'src', 'notion', 'dom-screenshots')
+export async function getNotionBlocks(html: string) {
+  const page = await renderHTML(html)
 
-  const filePath = getScreenshotPath(screenshotDir)
+  let textNodes = await page.evaluate(() => {
 
-  await page.screenshot({ path: filePath })
+    const isAnchor = (node: Node, tagName: string) => {
+      let parent = node.parentElement
 
-  return filePath
-}
+      while (parent) {
+        if (parent.tagName === tagName) {
+          // @ts-ignore
+          return [true, parent.href]
+        }
 
-const worker = createWorker({
-  logger: m => console.log(m)
-});
+        parent = parent.parentElement
+      }
 
-async function textDetection(filePath: string) {
-  await worker.load()
-  await worker.loadLanguage('eng')
-  await worker.initialize('eng')
-  const result = await worker.recognize(filePath)
+      return [false, null]
+    }
 
-  const lines = result.data.lines.map((line) => {
-    const fontSizes = line.words.map(word => word.font_size)
-    const sum = fontSizes.reduce((a, b) => {
-      return a + b
-    }, 0)
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
 
-    const average = sum / fontSizes.length
+    const nodes = []
 
+    let node = walker.nextNode()
 
-    return { ...line, averageFontSize: average }
+    while (node !== null) {
+      const style = getComputedStyle(node.parentElement)
+      const [isLink, href] = isAnchor(node, 'A')
+
+      nodes.push({
+        text: node.textContent,
+        fontSize: style.getPropertyValue('font-size'),
+        nodeType: node.nodeType,
+        isLink,
+        href, 
+      })
+
+      node = walker.nextNode()
+    }
+
+    return nodes
   })
 
+  textNodes = textNodes
+    .filter(node => {
+      return !emptyVal(node.text)
+    })
+    .map(node => {
+      let fontSize
+      try {
+        fontSize = parseInt(node.fontSize.replace('px', ''), 10)
+      } catch (err) {
+        console.warn('Error getting font size:', err)
+        fontSize = 12
+      }
 
-  let sizes = new Set<number>()
-  lines.forEach(line => {
-    sizes.add(line.averageFontSize)
-  })
+      let notionBlockType = 'paragraph'
 
-  // sort largest to smallest
-  const sortedSized = Array.from(sizes).sort((a, b) => b - a)
-  const notionBlockTypeOrder = ['h1', 'h2', 'h3', 'paragraph']
+      if (fontSize >= 30) {
+        notionBlockType = 'heading_1'
+      } else if (fontSize >= 24) {
+        notionBlockType = 'heading_2'
+      } else if (fontSize >= 18) {
+        notionBlockType = 'heading_3'
+      } 
 
-  await worker.terminate()
+      return {
+        ...node,
+        text: node.text.replace(/^\s+|\s+$/g, ''),
+        notionBlockType,
+      }
+    })
 
-  return lines
+  const blocks = convertNodesToNotionBlocks(textNodes)
+
+  // TODO type this return value
+  return blocks
 }
-
-// h1 h2 h3 paragraph
-
 
 async function test() {
   const html = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '2.html'),
+    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '7.html'),
   )
 
-  const page = await renderHTML(html)
-
-  const textNodes = await page.evaluate(() => {
-    const nodes = document.querySelectorAll('body *')
-    const textNodes  = []
-
-    for (let node of nodes) {
-      if (node.nodeType !== Node.TEXT_NODE) {
-        continue
-      }
-
-      const style = getComputedStyle(node)
-
-      textNodes.push({
-        text: node.innerText,
-        fontSize: style.getPropertyValue('font-size'),
-        fontWeight: style.getPropertyValue('font-weight'),
-        nodeType: node.nodeType,
-      })
-    }
-
-    return textNodes
-  })
-
-  console.log(textNodes)
-
-  // const style = await page.evaluate(() => {
-  //   const el = document.querySelector('.active-t.darkmode.btn-white2')
-  //   const style = getComputedStyle(el)
-
-  //   return {
-  //     fontSize: style.getPropertyValue('font-size'),
-  //     fontWeight: style.getPropertyValue('font-weight'),
-  //   }
-  // })
-
-  // console.log('style --------------', style)
-
-
-  // const screenshotPath = await screenshotHTML(page)
-  // const lines = await textDetection(screenshotPath)
-  
-
-  // const nodes = await parseEmailHTML(html.toString())
-
-  // convertNodesToNotionBlocks(nodes)
+  const blocks = await getNotionBlocks(html.toString())
+  console.log(JSON.stringify(blocks, null, 2))
 }
 
 // test()
+
