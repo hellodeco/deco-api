@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import { isNumber } from 'lodash'
 import puppeteer from 'puppeteer'
 import dotenv from 'dotenv'
 
@@ -61,6 +62,9 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
 
     const type = node.notionBlockType || 'paragraph'
 
+    const bold = node.fontWeight === 'bold' || (isNumber(node.fontWeight) && node.fontWeight >= 600)
+    const italic = node.fontStyle === 'italic'
+
     // TODO: actually group <ul> and <ol> nodes into a single list block
 
     // TODO: use chunkStr() here to ensure that we don't exceed the 2000 character limit
@@ -75,6 +79,10 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
               // @ts-ignore
               content: node.text,
               link,
+            },
+            annotations: {
+              bold,
+              italic,
             },
           },
         ],
@@ -133,6 +141,8 @@ export async function getNotionBlocks(html: string) {
       nodes.push({
         text: node.textContent,
         fontSize: style.getPropertyValue('font-size'),
+        fontWeight: style.getPropertyValue('font-weight'),
+        fontStyle: style.getPropertyValue('font-style'),
         nodeType: node.nodeType,
         isLink,
         href, 
@@ -153,7 +163,7 @@ export async function getNotionBlocks(html: string) {
       try {
         fontSize = parseInt(node.fontSize.replace('px', ''), 10)
       } catch (err) {
-        console.warn('Error getting font size:', err)
+        console.warn('Error parsing font size:', err)
         fontSize = 12
       }
 
@@ -167,9 +177,18 @@ export async function getNotionBlocks(html: string) {
         notionBlockType = 'heading_3'
       } 
 
+      let fontWeight = node.fontWeight
+
+      try {
+        fontWeight = parseInt(node.fontWeight, 10)
+      } catch (err) {
+        // noop because fontWeight is probably set to "bold" or something similar
+      }
+
       return {
         ...node,
         text: node.text.replace(/^\s+|\s+$/g, ''),
+        fontWeight,
         notionBlockType,
       }
     })
@@ -186,7 +205,6 @@ async function test() {
   )
 
   const blocks = await getNotionBlocks(html.toString())
-  console.log(JSON.stringify(blocks, null, 2))
 }
 
 // test()
