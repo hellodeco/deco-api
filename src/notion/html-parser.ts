@@ -23,6 +23,7 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 let browser
 
 async function getBrowser() {
+  // TODO: create lock so that two funcions can't try to do this at the same time
   if (!browser) {
     browser = await puppeteer.launch()
   }
