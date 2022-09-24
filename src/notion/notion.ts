@@ -11,6 +11,7 @@ import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
 import { chunkStr } from '../utils'
 import { getNotionBlocks} from './html-parser'
+import { createAttachmentBlocks } from './createAttachmentBlocks'
 
 /**
  * Notion formatting setup order of operations:
@@ -296,67 +297,7 @@ export async function addEmailToNotion({
   const deliveryDate = new Date(time)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
-  const attachmentContent = []
-
-  const attachmentLinks = attachments.reduce(
-    (items, { uuid, filename }, idx) => {
-      let url = encodeURI(
-        `${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}/preview`,
-      )
-
-      items.push({
-        type: 'text',
-        text: {
-          content: filename,
-          link: {
-            url: url,
-          },
-        },
-      })
-
-      if (idx !== attachments.length - 1) {
-        items.push({
-          type: 'text',
-          text: {
-            content: ', ',
-          },
-        })
-      }
-
-      return items
-    },
-    [],
-  )
-
-  const attachmentSection = [
-    {
-      object: 'block',
-      type: 'paragraph',
-      paragraph: {
-        rich_text: [
-          {
-            type: 'text',
-            text: {
-              content: 'Attachments: ',
-            },
-            annotations: {
-              bold: true,
-            },
-          },
-          // @ts-ignore
-          ...attachmentLinks,
-        ],
-      },
-    },
-    {
-      type: 'divider',
-      divider: {},
-    },
-  ]
-
-  if (attachments.length > 0) {
-    attachmentContent.push(...attachmentSection)
-  }
+  const attachmentContent = createAttachmentBlocks(attachments)
 
   if (!plainTextContent) {
     plainTextContent = ''

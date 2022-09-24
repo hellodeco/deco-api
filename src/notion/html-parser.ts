@@ -19,7 +19,6 @@ dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
  *
  */
 
-
 let browser
 
 async function getBrowser() {
