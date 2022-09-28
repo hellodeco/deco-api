@@ -4,7 +4,7 @@ import { isNumber } from 'lodash'
 import puppeteer from 'puppeteer'
 import type { Browser } from 'puppeteer'
 import dotenv from 'dotenv'
-import { wait } from '../utils'
+import { wait, chunkStr } from '../utils'
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 
@@ -106,25 +106,27 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
 
     // TODO: actually group <ul> and <ol> nodes into a single list block
 
-    // TODO: use chunkStr() here to ensure that we don't exceed the 2000 character limit
-    // for each rich_text object
+    // Notion limits each rich text entry to 2000 chars maximum
+    const textChunks = chunkStr(node.text, 2000)
+
+    const richText = textChunks.map(chunk => {
+      return {
+        type: 'text',
+        text: {
+          content: chunk,
+          link,
+        },
+        annotations: {
+          bold,
+          italic,
+        }
+      }
+    })
+
     blocks.push({
       type,
       [type]: {
-        rich_text: [
-          {
-            type: 'text',
-            text: {
-              // @ts-ignore
-              content: node.text,
-              link,
-            },
-            annotations: {
-              bold,
-              italic,
-            },
-          },
-        ],
+        rich_text: richText,
       },
     })
   }
