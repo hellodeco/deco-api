@@ -5,13 +5,13 @@ import type {
   CreatePageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
-import { FRONTEND_BASE_URL } from '../constants'
+import { IS_STAGING } from '../constants'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
-import { chunkStr } from '../utils'
-import { getNotionBlocks} from './html-parser'
+import { convertHTMLToNotionBlocks } from './html-parser'
 import { createAttachmentBlocks } from './createAttachmentBlocks'
+import { createPlainTextBlocks } from './createPlainTextBlocks'
 
 /**
  * Notion formatting setup order of operations:
@@ -58,6 +58,14 @@ import { createAttachmentBlocks } from './createAttachmentBlocks'
  *   - if notion_database doesn't exist
  *      - query for list of shared databases and have user select one
  */
+
+/**
+ * userfront_user_id of users that we want to do HTML parsing on
+ * NOTE: this only applies to production as staging is enabled for everyone
+ * */
+const HTML_ENABLED_USER_IDS = new Set([
+  'd43649fb-93ff-406f-a3f8-409a5fcc0c87',
+])
 
 export interface NewEmail {
   subject: string
@@ -297,27 +305,27 @@ export async function addEmailToNotion({
   const deliveryDate = new Date(time)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
-  const attachmentContent = createAttachmentBlocks(attachments)
+  const attachmentBlocks = createAttachmentBlocks(attachments)
 
   if (!plainTextContent) {
     plainTextContent = ''
   }
 
-  const blocks = await getNotionBlocks(newEmail.htmlContent)
+  let emailBodyBlocks = []
 
-  // Notion limits each rich text entry to 2000 chars maximum
-  // const bodyChunks = chunkStr(plainTextContent, 2000)
+  // const shouldUseHTMLParsing = IS_STAGING || HTML_ENABLED_USER_IDS.has(userfrontID)
 
-  // const bodyContentRichText = []
-
-  // for (let chunk of bodyChunks) {
-  //   bodyContentRichText.push({
-  //     type: 'text',
-  //     text: {
-  //       content: chunk,
-  //     },
-  //   })
+  // if (shouldUseHTMLParsing && newEmail.htmlContent) {
+  //   try {
+  //     emailBodyBlocks = await convertHTMLToNotionBlocks(newEmail.htmlContent)
+  //   } catch(err) {
+  //     console.warn('Error converting HTML to Notion blocks', err)
+  //   }
   // }
+
+  if (emailBodyBlocks.length === 0) {
+    emailBodyBlocks = createPlainTextBlocks(plainTextContent)
+  }
 
   return notion.pages.create({
     parent: { database_id: notionDatabaseId },
@@ -344,8 +352,8 @@ export async function addEmailToNotion({
       },
     },
     children: [
-      ...attachmentContent,
-      ...blocks,
+      ...attachmentBlocks,
+      ...emailBodyBlocks,
       // ----------------------------------------------
       // here we should render either plain text content like we do now OR
       // get that html content hot in there
