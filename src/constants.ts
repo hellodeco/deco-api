@@ -64,6 +64,8 @@ export const IS_LOCAL = !['production', 'staging'].includes(
   process.env.NODE_ENV,
 )
 
+export const IS_STAGING = process.env.NODE_ENV === 'staging'
+
 export const USERFRONT_READONLY_API_KEY = process.env.USERFRONT_READONLY_API_KEY
 
 export const NOTION_REDIRECT_URI = `${SERVER_BASE_URL}/oauth/notion/callback`
@@ -77,3 +79,5 @@ export const S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID
 export const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY
 
 export const S3_BUCKET = process.env.S3_BUCKET || ''
+
+
