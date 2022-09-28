@@ -65,9 +65,8 @@ import { createPlainTextBlocks } from './createPlainTextBlocks'
  * userfront_user_id of users that we want to do HTML parsing on
  * NOTE: this only applies to production as staging is enabled for everyone
  * */
-const HTML_ENABLED_USER_IDS = new Set([
-  'd43649fb-93ff-406f-a3f8-409a5fcc0c87',
-])
+// const HTML_ENABLED_USER_IDS = new Set([
+// ])
 
 export interface NewEmail {
   subject: string
