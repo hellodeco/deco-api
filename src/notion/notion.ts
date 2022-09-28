@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import { Client } from '@notionhq/client'
 import type {
   GetDatabaseResponse,
@@ -5,7 +7,7 @@ import type {
   CreatePageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
-import { IS_STAGING } from '../constants'
+import { IS_LOCAL, IS_STAGING } from '../constants'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
@@ -313,15 +315,15 @@ export async function addEmailToNotion({
 
   let emailBodyBlocks = []
 
-  // const shouldUseHTMLParsing = IS_STAGING || HTML_ENABLED_USER_IDS.has(userfrontID)
+  // const shouldUseHTMLParsing = IS_LOCAL || IS_STAGING || HTML_ENABLED_USER_IDS.has(userfrontID)
 
-  // if (shouldUseHTMLParsing && newEmail.htmlContent) {
-  //   try {
-  //     emailBodyBlocks = await convertHTMLToNotionBlocks(newEmail.htmlContent)
-  //   } catch(err) {
-  //     console.warn('Error converting HTML to Notion blocks', err)
-  //   }
-  // }
+  if (newEmail.htmlContent) {
+    try {
+      emailBodyBlocks = await convertHTMLToNotionBlocks(newEmail.htmlContent)
+    } catch(err) {
+      console.warn('Error converting HTML to Notion blocks', err)
+    }
+  }
 
   if (emailBodyBlocks.length === 0) {
     emailBodyBlocks = createPlainTextBlocks(plainTextContent)
