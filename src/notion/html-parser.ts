@@ -2,34 +2,57 @@ import fs from 'fs'
 import path from 'path'
 import { isNumber } from 'lodash'
 import puppeteer from 'puppeteer'
+import type { Browser } from 'puppeteer'
 import dotenv from 'dotenv'
+import { wait } from '../utils'
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 
 /**
- * - anything in a <style> tag should be ignored
- * - anything in a <script> tag should be ignored
- * - we should traverse as far up the tree as possible to determine if something is an <a> tag
- * - images likely won't be represented by text nodes with h1, h2, etc parent nodes and will require special detection
- *    - e.g. detect image node.name === 'img' and then traverse it's attributes to find the src url (also grabbing alt text attribute if possible)
- * - HTML comments are making it into the text nodes so those will need to be filtered out
- * - We'll need to strip out mso if/else clauses.
- *    - https://stackoverflow.com/questions/1036409/how-do-you-remove-mso-conditional-comments-using-javascript
- *    - https://stackoverflow.design/email/base/mso/
- *
+ * Puppeteer browser instance
  */
+let browser: Browser = null
 
-let browser
+/**
+ * Boolean to create a "lock" so that we never try to create more than one puppeteer browser instance
+ */
+let isObtainingBrowser = false
+
+function setBrowserLock(shouldLock: boolean) {
+  /**
+   * Use set immediate to ensure that this lock is set/unset before any time callbacks are executed.
+   * This is important as we use "wait" which calls setTimeout when waiting for the lock to be released
+   * and using setImmediate ensures that the lock is toggled before the callback fires
+   */
+  setImmediate(() => {
+    isObtainingBrowser = shouldLock
+  })
+}
 
 async function getBrowser() {
-  // TODO: create lock so that two funcions can't try to do this at the same time
-  if (!browser) {
+  if (!browser && !isObtainingBrowser) {
+    setBrowserLock(true)
+
     browser = await puppeteer.launch()
+
+    setBrowserLock(false)
+  }
+
+  while (isObtainingBrowser) {
+    await wait(200)
   }
 
   return browser
 }
 
+/**
+ * Determines if a string contains *only* the following chars:
+ * 
+ * - '' (empty string)
+ * - ' ' (white space)
+ * - '\n' (new line)
+ * - '\t' (tab)
+ */
 function emptyVal(s: string) {
   let isEmpty = true
 
@@ -124,7 +147,7 @@ async function renderHTML(html: string) {
   return page
 }
 
-export async function getNotionBlocks(html: string) {
+export async function convertHTMLToNotionBlocks(html: string) {
   const page = await renderHTML(html)
 
   let textNodes = await page.evaluate(() => {
@@ -186,8 +209,10 @@ export async function getNotionBlocks(html: string) {
         return !emptyVal(node.text)
       }
 
-      // image extensions as taken from here:
-      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+      /**
+       * image extensions as taken from here:
+       * https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
+       */
       const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.avif', '.gif', '.tiff', '.webp']
 
       const url = new URL(node.src)
@@ -223,7 +248,8 @@ export async function getNotionBlocks(html: string) {
       try {
         fontWeight = parseInt(node.fontWeight, 10)
       } catch (err) {
-        // noop because fontWeight is probably set to "bold" or something similar
+        // noop because fontWeight is probably set to "bold" or something similar which
+        // is not convertible to an integer
       }
 
       return {
@@ -239,14 +265,3 @@ export async function getNotionBlocks(html: string) {
   // TODO type this return value
   return blocks
 }
-
-async function test() {
-  const html = fs.readFileSync(
-    path.join(__dirname, '..', '..', 'src', 'notion', 'html-emails', '7.html'),
-  )
-
-  const blocks = await getNotionBlocks(html.toString())
-}
-
-// test()
-

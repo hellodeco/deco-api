@@ -29,3 +29,7 @@ export function chunkStr(str: string, size: number = 1000): Array<string> {
 
   return chunks
 }
+
+export function wait(ms = 1000): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
