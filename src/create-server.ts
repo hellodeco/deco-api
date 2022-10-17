@@ -7,7 +7,7 @@ import type { ApolloServerContext } from './types/apollo'
 import cors from 'cors'
 import { json } from 'body-parser'
 import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/types'
-import { PORT } from './constants'
+import { IS_LOCAL, PORT } from './constants'
 import * as dbAccess from './db-access/db-access'
 import { db } from './db-connection'
 import * as notionAccess from './notion/notion'
@@ -31,7 +31,9 @@ export async function createServer({
     schema,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     formatError: (formattedError, error) => {
-      console.error(error)
+      if (IS_LOCAL) {
+        console.error(error)
+      }
       
       return formattedError
     },
