@@ -1,6 +1,6 @@
 import { rule, shield } from 'graphql-shield'
 import { ResolverContext } from './types/shared'
-import { FRONTEND_DOMAIN } from './constants'
+import { FRONTEND_DOMAIN, IS_LOCAL } from './constants'
 
 /**
  * These rules are executed on a per field basis.
@@ -46,6 +46,7 @@ const permissions = shield(
   {
     // I want this to work but it's causing some GD issues so commenting it out for now
     // fallbackRule: isAuthenticated,
+    debug: IS_LOCAL,
   },
 )
 
