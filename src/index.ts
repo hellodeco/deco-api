@@ -24,8 +24,6 @@ const schema = applyMiddleware(
 const app = express()
 
 createServer({
-  typeDefs,
-  resolvers,
   schema,
   app,
 }).then(({ server, port }) => {

@@ -1,4 +1,4 @@
-import type { User } from '../resolvers/resolvers'
+import type { User } from '../types/apollo'
 import * as dbAccess from '../db-access/db-access'
 import * as notionAccess from '../notion/notion'
 import { db } from '../db-connection'
