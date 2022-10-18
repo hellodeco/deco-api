@@ -4,7 +4,6 @@ import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
 import type { ApolloServerContext } from './types/apollo'
-import cors from 'cors'
 import { json } from 'body-parser'
 import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/types'
 import { IS_LOCAL, PORT } from './constants'
@@ -14,6 +13,7 @@ import * as notionAccess from './notion/notion'
 import { verifyJWT } from './jwt'
 import { addRoutes } from './addRoutes'
 import { ResolverContext } from './types/shared'
+import { makeCorsMiddleware } from './cors-rules'
 import type { User } from './types/apollo'
 
 interface StartApolloServerOpts {
@@ -43,7 +43,7 @@ export async function createServer({
 
   app.use(
     '/api',
-    cors<cors.CorsRequest>(),
+    makeCorsMiddleware(),
     json(),
     expressMiddleware(server, {
       context: async ({ req }): Promise<ResolverContext> => {
@@ -59,7 +59,6 @@ export async function createServer({
           }
         }
 
-        // TODO: add these types to the context interface
         return {
           dbAccess,
           db, // this will eventually replace dbAccess
