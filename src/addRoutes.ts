@@ -3,7 +3,6 @@ import type { Request, Response } from 'express'
 import type { Express } from 'express'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
-import cors from 'cors'
 import fetch from 'node-fetch'
 import multer from 'multer'
 import { v4 as uuid } from 'uuid'
@@ -27,6 +26,7 @@ import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
 import s3Client from './s3-client'
+import { makeCorsMiddleware } from './cors-rules'
 import type { NotionIntegration } from './types/database'
 
 const TWENTY_FIVE_MB = 1048576 // 25mb
@@ -114,12 +114,7 @@ export function addRoutes(app: Express) {
     apiVersion: '2020-08-27',
   })
 
-  const allowedOriginsStr = process.env.CORS_ALLOWED_ORIGINS || ''
-  const allowedOrigins = allowedOriginsStr.split(',')
-  const corsOpts = {
-    origin: allowedOrigins,
-  }
-  app.use(cors(corsOpts))
+  app.use(makeCorsMiddleware())
 
   /**
    * Health endpoint to ensure that the server is running as expected.
