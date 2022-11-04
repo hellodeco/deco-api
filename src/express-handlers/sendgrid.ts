@@ -329,7 +329,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         page_size: 11,
       })
 
-      shouldDelieverToNotion = notionRowData.length < 10
+      shouldDelieverToNotion = notionRowData.length < 100
     }
 
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
