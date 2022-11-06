@@ -287,7 +287,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     // We will deliver email to notion under the following conditions:
     // 1. user has a subscription with a status of "active"
-    // 2. user has no subscription OR active subscription AND has a notion_integration AND notion_database AND less than 10 emails in their connection Notion database
+    // 2. user has no subscription OR active subscription AND has a notion_integration AND notion_database AND less than 100 emails in their connected Notion database
     let shouldDelieverToNotion = Boolean(subscription)
 
     let notionIntegration: Pick<NotionIntegration, 'id' | 'accessToken'>
@@ -325,8 +325,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       // this is an array of objects where each object represents a row in the email inbox database
       const { results: notionRowData } = await notion.databases.query({
         database_id: notionDatabaseId,
-        // limit to 11 since we only want to know if the database has more than 10 rows
-        page_size: 11,
+        // limit to 101 since we only want to know if the database has more than 10 rows
+        page_size: 101,
       })
 
       shouldDelieverToNotion = notionRowData.length < 100
