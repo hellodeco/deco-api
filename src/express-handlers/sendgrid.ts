@@ -38,6 +38,8 @@ export interface Header {
 
 type HeaderMap = Record<string, Array<string>>
 
+const FREE_TIER_EMAIL_LIMIT = 100;
+
 // parses a string into a map of header names to arrays of values since each header can have multiple values
 export function parseHeaderString(headers: string): HeaderMap {
   const headersArray = headers.split(/\n/)
@@ -287,7 +289,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     // We will deliver email to notion under the following conditions:
     // 1. user has a subscription with a status of "active"
-    // 2. user has no subscription OR active subscription AND has a notion_integration AND notion_database AND less than 100 emails in their connected Notion database
+    // 2. user has no subscription OR active subscription AND has a notion_integration AND notion_database AND less than FREE_TIER_EMAIL_LIMIT emails in their connection Notion database
     let shouldDelieverToNotion = Boolean(subscription)
 
     let notionIntegration: Pick<NotionIntegration, 'id' | 'accessToken'>
@@ -325,11 +327,11 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       // this is an array of objects where each object represents a row in the email inbox database
       const { results: notionRowData } = await notion.databases.query({
         database_id: notionDatabaseId,
-        // limit to 101 since we only want to know if the database has more than 10 rows
-        page_size: 101,
+        // limit to one greater than the email limit so to avoid overfetching
+        page_size: FREE_TIER_EMAIL_LIMIT + 1,
       })
 
-      shouldDelieverToNotion = notionRowData.length < 100
+      shouldDelieverToNotion = notionRowData.length < FREE_TIER_EMAIL_LIMIT
     }
 
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
@@ -350,7 +352,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       }
     } else {
       console.warn(
-        `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription or has exceeded their free tier limit of 10 emails in their inbox`,
+        `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription or has exceeded their free tier limit of ${FREE_TIER_EMAIL_LIMIT} emails in their inbox`,
       )
     }
 
