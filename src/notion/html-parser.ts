@@ -150,8 +150,21 @@ async function renderHTML(html: string) {
 }
 
 export async function convertHTMLToNotionBlocks(html: string) {
-  const page = await renderHTML(html)
-  page.setJavaScriptEnabled(false);
+  let page
+  try {
+    page = await renderHTML(html)
+  } catch (err) {
+    console.error(err)
+    return []
+  }
+
+  try {
+    await page.setJavaScriptEnabled(false);
+  } catch (err) {
+    // do not render HTML in this case as that would pose a security risk
+    console.error(err)
+    return []
+  }
 
   let textNodes = await page.evaluate(() => {
     const isAnchor = (node: Node) => {

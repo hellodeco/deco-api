@@ -15,5 +15,12 @@ export function createPlainTextBlocks(plainTextContent: string) {
     })
   }
 
-  return bodyContentRichText
+  const content = {
+    type: 'paragraph',
+    paragraph: {
+      rich_text: bodyContentRichText,
+    },
+  }
+
+  return [content]
 }

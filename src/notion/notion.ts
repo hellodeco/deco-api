@@ -324,7 +324,7 @@ export async function addEmailToNotion({
     }
   }
 
-  if (emailBodyBlocks.length === 0) {
+  if (!emailBodyBlocks || emailBodyBlocks.length === 0) {
     emailBodyBlocks = createPlainTextBlocks(plainTextContent)
   }
 
