@@ -47,7 +47,7 @@ async function getBrowser() {
 
 /**
  * Determines if a string contains *only* the following chars:
- * 
+ *
  * - '' (empty string)
  * - ' ' (white space)
  * - '\n' (new line)
@@ -74,7 +74,6 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
 
   for (const node of nodes) {
     if (node.isImage) {
-
       // TODO: attempt to scale images to the approximate size they were in the DOM
       blocks.push({
         type: 'image',
@@ -101,7 +100,9 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
 
     const type = node.notionBlockType || 'paragraph'
 
-    const bold = node.fontWeight === 'bold' || (isNumber(node.fontWeight) && node.fontWeight >= 600)
+    const bold =
+      node.fontWeight === 'bold' ||
+      (isNumber(node.fontWeight) && node.fontWeight >= 600)
     const italic = node.fontStyle === 'italic'
 
     // TODO: actually group <ul> and <ol> nodes into a single list block
@@ -109,7 +110,7 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
     // Notion limits each rich text entry to 2000 chars maximum
     const textChunks = chunkStr(node.text, 2000)
 
-    const richText = textChunks.map(chunk => {
+    const richText = textChunks.map((chunk) => {
       return {
         type: 'text',
         text: {
@@ -119,7 +120,7 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
         annotations: {
           bold,
           italic,
-        }
+        },
       }
     })
 
@@ -134,14 +135,34 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
   return blocks
 }
 
-async function renderHTML(html: string) {
+async function setupPageAndRenderHTML(html: string) {
   const browser = await getBrowser()
 
   const page = await browser.newPage()
+  await page.setJavaScriptEnabled(false)
+
+  await page.setRequestInterception(true)
+
+  page.on('request', (request) => {
+    /**
+     * Some HTML documents have script tags whose src URL will redirect indefinitely.
+     * The result is that the Puppeteer max timeout is exceeded and the and the process
+     * aborts and throws an error. This check allows us to ignore any requests that
+     * have redirected more than the given number of times.
+     *
+     * **Note** 9 was somewhat chosen at random and may need to be adjusted in the future.
+     */
+    if (request.redirectChain().length > 9) {
+      request.abort()
+    } else {
+      request.continue()
+    }
+  })
+
   await page.setViewport({
-      width: 3000,
-      height: 3000,
-      deviceScaleFactor: 1,
+    width: 3000,
+    height: 3000,
+    deviceScaleFactor: 1,
   })
 
   await page.setContent(html)
@@ -152,16 +173,8 @@ async function renderHTML(html: string) {
 export async function convertHTMLToNotionBlocks(html: string) {
   let page
   try {
-    page = await renderHTML(html)
+    page = await setupPageAndRenderHTML(html)
   } catch (err) {
-    console.error(err)
-    return []
-  }
-
-  try {
-    await page.setJavaScriptEnabled(false);
-  } catch (err) {
-    // do not render HTML in this case as that would pose a security risk
     console.error(err)
     return []
   }
@@ -200,10 +213,13 @@ export async function convertHTMLToNotionBlocks(html: string) {
           fontStyle: style.getPropertyValue('font-style'),
           nodeType: node.nodeType,
           isLink,
-          href, 
+          href,
         })
-      // @ts-ignore
-      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'IMG') {
+      } else if (
+        node.nodeType === Node.ELEMENT_NODE &&
+        // @ts-ignore
+        node.tagName === 'IMG'
+      ) {
         nodes.push({
           // @ts-ignore
           src: node.getAttribute('src'),
@@ -220,7 +236,7 @@ export async function convertHTMLToNotionBlocks(html: string) {
   })
 
   textNodes = textNodes
-    .filter(node => {
+    .filter((node) => {
       if (!node.isImage) {
         return !emptyVal(node.text)
       }
@@ -229,14 +245,24 @@ export async function convertHTMLToNotionBlocks(html: string) {
        * image extensions as taken from here:
        * https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
        */
-      const imageExts = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.avif', '.gif', '.tiff', '.webp']
+      const imageExts = [
+        '.png',
+        '.jpg',
+        '.jpeg',
+        '.gif',
+        '.svg',
+        '.avif',
+        '.gif',
+        '.tiff',
+        '.webp',
+      ]
 
       const url = new URL(node.src)
       const ext = path.extname(url.pathname)
 
       return imageExts.includes(ext)
     })
-    .map(node => {
+    .map((node) => {
       if (node.isImage) {
         return node
       }
@@ -257,7 +283,7 @@ export async function convertHTMLToNotionBlocks(html: string) {
         notionBlockType = 'heading_2'
       } else if (fontSize >= 18) {
         notionBlockType = 'heading_3'
-      } 
+      }
 
       let fontWeight = node.fontWeight
 
