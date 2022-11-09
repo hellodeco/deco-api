@@ -30,6 +30,24 @@ export function chunkStr(str: string, size: number = 1000): Array<string> {
   return chunks
 }
 
+export function chunkArr(
+  arr: Array<any>,
+  size: number = 100,
+): Array<Array<any>> {
+  let chunks = []
+
+  let start = 0
+  let end = size
+
+  while (start < arr.length) {
+    chunks.push(arr.slice(start, end))
+    start = end
+    end += size
+  }
+
+  return chunks
+}
+
 export function wait(ms = 1000): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

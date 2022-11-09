@@ -14,6 +14,7 @@ import { EmailAttachment } from '../types/database'
 import { convertHTMLToNotionBlocks } from './html-parser'
 import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
+import { chunkArr } from '../utils'
 
 /**
  * Notion formatting setup order of operations:
@@ -288,7 +289,7 @@ export async function addEmailToNotion({
   newEmail: NewEmail
   userfrontID: string
   attachments?: Array<EmailAttachment>
-}): Promise<CreatePageResponse | null> {
+}): Promise<{ pageId: string } | null> {
   let notion: Client
   try {
     notion = await notionClient(userfrontID)
@@ -319,7 +320,7 @@ export async function addEmailToNotion({
   if (newEmail.htmlContent) {
     try {
       emailBodyBlocks = await convertHTMLToNotionBlocks(newEmail.htmlContent)
-    } catch(err) {
+    } catch (err) {
       console.warn('Error converting HTML to Notion blocks', err)
     }
   }
@@ -328,7 +329,17 @@ export async function addEmailToNotion({
     emailBodyBlocks = createPlainTextBlocks(plainTextContent)
   }
 
-  return notion.pages.create({
+  const children = [...attachmentBlocks, ...emailBodyBlocks]
+
+  /**
+   * The Notion API limits children passed to the create page endpoint to 100.
+   * If there are more than 100 children when creating the new page, we break the children
+   * up into chunks of 100, create the page with the first chunk and then append to the
+   * page to add the remaining children chunks
+   */
+  const [firstChildChunk, ...childChunks] = chunkArr(children, 100)
+
+  const pageCreateResp = await notion.pages.create({
     parent: { database_id: notionDatabaseId },
     properties: {
       title: {
@@ -352,11 +363,26 @@ export async function addEmailToNotion({
         number: emailId,
       },
     },
-    children: [
-      ...attachmentBlocks,
-      ...emailBodyBlocks,
-    ],
+    children: [...firstChildChunk],
   })
+
+  const pageId = pageCreateResp.id
+
+  /**
+   * Append any existing child chunks to a Notion page.
+   * We await the append call in each loop iteration so that
+   * we know that the chilren are added in the correct order.
+   */
+  for (let childChunk of childChunks) {
+    await notion.blocks.children.append({
+      block_id: pageId,
+      children: [...childChunk],
+    })
+  }
+
+  // if more chunks exists, append them to the Notion page here...
+
+  return { pageId }
 }
 
 // Returns metadata about the Notion page a user has shared with us

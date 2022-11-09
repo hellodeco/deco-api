@@ -38,7 +38,7 @@ export interface Header {
 
 type HeaderMap = Record<string, Array<string>>
 
-const FREE_TIER_EMAIL_LIMIT = 100;
+const FREE_TIER_EMAIL_LIMIT = 100
 
 // parses a string into a map of header names to arrays of values since each header can have multiple values
 export function parseHeaderString(headers: string): HeaderMap {
@@ -339,14 +339,14 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     if (shouldDelieverToNotion) {
       try {
-        const { id } = await addEmailToNotion({
+        const { pageId } = await addEmailToNotion({
           newEmail: incomingEmail,
           userfrontID: emailRecipient.userfrontUserId,
           attachments: preppedFiles,
         })
 
         emailStatus = EmailStatus.RECEIVED_TO_NOTION
-        notionPageId = id
+        notionPageId = pageId
       } catch (err) {
         console.error(err)
       }
