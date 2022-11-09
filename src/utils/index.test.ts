@@ -1,4 +1,4 @@
-import { chunkStr } from './index'
+import { chunkStr, chunkArr } from './index'
 
 describe('chunkStr', () => {
   it('creates chunks', () => {
@@ -32,5 +32,26 @@ describe('chunkStr', () => {
     let str = ''
     let chunks = chunkStr(str)
     expect(chunks).toEqual([''])
+  })
+})
+
+describe('chunkArr', () => {
+  it('creates chunks', () => {
+    let input = new Array(300).fill(null)
+    let chunks = chunkArr(input)
+
+    expect(chunks.length).toEqual(3)
+
+    for (let chunk of chunks) {
+      expect(chunk.length).toEqual(100)
+    }
+
+    input = [1, 2, 3, 4, 5]
+    chunks = chunkArr(input, 2)
+
+    expect(chunks.length).toEqual(3)
+    expect(chunks[0]).toEqual([1, 2])
+    expect(chunks[1]).toEqual([3, 4])
+    expect(chunks[2]).toEqual([5])
   })
 })
