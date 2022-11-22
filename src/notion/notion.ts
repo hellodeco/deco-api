@@ -339,50 +339,59 @@ export async function addEmailToNotion({
    */
   const [firstChildChunk, ...childChunks] = chunkArr(children, 100)
 
-  const pageCreateResp = await notion.pages.create({
-    parent: { database_id: notionDatabaseId },
-    properties: {
-      title: {
-        title: [
-          {
-            text: {
-              content: subject,
+  let pageCreateResp
+  try {
+    pageCreateResp = await notion.pages.create({
+      parent: { database_id: notionDatabaseId },
+      properties: {
+        title: {
+          title: [
+            {
+              text: {
+                content: subject,
+              },
             },
+          ],
+        },
+        From: {
+          email: from,
+        },
+        Delivered: {
+          date: {
+            start: deliveryDateAsISOString,
           },
-        ],
-      },
-      From: {
-        email: from,
-      },
-      Delivered: {
-        date: {
-          start: deliveryDateAsISOString,
+        },
+        Email_ID: {
+          number: emailId,
         },
       },
-      Email_ID: {
-        number: emailId,
-      },
-    },
-    children: [...firstChildChunk],
-  })
-
-  const pageId = pageCreateResp.id
-
-  /**
-   * Append any existing child chunks to a Notion page.
-   * We await the append call in each loop iteration so that
-   * we know that the chilren are added in the correct order.
-   */
-  for (let childChunk of childChunks) {
-    await notion.blocks.children.append({
-      block_id: pageId,
-      children: [...childChunk],
+      children: [...firstChildChunk],
     })
+
+    console.log('page create response', pageCreateResp)
+
+    const pageId = pageCreateResp.id
+
+    /**
+     * Append any existing child chunks to a Notion page.
+     * We await the append call in each loop iteration so that
+     * we know that the chilren are added in the correct order.
+     */
+    for (let childChunk of childChunks) {
+      const pageAppendResp = await notion.blocks.children.append({
+        block_id: pageId,
+        children: [...childChunk],
+      })
+
+      console.log('page append response', pageAppendResp)
+    }
+
+    return { pageId }
+  } catch (err) {
+    console.error('error adding page to notion', err)
   }
 
-  // if more chunks exists, append them to the Notion page here...
-
-  return { pageId }
+  return null
 }
 
 // Returns metadata about the Notion page a user has shared with us

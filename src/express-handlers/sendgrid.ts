@@ -339,14 +339,18 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     if (shouldDelieverToNotion) {
       try {
-        const { pageId } = await addEmailToNotion({
+        const notionResp = await addEmailToNotion({
           newEmail: incomingEmail,
           userfrontID: emailRecipient.userfrontUserId,
           attachments: preppedFiles,
         })
 
-        emailStatus = EmailStatus.RECEIVED_TO_NOTION
-        notionPageId = pageId
+        notionPageId = null
+
+        if (notionResp?.pageId) {
+          emailStatus = EmailStatus.RECEIVED_TO_NOTION
+          notionPageId = notionResp.pageId
+        }
       } catch (err) {
         console.error(err)
       }
