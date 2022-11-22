@@ -368,7 +368,17 @@ export async function addEmailToNotion({
       children: [...firstChildChunk],
     })
 
-    console.log('page create response', pageCreateResp)
+    const { status } = pageCreateResp
+
+    if (status === 429) {
+      console.warn(`user with id ${userfrontID} is hitting notion api rate limits during page creation`)
+      return null
+    }
+
+    if (status !== 404) {
+      console.warn(`notion database with id ${notionDatabaseId} could not be found`)
+      return null
+    }
 
     const pageId = pageCreateResp.id
 
@@ -378,12 +388,10 @@ export async function addEmailToNotion({
      * we know that the chilren are added in the correct order.
      */
     for (let childChunk of childChunks) {
-      const pageAppendResp = await notion.blocks.children.append({
+      await notion.blocks.children.append({
         block_id: pageId,
         children: [...childChunk],
       })
-
-      console.log('page append response', pageAppendResp)
     }
 
     return { pageId }
