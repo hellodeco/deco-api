@@ -375,7 +375,7 @@ export async function addEmailToNotion({
       return null
     }
 
-    if (status !== 404) {
+    if (status === 404) {
       console.warn(`notion database with id ${notionDatabaseId} could not be found`)
       return null
     }
