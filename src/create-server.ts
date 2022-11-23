@@ -3,6 +3,7 @@ import type { Express } from 'express'
 import { ApolloServer } from '@apollo/server'
 import { expressMiddleware } from '@apollo/server/express4'
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer'
+import { ApolloServerPluginUsageReporting } from '@apollo/server/plugin/usageReporting';
 import type { ApolloServerContext } from './types/apollo'
 import { json } from 'body-parser'
 import { GraphQLSchemaWithFragmentReplacements } from 'graphql-middleware/dist/types'
@@ -30,7 +31,20 @@ export async function createServer({
   const server = new ApolloServer<ApolloServerContext>({
     schema,
     introspection: true,
-    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    plugins: [
+      ApolloServerPluginDrainHttpServer({ httpServer }),
+      ApolloServerPluginUsageReporting({
+        generateClientInfo: ({ request }) => {
+          console.log('request', request)
+          let clientName = null
+          let clientVersion = null
+          return {
+            clientName,
+            clientVersion
+          };
+        }
+      })
+    ],
     formatError: (formattedError, error) => {
       if (IS_LOCAL) {
         console.error(error)
