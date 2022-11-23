@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "outDir": "./compiled-scripts",
+    "allowJs": false,
+    "target": "es5",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["./src/**/*"],
+}
+

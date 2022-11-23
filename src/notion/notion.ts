@@ -163,8 +163,6 @@ export async function notionClient(userfrontID: string): Promise<Client> {
     console.error(err)
   }
 
-  console.log('notiont integration', notionIntegration)
-
   if (!notionIntegration) {
     throw new Error(`No notion integration found for user id: ${userfrontID}`)
   }
