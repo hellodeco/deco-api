@@ -28,6 +28,7 @@ interface InboundSendgridParsedEmail {
   messageId?: string
   inReplyTo?: string
   references?: string
+  createdAt: string
 }
 
 export interface Header {
@@ -186,6 +187,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       from,
       plainTextContent: text,
       htmlContent: html,
+      createdAt: (new Date()).toISOString(),
     }
 
     if (references) {
@@ -247,6 +249,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
       newEmail = email
       incomingEmail.emailId = email.id
+      incomingEmail.createdAt = email.createdAt
     } catch (err) {
       console.error(err)
     }

@@ -20,9 +20,11 @@ export interface User {
 
 export interface DecoDBEmail {
   id: number
+  createdAt: string
   subject: string
   plainTextContent: string
   from: string
+  userId?: number
   emailThreadId?: number
   htmlContent?: string
   status?: string
