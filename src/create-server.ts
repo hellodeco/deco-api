@@ -29,6 +29,7 @@ export async function createServer({
   const httpServer = http.createServer(app)
   const server = new ApolloServer<ApolloServerContext>({
     schema,
+    introspection: true,
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
     formatError: (formattedError, error) => {
       if (IS_LOCAL) {
