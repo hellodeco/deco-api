@@ -76,6 +76,7 @@ export interface NewEmail {
   emailThreadId?: number
   plainTextContent: string
   htmlContent?: string
+  createdAt: string
 }
 
 export async function getSharedNotionDatabases(userfrontID: string) {
@@ -161,6 +162,8 @@ export async function notionClient(userfrontID: string): Promise<Client> {
   } catch (err) {
     console.error(err)
   }
+
+  console.log('notiont integration', notionIntegration)
 
   if (!notionIntegration) {
     throw new Error(`No notion integration found for user id: ${userfrontID}`)
@@ -303,8 +306,7 @@ export async function addEmailToNotion({
   const { subject, from, emailId } = newEmail
   let { plainTextContent } = newEmail
 
-  const time = Date.now()
-  const deliveryDate = new Date(time)
+  const deliveryDate = new Date(newEmail.createdAt)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
   const attachmentBlocks = createAttachmentBlocks(attachments)
