@@ -6,6 +6,30 @@ import type { Browser } from 'puppeteer'
 import dotenv from 'dotenv'
 import { wait, chunkStr } from '../utils'
 
+
+interface ContentNode {
+  // text specific properties
+  text?: string
+  fontSize?: string
+  fontWeight?: string | number
+  fontStyle?: string
+  nodeType?: number // TODO make this an enum. Also TODO this can probably be removed since it's not used?
+  isLink?: boolean
+
+  // image specific properties
+  href?: string
+  src?: string
+  isImage?: boolean 
+  altText?: string 
+
+  // universal properties
+  notionBlockType?: string
+
+  // children to use with text type nodes that may have anchor or span elements as children that need
+  // to be combined into a single Notion block
+  children: ContentNode[]
+}
+
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') })
 
 /**
@@ -68,8 +92,44 @@ function emptyVal(s: string) {
   return isEmpty
 }
 
+function convertContentNodeToNotionRichText(node: ContentNode) {
+  const { isLink, href } = node
+
+  let link = null
+  if (isLink && href) {
+    link = {
+      type: 'url',
+      url: href,
+    }
+  }
+
+  const bold =
+    node.fontWeight === 'bold' ||
+    (isNumber(node.fontWeight) && node.fontWeight >= 600)
+  const italic = node.fontStyle === 'italic'
+
+  // Notion limits each rich text entry to 2000 chars maximum
+  const textChunks = chunkStr(node.text, 2000)
+
+  const richText = textChunks.map((chunk) => {
+    return {
+      type: 'text',
+      text: {
+        content: chunk,
+        link,
+      },
+      annotations: {
+        bold,
+        italic,
+      },
+    }
+  })
+
+  return richText
+}
+
 // TODO make nodes type stronger
-export function convertNodesToNotionBlocks(nodes: Array<any>) {
+export function convertNodesToNotionBlocks(nodes: ContentNode[]) {
   const blocks = []
 
   for (const node of nodes) {
@@ -88,41 +148,17 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
       continue
     }
 
-    const { isLink, href } = node
-
-    let link = null
-    if (isLink && href) {
-      link = {
-        type: 'url',
-        url: href,
-      }
-    }
-
     const type = node.notionBlockType || 'paragraph'
 
-    const bold =
-      node.fontWeight === 'bold' ||
-      (isNumber(node.fontWeight) && node.fontWeight >= 600)
-    const italic = node.fontStyle === 'italic'
-
-    // TODO: actually group <ul> and <ol> nodes into a single list block
-
-    // Notion limits each rich text entry to 2000 chars maximum
-    const textChunks = chunkStr(node.text, 2000)
-
-    const richText = textChunks.map((chunk) => {
-      return {
-        type: 'text',
-        text: {
-          content: chunk,
-          link,
-        },
-        annotations: {
-          bold,
-          italic,
-        },
+    let richText = []
+    if (node.children) {
+      // TODO do stuff here
+      for (let contentNode of node.children) {
+        richText.push(...convertContentNodeToNotionRichText(contentNode))
       }
-    })
+    } else {
+      richText.push(...convertContentNodeToNotionRichText(node))
+    }
 
     blocks.push({
       type,
@@ -130,6 +166,53 @@ export function convertNodesToNotionBlocks(nodes: Array<any>) {
         rich_text: richText,
       },
     })
+
+    // const { isLink, href } = node
+
+    // let link = null
+    // if (isLink && href) {
+    //   link = {
+    //     type: 'url',
+    //     url: href,
+    //   }
+    // }
+
+    // const type = node.notionBlockType || 'paragraph'
+
+    // const bold =
+    //   node.fontWeight === 'bold' ||
+    //   (isNumber(node.fontWeight) && node.fontWeight >= 600)
+    // const italic = node.fontStyle === 'italic'
+
+    // // TODO: actually group <ul> and <ol> nodes into a single list block
+
+    // // Notion limits each rich text entry to 2000 chars maximum
+    // const textChunks = chunkStr(node.text, 2000)
+
+    // const richText = textChunks.map((chunk) => {
+    //   return {
+    //     type: 'text',
+    //     text: {
+    //       content: chunk,
+    //       link,
+    //     },
+    //     annotations: {
+    //       bold,
+    //       italic,
+    //     },
+    //   }
+    // })
+
+    // const richText = convertContentNodeToNotionRichText(node)
+
+    // const type = node.notionBlockType || 'paragraph'
+
+    // blocks.push({
+    //   type,
+    //   [type]: {
+    //     rich_text: richText,
+    //   },
+    // })
   }
 
   return blocks
@@ -170,6 +253,50 @@ async function setupPageAndRenderHTML(html: string) {
   return page
 }
 
+function processContentNode(node: ContentNode) {
+  if (node.isImage) {
+    return node
+  }
+
+  let fontSize
+  try {
+    fontSize = parseInt(node.fontSize.replace('px', ''), 10)
+  } catch (err) {
+    console.warn('Error parsing font size:', err)
+    fontSize = 12
+  }
+
+  let notionBlockType = 'paragraph'
+
+  if (fontSize >= 30) {
+    notionBlockType = 'heading_1'
+  } else if (fontSize >= 24) {
+    notionBlockType = 'heading_2'
+  } else if (fontSize >= 18) {
+    notionBlockType = 'heading_3'
+  }
+
+  let fontWeight = node.fontWeight
+
+  try {
+    if (isNumber(node.fontWeight)) {
+      fontWeight = parseInt(node.fontWeight as unknown as string, 10)
+    }
+  } catch (err) {
+    // noop because fontWeight is probably set to "bold" or something similar which
+    // is not convertible to an integer
+  }
+
+  return {
+    ...node,
+    text: node.text ? node.text.replace(/^\s+|\s+$/g, '') : null,
+    children: node.children ?  node.children.map(node => processContentNode(node)) : null,
+    fontWeight,
+    notionBlockType,
+  }
+}
+
+
 export async function convertHTMLToNotionBlocks(html: string) {
   let page
   try {
@@ -179,7 +306,7 @@ export async function convertHTMLToNotionBlocks(html: string) {
     return []
   }
 
-  let textNodes = await page.evaluate(() => {
+  let textNodes: ContentNode[] = await page.evaluate(() => {
     const isAnchor = (node: Node) => {
       let parent = node.parentElement
 
@@ -195,18 +322,75 @@ export async function convertHTMLToNotionBlocks(html: string) {
       return [false, null]
     }
 
+    const getTextNodeData = (node: Node) => {
+      const style = getComputedStyle(node.parentElement)
+      const [isLink, href] = isAnchor(node)
+
+      return {
+        text: node.textContent,
+        fontSize: style.getPropertyValue('font-size'),
+        fontWeight: style.getPropertyValue('font-weight'),
+        fontStyle: style.getPropertyValue('font-style'),
+        nodeType: node.nodeType,
+        isLink,
+        href,
+      }
+    }
+
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ALL)
 
     const nodes = []
 
+    const textNodeTypes = ['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']
+    const inlineNodeTypes = ['A', 'B', 'I', 'STRONG', 'EM', 'SPAN']
+
     let node = walker.nextNode()
 
+    const combineChildTextNodes = (parentNode: Node) => {
+      const nextNodeSibling = parentNode.nextSibling
+
+      const children = []
+
+      let currNode = null
+
+      while (true) {
+        currNode = walker.nextNode()
+
+        // when we get to the next sibling of the parent node, we know that we've finished
+        // traversing the parent node's children tree
+        if (currNode === nextNodeSibling) {
+          break
+        }
+
+        if (currNode.nodeType === Node.TEXT_NODE) {
+          const contentNode = getTextNodeData(currNode)
+          children.push(contentNode)
+        }
+      }
+
+      walker.previousNode()
+
+      const style = getComputedStyle(node as Element)
+      
+      return {
+        fontSize: style.getPropertyValue('font-size'),
+        fontWeight: style.getPropertyValue('font-weight'),
+        fontStyle: style.getPropertyValue('font-style'),
+        nodeType: node.nodeType,
+        children
+      }
+    }
+
     while (node !== null) {
-      if (node.nodeType === Node.TEXT_NODE) {
+      // @ts-ignore
+      if (textNodeTypes.includes(node.tagName)) {
+        const parentNode = combineChildTextNodes(node)
+        nodes.push(parentNode)
+      } else if (node.nodeType === Node.TEXT_NODE) {
         const style = getComputedStyle(node.parentElement)
         const [isLink, href] = isAnchor(node)
 
-        nodes.push({
+        const contentNode = {
           text: node.textContent,
           fontSize: style.getPropertyValue('font-size'),
           fontWeight: style.getPropertyValue('font-weight'),
@@ -214,7 +398,9 @@ export async function convertHTMLToNotionBlocks(html: string) {
           nodeType: node.nodeType,
           isLink,
           href,
-        })
+        }
+
+        nodes.push(contentNode)
       } else if (
         node.nodeType === Node.ELEMENT_NODE &&
         // @ts-ignore
@@ -242,6 +428,11 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
   textNodes = textNodes
     .filter((node) => {
+      if (node.children) {
+        // TODO make sure that we run filter logic just in case a text child node has an image as a child
+        return true
+      }
+
       if (!node.isImage) {
         return !emptyVal(node.text)
       }
@@ -267,45 +458,7 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
       return imageExts.includes(ext)
     })
-    .map((node) => {
-      if (node.isImage) {
-        return node
-      }
-
-      let fontSize
-      try {
-        fontSize = parseInt(node.fontSize.replace('px', ''), 10)
-      } catch (err) {
-        console.warn('Error parsing font size:', err)
-        fontSize = 12
-      }
-
-      let notionBlockType = 'paragraph'
-
-      if (fontSize >= 30) {
-        notionBlockType = 'heading_1'
-      } else if (fontSize >= 24) {
-        notionBlockType = 'heading_2'
-      } else if (fontSize >= 18) {
-        notionBlockType = 'heading_3'
-      }
-
-      let fontWeight = node.fontWeight
-
-      try {
-        fontWeight = parseInt(node.fontWeight, 10)
-      } catch (err) {
-        // noop because fontWeight is probably set to "bold" or something similar which
-        // is not convertible to an integer
-      }
-
-      return {
-        ...node,
-        text: node.text.replace(/^\s+|\s+$/g, ''),
-        fontWeight,
-        notionBlockType,
-      }
-    })
+    .map(node => processContentNode(node))
 
   const blocks = convertNodesToNotionBlocks(textNodes)
 
