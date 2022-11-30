@@ -153,7 +153,12 @@ export function convertNodesToNotionBlocks(nodes: ContentNode[]) {
     let richText = []
     if (node.children) {
       // TODO do stuff here
+      let isLastNode = false
       for (let contentNode of node.children) {
+        if (contentNode.text) {
+          contentNode.text += ' '
+        }
+
         richText.push(...convertContentNodeToNotionRichText(contentNode))
       }
     } else {
