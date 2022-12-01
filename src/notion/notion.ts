@@ -7,7 +7,7 @@ import type {
   CreatePageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
-import { IS_LOCAL, IS_STAGING } from '../constants'
+import { FRONTEND_BASE_URL, IS_LOCAL, IS_STAGING } from '../constants'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'
@@ -329,7 +329,14 @@ export async function addEmailToNotion({
     emailBodyBlocks = createPlainTextBlocks(plainTextContent)
   }
 
-  const children = [...attachmentBlocks, ...emailBodyBlocks]
+  const iframeTrackingBlock = {
+    type: 'embed',
+    embed: {
+      url: `${FRONTEND_BASE_URL}/tracking/email-opened}`,
+    },
+  }
+
+  const children = [...attachmentBlocks, ...emailBodyBlocks, iframeTrackingBlock]
 
   /**
    * The Notion API limits children passed to the create page endpoint to 100.
