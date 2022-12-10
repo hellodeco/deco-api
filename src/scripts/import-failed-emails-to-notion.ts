@@ -9,6 +9,7 @@ attachPaginate()
 interface PaginateQueryOpts {
   currentPage?: number
   perPage?: number
+  timeLimit: string
 }
 
 const userIdToUserfrontId = {}
@@ -28,12 +29,13 @@ async function getUserfrontIdFromUserId(userId: number) {
 async function paginatedQuery({
   currentPage = 1,
   perPage = 10,
+  timeLimit,
 }: PaginateQueryOpts) {
   return db
     .emails()
     .select('*')
     .where('status', EmailStatus.RECEIVED_TO_DECO)
-    .where('created_at', '>', '2022-11-26')
+    .where('created_at', '>', timeLimit)
     .paginate({
       perPage,
       currentPage,
@@ -81,12 +83,20 @@ async function gentlyPlaceEmailIntoNotion(email: DecoDBEmail) {
 }
 
 async function main() {
+  const timeLimit = process.env.CREATED_AT_LIMIT
+
+  if (!timeLimit) {
+    console.error(`Please set the "CREATED_AT_LIMIT" environment variable to limit how far back you want to check for emails. e.g. CREATED_AT_LIMIT="2021-12-31"`)
+    process.exit(1)
+  }
+
   let lastPage = 1
   let currentPage = 1
 
   while (currentPage <= lastPage) {
     const nextDataRes = await paginatedQuery({
       currentPage,
+      timeLimit,
     })
 
     const { data, pagination } = nextDataRes
@@ -115,14 +125,3 @@ main()
   .then(() => {
     process.exit(0)
   })
-
-async function testQuery() {
-  const res = await db
-    .emails()
-    .select('*')
-    // .count('id')
-    .where('status', EmailStatus.RECEIVED_TO_DECO)
-    .where('created_at', '>', '2022-11-26')
-
-  console.log(res.length)
-}
