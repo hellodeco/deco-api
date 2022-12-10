@@ -187,7 +187,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       from,
       plainTextContent: text,
       htmlContent: html,
-      createdAt: (new Date()).toISOString(),
+      createdAt: new Date().toISOString(),
     }
 
     if (references) {

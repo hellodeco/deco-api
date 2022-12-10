@@ -405,12 +405,16 @@ export async function addEmailToNotion({
     const { status } = pageCreateResp
 
     if (status === 429) {
-      console.warn(`user with id ${userfrontID} is hitting notion api rate limits during page creation`)
+      console.warn(
+        `user with id ${userfrontID} is hitting notion api rate limits during page creation`,
+      )
       return null
     }
 
     if (status === 404) {
-      console.warn(`notion database with id ${notionDatabaseId} could not be found`)
+      console.warn(
+        `notion database with id ${notionDatabaseId} could not be found`,
+      )
       return null
     }
 
