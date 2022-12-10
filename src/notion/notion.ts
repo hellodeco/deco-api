@@ -301,6 +301,40 @@ export async function addEmailToNotion({
 
   const notionDatabaseId = await getNotionDatabaseId(userfrontID)
 
+  const notionDB = await notion.databases.retrieve({
+    database_id: notionDatabaseId,
+  })
+
+  const keys = Object.keys(notionDB.properties)
+
+  const requiredProps = ['From', 'Delivered', 'Email_ID']
+
+  const containsAll = requiredProps.every((element) => {
+    return keys.includes(element)
+  })
+
+  // recreate properties needed for email delivery if they don't exist
+  // this will not duplicate existing properties
+  if (!containsAll) {
+    await notion.databases.update({
+      database_id: notionDatabaseId,
+      properties: {
+        From: {
+          type: 'email',
+          email: {},
+        },
+        Delivered: {
+          type: 'date',
+          date: {},
+        },
+        Email_ID: {
+          type: 'number',
+          number: {},
+        },
+      },
+    })
+  }
+
   const { subject, from, emailId } = newEmail
   let { plainTextContent } = newEmail
 
