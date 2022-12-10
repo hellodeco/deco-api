@@ -235,6 +235,11 @@ export async function convertHTMLToNotionBlocks(html: string) {
     return nodes
   })
 
+  // returns a promise, but we don't necessarily need to wait for it to resolve
+  // before continuing with parsing. We just want to eventually free up memory
+  // etc for future parsing operations.
+  page.close()
+
   textNodes = textNodes
     .filter((node) => {
       if (!node.isImage) {
