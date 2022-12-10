@@ -1,8 +1,8 @@
 import { attachPaginate } from 'knex-paginate'
-import { db } from '../db-connection';
-import { addEmailToNotion } from '../notion/notion';
+import { db } from '../db-connection'
+import { addEmailToNotion } from '../notion/notion'
 import { EmailStatus } from '../constants'
-import type { DecoDBEmail } from '../types/database';
+import type { DecoDBEmail } from '../types/database'
 
 attachPaginate()
 
@@ -25,11 +25,15 @@ async function getUserfrontIdFromUserId(userId: number) {
   return user.userfrontUserId
 }
 
-async function paginatedQuery({ currentPage = 1, perPage = 10 }: PaginateQueryOpts){
+async function paginatedQuery({
+  currentPage = 1,
+  perPage = 10,
+}: PaginateQueryOpts) {
   return db
     .emails()
     .select('*')
     .where('status', EmailStatus.RECEIVED_TO_DECO)
+    .where('created_at', '>', '2022-11-26')
     .paginate({
       perPage,
       currentPage,
@@ -62,18 +66,18 @@ async function gentlyPlaceEmailIntoNotion(email: DecoDBEmail) {
   })
 
   if (!notionResp?.pageId) {
-    console.log(`Failed to add email with id ${email.id} to notion`,)
+    console.log(`Failed to add email with id ${email.id} to notion`)
     return
   }
 
-  console.log(`Successfully added email with id ${email.id} to notion`, notionResp?.pageId)
+  console.log(
+    `Successfully added email with id ${email.id} to notion`,
+    notionResp?.pageId,
+  )
 
-  await db
-    .emails()
-    .where('id', email.id)
-    .update({
-      status: EmailStatus.RECEIVED_TO_NOTION,
-    })
+  await db.emails().where('id', email.id).update({
+    status: EmailStatus.RECEIVED_TO_NOTION,
+  })
 }
 
 async function main() {
@@ -84,7 +88,7 @@ async function main() {
     const nextDataRes = await paginatedQuery({
       currentPage,
     })
-    
+
     const { data, pagination } = nextDataRes
 
     lastPage = pagination.lastPage
@@ -111,3 +115,14 @@ main()
   .then(() => {
     process.exit(0)
   })
+
+async function testQuery() {
+  const res = await db
+    .emails()
+    .select('*')
+    // .count('id')
+    .where('status', EmailStatus.RECEIVED_TO_DECO)
+    .where('created_at', '>', '2022-11-26')
+
+  console.log(res.length)
+}

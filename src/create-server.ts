@@ -21,10 +21,7 @@ interface StartApolloServerOpts {
   app: Express
 }
 
-export async function createServer({
-  schema,
-  app,
-}: StartApolloServerOpts) {
+export async function createServer({ schema, app }: StartApolloServerOpts) {
   addRoutes(app)
   const httpServer = http.createServer(app)
   const server = new ApolloServer<ApolloServerContext>({
@@ -35,7 +32,7 @@ export async function createServer({
       if (IS_LOCAL) {
         console.error(error)
       }
-      
+
       return formattedError
     },
   })
@@ -72,7 +69,6 @@ export async function createServer({
       },
     }),
   )
-
 
   return new Promise<{
     server: typeof server
