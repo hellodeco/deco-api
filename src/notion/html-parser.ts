@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer'
 import type { Browser } from 'puppeteer'
 import dotenv from 'dotenv'
 import { wait, chunkStr } from '../utils'
+import { IS_LOCAL } from '../constants'
 
 
 interface ContentNode {
@@ -247,6 +248,16 @@ async function setupPageAndRenderHTML(html: string) {
     }
   })
 
+  if (IS_LOCAL) {
+    page.on('console', async (msg) => {
+      console.log('[console.log from puppeteer browser]', msg.text())
+      return
+      const messageArgs = msg.args()
+      const messages = await Promise.all(messageArgs.map((arg) => arg.jsonValue()))
+      console.log('[console.log from puppeteer browser]', ...messages)
+    })
+  }
+
   await page.setViewport({
     width: 3000,
     height: 3000,
@@ -346,64 +357,55 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
     const nodes = []
 
+    // add span, a, etc here?
+    // const textNodeTypes = ['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'STRONG', 'A']
     const textNodeTypes = ['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']
     const inlineNodeTypes = ['A', 'B', 'I', 'STRONG', 'EM', 'SPAN']
 
     let node = walker.nextNode()
 
-    const combineChildTextNodes = (parentNode: Node) => {
-      const nextNodeSibling = parentNode.nextSibling
-
-      const children = []
-
-      let currNode = null
-
-      while (true) {
-        currNode = walker.nextNode()
-
-        // when we get to the next sibling of the parent node, we know that we've finished
-        // traversing the parent node's children tree
-        if (currNode === nextNodeSibling) {
-          break
-        }
-
-        if (currNode.nodeType === Node.TEXT_NODE) {
-          const contentNode = getTextNodeData(currNode)
-          children.push(contentNode)
-        }
-      }
-
-      walker.previousNode()
-
-      const style = getComputedStyle(node as Element)
-      
-      return {
-        fontSize: style.getPropertyValue('font-size'),
-        fontWeight: style.getPropertyValue('font-weight'),
-        fontStyle: style.getPropertyValue('font-style'),
-        nodeType: node.nodeType,
-        children
-      }
-    }
-
     while (node !== null) {
       // @ts-ignore
       if (textNodeTypes.includes(node.tagName)) {
-        const parentNode = combineChildTextNodes(node)
-        nodes.push(parentNode)
-      } else if (node.nodeType === Node.TEXT_NODE) {
-        const style = getComputedStyle(node.parentElement)
-        const [isLink, href] = isAnchor(node)
 
-        const contentNode = {
-          text: node.textContent,
+        const nextNodeSibling = node.nextSibling
+
+        const children = []
+
+        let currNode = null
+
+        while (true) {
+          currNode = walker.nextNode()
+
+          // when we get to the next sibling of the parent node, we know that we've finished
+          // traversing the parent node's children tree
+          if (currNode === nextNodeSibling) {
+            break
+          }
+
+          if (currNode.nodeType === Node.TEXT_NODE) {
+            const contentNode = getTextNodeData(currNode)
+            children.push(contentNode)
+          }
+        }
+
+        // the final node we end on is not a child of "parentNode", so traverse back one node
+        // so that "parentNode's" next sibling can get processed on the next loop iteration
+        walker.previousNode()
+
+        const style = getComputedStyle(node as Element)
+      
+        const parentNode = {
           fontSize: style.getPropertyValue('font-size'),
           fontWeight: style.getPropertyValue('font-weight'),
           fontStyle: style.getPropertyValue('font-style'),
           nodeType: node.nodeType,
-          isLink,
-          href,
+          children
         }
+
+        nodes.push(parentNode)
+      } else if (node.nodeType === Node.TEXT_NODE) {
+        const contentNode = getTextNodeData(node)
 
         nodes.push(contentNode)
       } else if (
@@ -470,3 +472,12 @@ export async function convertHTMLToNotionBlocks(html: string) {
   // TODO type this return value
   return blocks
 }
+
+/**
+ * TODO
+ * 
+ * 1. text with line breaks will be broken in the notion block and we shouldn't do this since html doesn't render a line break unless there's a <br> tag
+ *       - note that this is likely only a problem in very rare cases and not worth tons of effort right now
+ * 
+ * 2. line breaks at the beginning and end of node.children should be ignored/removed as the notion block will already have a line break.
+ */
