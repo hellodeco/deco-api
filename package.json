@@ -19,7 +19,6 @@
     "compile-scripts": "yarn tsc --project tsconfig.scripts.json",
     "run-re-import-script": "yarn tsc --project tsconfig.json && node dist/scripts/import-failed-emails-to-notion.js",
     "notion-import-tester": "yarn compile-scripts && shx cp -R src/scripts/html compiled-scripts/scripts && node compiled-scripts/scripts/test-notion-email-import.js",
-    "html-parser-tester": "yarn ts-node src/notion/tester/tester.ts"
   },
   "devDependencies": {
     "@types/jest": "^27.5.1",
