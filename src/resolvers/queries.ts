@@ -122,13 +122,13 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
       console.error(err)
     }
   },
+
   connectedNotionPages: async (parent, args, { notionAccess, user, db }) => {
     try {
       // Notion requires a different query to get pages and databases
       // because users can share either type, we need need to query for both
-      const [sharedDBs, sharedPages] = await Promise.all([
+      const [sharedDBs] = await Promise.all([
         notionAccess.getSharedNotionDatabases(user.userfrontID),
-        notionAccess.getSharedNotionPages(user.userfrontID),
       ])
 
       // filter out any notion pages/databases that are not top level
@@ -171,23 +171,7 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         })
         .map(iconMapper)
 
-      const topLevelPages = sharedPages.filter(topLevelFilter).map((page) => {
-        const title =
-          // @ts-ignore
-          page.title ||
-          // @ts-ignore
-          page?.properties?.title?.title?.[0]?.plain_text ||
-          'Untitled Notion Page'
-
-        return {
-          ...page,
-          title,
-        }
-      })
-
-      const allPages = [...topLevelDBs, ...topLevelPages]
-        .map(iconMapper)
-        .map(fieldMapper)
+      const allPages = [...topLevelDBs].map(iconMapper).map(fieldMapper)
 
       return allPages
     } catch (err) {
@@ -196,9 +180,11 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
 
     return []
   },
+
   emailDomain: async () => {
     return EMAIL_DOMAIN
   },
+
   currentUserHasFileAccess: async (parent, { attachmentId }, { db, user }) => {
     let dbUser: User
     try {
