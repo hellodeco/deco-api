@@ -284,11 +284,11 @@ function processContentNode(node: ContentNode) {
 
   let notionBlockType = 'paragraph'
 
-  if (fontSize >= 30) {
+  if (fontSize >= 32) {
     notionBlockType = 'heading_1'
-  } else if (fontSize >= 24) {
+  } else if (fontSize >= 26) {
     notionBlockType = 'heading_2'
-  } else if (fontSize >= 18) {
+  } else if (fontSize >= 22) {
     notionBlockType = 'heading_3'
   }
 
