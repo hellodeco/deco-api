@@ -428,12 +428,22 @@ export async function convertHTMLToNotionBlocks(html: string) {
     return nodes
   })
 
+
   // returns a promise, but we don't necessarily need to wait for it to resolve
   // before continuing with parsing. We just want to eventually free up memory
   // etc for future parsing operations.
   page.close()
 
   textNodes = textNodes
+    .map((node) => {
+      if (node.children) {
+        node.children.filter((node) => {
+          return !emptyVal(node.text)
+        })
+      }
+
+      return node
+    })
     .filter((node) => {
       if (node.children) {
         // TODO make sure that we run filter logic just in case a text child node has an image as a child
@@ -466,6 +476,8 @@ export async function convertHTMLToNotionBlocks(html: string) {
       return imageExts.includes(ext)
     })
     .map(node => processContentNode(node))
+
+  console.log(JSON.stringify(textNodes, null, 2))
 
   const blocks = convertNodesToNotionBlocks(textNodes)
 
