@@ -14,7 +14,7 @@ interface ContentNode {
   fontSize?: string
   fontWeight?: string | number
   fontStyle?: string
-  nodeType?: number // TODO make this an enum. Also TODO this can probably be removed since it's not used?
+  nodeType?: number // TODO make this an enum.
   isLink?: boolean
 
   // image specific properties
@@ -129,7 +129,6 @@ function convertContentNodeToNotionRichText(node: ContentNode) {
   return richText
 }
 
-// TODO make nodes type stronger
 export function convertNodesToNotionBlocks(nodes: ContentNode[]) {
   const blocks = []
 
@@ -153,7 +152,6 @@ export function convertNodesToNotionBlocks(nodes: ContentNode[]) {
 
     let richText = []
     if (node.children) {
-      // TODO do stuff here
       let isLastNode = false
       for (let contentNode of node.children) {
         if (contentNode.text) {
@@ -172,53 +170,6 @@ export function convertNodesToNotionBlocks(nodes: ContentNode[]) {
         rich_text: richText,
       },
     })
-
-    // const { isLink, href } = node
-
-    // let link = null
-    // if (isLink && href) {
-    //   link = {
-    //     type: 'url',
-    //     url: href,
-    //   }
-    // }
-
-    // const type = node.notionBlockType || 'paragraph'
-
-    // const bold =
-    //   node.fontWeight === 'bold' ||
-    //   (isNumber(node.fontWeight) && node.fontWeight >= 600)
-    // const italic = node.fontStyle === 'italic'
-
-    // // TODO: actually group <ul> and <ol> nodes into a single list block
-
-    // // Notion limits each rich text entry to 2000 chars maximum
-    // const textChunks = chunkStr(node.text, 2000)
-
-    // const richText = textChunks.map((chunk) => {
-    //   return {
-    //     type: 'text',
-    //     text: {
-    //       content: chunk,
-    //       link,
-    //     },
-    //     annotations: {
-    //       bold,
-    //       italic,
-    //     },
-    //   }
-    // })
-
-    // const richText = convertContentNodeToNotionRichText(node)
-
-    // const type = node.notionBlockType || 'paragraph'
-
-    // blocks.push({
-    //   type,
-    //   [type]: {
-    //     rich_text: richText,
-    //   },
-    // })
   }
 
   return blocks
@@ -252,9 +203,6 @@ async function setupPageAndRenderHTML(html: string) {
     page.on('console', async (msg) => {
       console.log('[console.log from puppeteer browser]', msg.text())
       return
-      const messageArgs = msg.args()
-      const messages = await Promise.all(messageArgs.map((arg) => arg.jsonValue()))
-      console.log('[console.log from puppeteer browser]', ...messages)
     })
   }
 
@@ -484,12 +432,3 @@ export async function convertHTMLToNotionBlocks(html: string) {
   // TODO type this return value
   return blocks
 }
-
-/**
- * TODO
- * 
- * 1. text with line breaks will be broken in the notion block and we shouldn't do this since html doesn't render a line break unless there's a <br> tag
- *       - note that this is likely only a problem in very rare cases and not worth tons of effort right now
- * 
- * 2. line breaks at the beginning and end of node.children should be ignored/removed as the notion block will already have a line break.
- */
