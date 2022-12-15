@@ -40,10 +40,15 @@ export interface EmailHeader {
   emailId: number
 }
 
+enum DatabaseType {
+  EMAIL = 'EMAIL',
+  CONTACTS = 'CONTACTS',
+}
 export interface NotionDatabase {
   id?: number
   notionDatabaseId: string
   notionIntegrationId: number
+  type?: DatabaseType
 }
 
 export interface Subscription {

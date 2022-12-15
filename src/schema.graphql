@@ -56,6 +56,11 @@ enum UpdateDecoEmailErrorReasons {
   NO_SUBSCRIPTION
 }
 
+enum NotionDatabaseType {
+  EMAIL
+  CONTACTS
+}
+
 type UpdateDecoEmailResult {
   success: Boolean!
   errorReason: UpdateDecoEmailErrorReasons
@@ -104,7 +109,8 @@ type Mutation {
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   setDecoEmail(username: String): UpdateDecoEmailResult
-  selectNotionDatabase(databaseId: String!): Boolean
+  # TODO make type a required arg in a followon PR once the frontend uses this updated mutation
+  selectNotionDatabase(databaseId: String!, type: NotionDatabaseType): Boolean
   createUserfrontAndDecoUser(
     email: String
     password: String

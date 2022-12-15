@@ -81,3 +81,5 @@ export const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY
 export const S3_BUCKET = process.env.S3_BUCKET || ''
 
 export const CORS_ALLOWED_ORIGINS = process.env.CORS_ALLOWED_ORIGINS || ''
+
+export const FREE_TIER_EMAIL_LIMIT = 100
