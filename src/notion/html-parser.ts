@@ -425,8 +425,6 @@ export async function convertHTMLToNotionBlocks(html: string) {
     })
     .map(node => processContentNode(node))
 
-  console.log(JSON.stringify(textNodes, null, 2))
-
   const blocks = convertNodesToNotionBlocks(textNodes)
 
   // TODO type this return value
