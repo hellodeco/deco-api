@@ -123,12 +123,11 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
   },
   selectNotionDatabase: async (
     _,
-    { databaseId },
+    { databaseId, type = 'EMAIL' },
     { db, user: { userfrontID } },
   ) => {
     try {
       // TODO: validate that databaseId is good to go
-
       const integration = await db
         .notionIntegrations()
         .where('userfront_user_id', userfrontID)
@@ -143,6 +142,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       const existingDatabase = await db
         .notionDatabases()
         .where('notion_integration_id', integration.id)
+        .andWhere('type', type)
         .select('id')
         .first()
 
@@ -151,6 +151,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         database = await db
           .notionDatabases()
           .where('notion_integration_id', integration.id)
+          .andWhere('type', type)
           .update(objectCamelToSnake({ notionDatabaseId: databaseId }))
           .returning('id')
       } else {
@@ -160,6 +161,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
             objectCamelToSnake({
               notionDatabaseId: databaseId,
               notionIntegrationId: integration.id,
+              type,
             }),
           )
           .returning('id')
