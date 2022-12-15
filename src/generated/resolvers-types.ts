@@ -54,6 +54,7 @@ export type MutationCreateUserfrontAndDecoUserArgs = {
 
 export type MutationSelectNotionDatabaseArgs = {
   databaseId: Scalars['String'];
+  type?: InputMaybe<NotionDatabaseType>;
 };
 
 
@@ -75,6 +76,11 @@ export enum NotionDatabaseStatus {
   Connected = 'CONNECTED',
   NotConnected = 'NOT_CONNECTED',
   NotShared = 'NOT_SHARED'
+}
+
+export enum NotionDatabaseType {
+  Contacts = 'CONTACTS',
+  Email = 'EMAIL'
 }
 
 export type NotionFile = {
@@ -235,6 +241,7 @@ export type ResolversTypes = ResolversObject<{
   Mutation: ResolverTypeWrapper<{}>;
   NotionDatabaseInfo: ResolverTypeWrapper<NotionDatabaseInfo>;
   NotionDatabaseStatus: NotionDatabaseStatus;
+  NotionDatabaseType: NotionDatabaseType;
   NotionFile: ResolverTypeWrapper<NotionFile>;
   NotionIcon: ResolverTypeWrapper<NotionIcon>;
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
