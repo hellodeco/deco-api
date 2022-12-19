@@ -1,19 +1,18 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
-import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { v4 as uuidv4 } from 'uuid'
 import { db } from '../db-connection'
-import { EmailStatus, S3_BUCKET } from '../constants'
-import { addEmailToNotion, notionClient } from '../notion/notion'
-import { objectCamelToSnake } from '../utils'
+import { EmailStatus } from '../constants'
+import { addEmailToNotion } from '../notion/notion'
+import { shouldDeliverToNotion } from '../notion/shouldDeliverToNotion'
+import {
+  objectCamelToSnake,
+  headerMapToArray,
+  parseHeaderString,
+} from '../utils'
+import { FREE_TIER_EMAIL_LIMIT } from '../constants'
+import { storeFiles } from '../s3/storeFiles'
 import type { MulterFile } from '../types/shared'
-import type {
-  EmailAttachment,
-  Subscription,
-  NotionDatabase,
-  NotionIntegration,
-} from '../types/database'
-import s3Client from '../s3-client'
+import type { EmailAttachment } from '../types/database'
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -29,101 +28,6 @@ interface InboundSendgridParsedEmail {
   inReplyTo?: string
   references?: string
   createdAt: string
-}
-
-export interface Header {
-  key: string
-  value: string
-  emailId: number
-}
-
-type HeaderMap = Record<string, Array<string>>
-
-const FREE_TIER_EMAIL_LIMIT = 100
-
-// parses a string into a map of header names to arrays of values since each header can have multiple values
-export function parseHeaderString(headers: string): HeaderMap {
-  const headersArray = headers.split(/\n/)
-
-  const headerMap = {}
-
-  headersArray.forEach((header) => {
-    if (header.indexOf(':') < 0) {
-      return
-    }
-
-    let [key, val] = header.split(': ')
-
-    if (!key || !val) {
-      return
-    }
-
-    key = key.toLowerCase()
-
-    if (!headerMap[key]) {
-      headerMap[key] = []
-    }
-
-    headerMap[key].push(val)
-  })
-
-  return headerMap
-}
-
-export function headerMapToArray(
-  headerMap: HeaderMap,
-  emailId: number,
-): Array<Header> {
-  return Object.entries(headerMap).reduce((acc, [key, values]) => {
-    values.forEach((value) => {
-      acc.push({
-        key,
-        value,
-        emailId,
-      })
-    })
-
-    return acc
-  }, [] as Array<Header>)
-}
-
-async function storeFiles(files: Array<MulterFile>) {
-  const promises = files.map(async (file) => {
-    // Example fields on the file object:
-    // fieldname: 'attachment1',
-    // originalname: 'salute.png',
-    // encoding: '7bit',
-    // mimetype: 'image/png'
-    // size: number
-
-    const uuid: string = uuidv4()
-    const key = `${uuid}-${file.originalname}`
-
-    try {
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: S3_BUCKET,
-          Key: key,
-          Body: file.buffer,
-          Metadata: {
-            // TODO: should we store file metadata along with the file here?
-          },
-        }),
-      )
-
-      return {
-        ...file,
-        uuid,
-      }
-    } catch (err) {
-      console.error(`error uploading attachment ${key} to storage bucket`, err)
-    }
-
-    return null
-  })
-
-  // TODO: do something with files that failed to upload rather than just ignore them
-  return (await Promise.all(promises)).filter(Boolean)
 }
 
 export async function emailReceiveHandler(req: Request, res: Response) {
@@ -274,73 +178,14 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       console.error('error inserting email attachments', err)
     }
 
-    let subscription: Subscription
-    try {
-      // multiple subscriptions can sometimes exist for one user so we need
-      // to check all of them here
-      subscription = await db
-        .subscriptions()
-        .where({
-          userfront_user_id: emailRecipient.userfrontUserId,
-          subscription_status: 'active',
-        })
-        .select('subscription_status')
-        .first()
-    } catch (err) {
-      console.error('error querying for subscription', err)
-    }
-
-    // We will deliver email to notion under the following conditions:
-    // 1. user has a subscription with a status of "active"
-    // 2. user has no subscription OR active subscription AND has a notion_integration AND notion_database AND less than FREE_TIER_EMAIL_LIMIT emails in their connection Notion database
-    let shouldDelieverToNotion = Boolean(subscription)
-
-    let notionIntegration: Pick<NotionIntegration, 'id' | 'accessToken'>
-    if (!subscription) {
-      try {
-        notionIntegration = await db
-          .notionIntegrations()
-          .where('userfront_user_id', emailRecipient.userfrontUserId)
-          .select('id', 'access_token')
-          .first()
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    let notionDatabase: Pick<NotionDatabase, 'notionDatabaseId'>
-    if (!subscription && notionIntegration) {
-      try {
-        notionDatabase = await db
-          .notionDatabases()
-          .where('notion_integration_id', notionIntegration.id)
-          .select('notion_database_id')
-          .first()
-      } catch (err) {
-        console.error(err)
-      }
-    }
-
-    if (!subscription && notionDatabase) {
-      const { notionDatabaseId } = notionDatabase
-
-      // this is a fast and messy way to get the count of rows in the notion database inbox
-      const notion = await notionClient(emailRecipient.userfrontUserId)
-
-      // this is an array of objects where each object represents a row in the email inbox database
-      const { results: notionRowData } = await notion.databases.query({
-        database_id: notionDatabaseId,
-        // limit to one greater than the email limit so to avoid overfetching
-        page_size: FREE_TIER_EMAIL_LIMIT + 1,
-      })
-
-      shouldDelieverToNotion = notionRowData.length < FREE_TIER_EMAIL_LIMIT
-    }
-
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
     let notionPageId = null
 
-    if (shouldDelieverToNotion) {
+    const shouldDeliver = await shouldDeliverToNotion(
+      emailRecipient.userfrontUserId,
+    )
+
+    if (shouldDeliver) {
       try {
         const notionResp = await addEmailToNotion({
           newEmail: incomingEmail,

@@ -5,7 +5,7 @@ import {
   S3_ACCESS_KEY_ID,
   S3_SECRET_ACCESS_KEY,
   IS_LOCAL,
-} from './constants'
+} from '../constants'
 
 const client = new S3Client({
   endpoint: S3_ENDPOINT,

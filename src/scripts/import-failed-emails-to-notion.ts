@@ -86,7 +86,9 @@ async function main() {
   const timeLimit = process.env.CREATED_AT_LIMIT
 
   if (!timeLimit) {
-    console.error(`Please set the "CREATED_AT_LIMIT" environment variable to limit how far back you want to check for emails. e.g. CREATED_AT_LIMIT="2021-12-31"`)
+    console.error(
+      `Please set the "CREATED_AT_LIMIT" environment variable to limit how far back you want to check for emails. e.g. CREATED_AT_LIMIT="2021-12-31"`,
+    )
     process.exit(1)
   }
 
