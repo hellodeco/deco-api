@@ -7,7 +7,6 @@ import dotenv from 'dotenv'
 import { wait, chunkStr } from '../utils'
 import { IS_LOCAL } from '../constants'
 
-
 interface ContentNode {
   // text specific properties
   text?: string
@@ -20,8 +19,8 @@ interface ContentNode {
   // image specific properties
   href?: string
   src?: string
-  isImage?: boolean 
-  altText?: string 
+  isImage?: boolean
+  altText?: string
 
   // universal properties
   notionBlockType?: string
@@ -254,12 +253,13 @@ function processContentNode(node: ContentNode) {
   return {
     ...node,
     text: node.text ? node.text.replace(/^\s+|\s+$/g, '') : null,
-    children: node.children ?  node.children.map(node => processContentNode(node)) : null,
+    children: node.children
+      ? node.children.map((node) => processContentNode(node))
+      : null,
     fontWeight,
     notionBlockType,
   }
 }
-
 
 export async function convertHTMLToNotionBlocks(html: string) {
   let page
@@ -315,7 +315,6 @@ export async function convertHTMLToNotionBlocks(html: string) {
     while (node !== null) {
       // @ts-ignore
       if (textNodeTypes.includes(node.tagName)) {
-
         const nextNodeSibling = node.nextSibling
 
         const children = []
@@ -342,13 +341,13 @@ export async function convertHTMLToNotionBlocks(html: string) {
         walker.previousNode()
 
         const style = getComputedStyle(node as Element)
-      
+
         const parentNode = {
           fontSize: style.getPropertyValue('font-size'),
           fontWeight: style.getPropertyValue('font-weight'),
           fontStyle: style.getPropertyValue('font-style'),
           nodeType: node.nodeType,
-          children
+          children,
         }
 
         nodes.push(parentNode)
@@ -375,7 +374,6 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
     return nodes
   })
-
 
   // returns a promise, but we don't necessarily need to wait for it to resolve
   // before continuing with parsing. We just want to eventually free up memory
@@ -423,7 +421,7 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
       return imageExts.includes(ext)
     })
-    .map(node => processContentNode(node))
+    .map((node) => processContentNode(node))
 
   const blocks = convertNodesToNotionBlocks(textNodes)
 

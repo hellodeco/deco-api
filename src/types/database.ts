@@ -41,7 +41,7 @@ export interface EmailHeader {
 }
 
 enum DatabaseType {
-  EMAIL =  'EMAIL',
+  EMAIL = 'EMAIL',
   CONTACTS = 'CONTACTS',
 }
 export interface NotionDatabase {

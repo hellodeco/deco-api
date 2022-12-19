@@ -1,2 +1,3 @@
 # ignore generated code
 src/generated/**/*
+**/*.html

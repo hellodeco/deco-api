@@ -21,3 +21,9 @@ export interface MulterFile {
   buffer: Buffer
   size: number
 }
+
+export interface Header {
+  key: string
+  value: string
+  emailId: number
+}

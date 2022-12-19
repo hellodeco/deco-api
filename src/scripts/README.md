@@ -2,7 +2,6 @@
 
 This directory contains scripts to help automate tasks. Find instructions for usage below 👇
 
-
 ## `import-failed-emails-to-notion.ts`
 
 This script queries our database for any email with the status `RECEIVED_TO_DECO` AND a time
@@ -17,4 +16,3 @@ This script queries our database for any email with the status `RECEIVED_TO_DECO
 ```sh
 CREATED_AT_TIMESTAMP="2021-01-01" yarn run-re-import-script
 ```
-

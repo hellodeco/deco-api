@@ -1,5 +1,6 @@
 import camelcase from 'camelcase'
 import { snakeCase } from 'snake-case'
+import type { Header } from '../types/shared'
 
 export function objectSnakeToCamel(o: { [key: string]: any }) {
   return Object.entries(o).reduce((acc, [k, v]) => {
@@ -50,4 +51,52 @@ export function chunkArr(
 
 export function wait(ms = 1000): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+// parses a string into a map of header names to arrays of values since each header can have multiple values
+export function parseHeaderString(headers: string): HeaderMap {
+  const headersArray = headers.split(/\n/)
+
+  const headerMap = {}
+
+  headersArray.forEach((header) => {
+    if (header.indexOf(':') < 0) {
+      return
+    }
+
+    let [key, val] = header.split(': ')
+
+    if (!key || !val) {
+      return
+    }
+
+    key = key.toLowerCase()
+
+    if (!headerMap[key]) {
+      headerMap[key] = []
+    }
+
+    headerMap[key].push(val)
+  })
+
+  return headerMap
+}
+
+type HeaderMap = Record<string, Array<string>>
+
+export function headerMapToArray(
+  headerMap: HeaderMap,
+  emailId: number,
+): Array<Header> {
+  return Object.entries(headerMap).reduce((acc, [key, values]) => {
+    values.forEach((value) => {
+      acc.push({
+        key,
+        value,
+        emailId,
+      })
+    })
+
+    return acc
+  }, [] as Array<Header>)
 }

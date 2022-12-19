@@ -1,7 +1,7 @@
 import dbConnection from '../db-connection'
 import { objectCamelToSnake } from '../utils'
 import { EmailStatus } from '../constants'
-import { Header } from '../express-handlers/sendgrid'
+import type { Header } from '../types/shared'
 import { Tables } from '../types/database'
 import type {
   User,

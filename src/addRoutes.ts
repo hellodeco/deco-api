@@ -25,7 +25,7 @@ import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
 import { db } from './db-connection'
 import { objectCamelToSnake } from './utils'
-import s3Client from './s3-client'
+import s3Client from './s3/s3Client'
 import { makeCorsMiddleware } from './cors-rules'
 import type { NotionIntegration } from './types/database'
 

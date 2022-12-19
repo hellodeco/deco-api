@@ -1,6 +1,6 @@
 import path from 'path'
 import fs from 'fs'
-import { addEmailToNotion } from '../notion/notion';
+import { addEmailToNotion } from '../notion/notion'
 
 export interface NewEmail {
   subject: string
@@ -40,7 +40,7 @@ async function test() {
     emailThreadId: 456,
     plainTextContent: 'This is a test email',
     htmlContent,
-    createdAt: (new Date()).toISOString(),
+    createdAt: new Date().toISOString(),
   }
 
   console.log('adding email to notion...')
@@ -57,7 +57,7 @@ test()
   .then(() => {
     process.exit(0)
   })
-  .catch(err => {
+  .catch((err) => {
     console.error(err)
     process.exit(1)
   })
