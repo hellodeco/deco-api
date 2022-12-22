@@ -4,10 +4,12 @@ import { db } from '../db-connection'
 import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { shouldDeliverToNotion } from '../notion/shouldDeliverToNotion'
+import { addContactToNotion } from '../notion/addContactToNotion'
 import {
   objectCamelToSnake,
   headerMapToArray,
   parseHeaderString,
+  getFullNameFromEmailToStr,
 } from '../utils'
 import { FREE_TIER_EMAIL_LIMIT } from '../constants'
 import { storeFiles } from '../s3/storeFiles'
@@ -51,6 +53,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - charsets
   // - SP
 
+  console.log('req.body:', JSON.stringify(req.body, null, 2))
+
   // @ts-ignore
   const files = await storeFiles(req.files as Array<MulterFile>)
 
@@ -60,7 +64,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   const references = headersMap['references']
   const messageID = headersMap['message-id']
 
-  let envelope = { to: [] }
+  let envelope = { to: [], from: '' }
   try {
     envelope = JSON.parse(envelopeStr)
   } catch (err) {
@@ -190,7 +194,13 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     if (shouldDeliver) {
       try {
-        const notionResp = await addEmailToNotion({
+        const notionContactResp = await addContactToNotion({
+          userfrontID: emailRecipient.userfrontUserId,
+          email: envelope.from,
+          fullName: getFullNameFromEmailToStr(from),
+        })
+
+        const notionEmailResp = await addEmailToNotion({
           newEmail: incomingEmail,
           userfrontID: emailRecipient.userfrontUserId,
           attachments: preppedFiles,
@@ -198,10 +208,11 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
         notionPageId = null
 
-        if (notionResp?.pageId) {
+        if (notionEmailResp?.pageId) {
           emailStatus = EmailStatus.RECEIVED_TO_NOTION
-          notionPageId = notionResp.pageId
+          notionPageId = notionEmailResp.pageId
         }
+
       } catch (err) {
         console.error(err)
       }
