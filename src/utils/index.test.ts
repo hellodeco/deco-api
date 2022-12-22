@@ -3,6 +3,7 @@ import {
   chunkArr,
   parseHeaderString,
   headerMapToArray,
+  getFullNameFromEmailToStr,
 } from './index'
 
 describe('chunkStr', () => {
@@ -140,3 +141,12 @@ describe('headerMapToArray', () => {
     )
   })
 })
+
+describe.only('getFullNameFromEmailToStr', () => {
+  it('returns the full name from an email string', () => {
+    const fullName = getFullNameFromEmailToStr('Matt Ehlinger <matt@deco.so>')
+
+    expect(fullName).toEqual('Matt Ehlinger')
+  })
+})
+

@@ -54,11 +54,11 @@ async function maybeUpdatePageProperties({
 export async function addContactToNotion({
   userfrontID,
   fullName,
-  fromEmail
+  email
 }: {
   userfrontID: string
   fullName: string
-  fromEmail: string
+  email: string
 }) {
   let notion: Client
   try {
@@ -89,7 +89,7 @@ export async function addContactToNotion({
       filter: {
         property: 'Email',
         email: {
-          contains: fromEmail,
+          contains: email,
         }
       }
     })
@@ -119,7 +119,7 @@ export async function addContactToNotion({
             ],
           },
           Email: {
-            email: fromEmail,
+            email: email,
           },
           'Full Name': {
             rich_text: [
