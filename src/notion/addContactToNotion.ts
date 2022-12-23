@@ -6,14 +6,14 @@ import { DatabaseType } from '../types/database'
 
 
 async function maybeUpdatePageProperties({
-  notionDatabaseId,
+  notionContactsDatabaseId,
   notion,
 }: {
-  notionDatabaseId: string
+  notionContactsDatabaseId: string
   notion: Client
 }) {
   const notionDB = await notion.databases.retrieve({
-    database_id: notionDatabaseId,
+    database_id: notionContactsDatabaseId,
   })
 
   const keys = Object.keys(notionDB.properties)
@@ -32,7 +32,7 @@ async function maybeUpdatePageProperties({
   // this will not duplicate existing properties
   try {
     await notion.databases.update({
-      database_id: notionDatabaseId,
+      database_id: notionContactsDatabaseId,
       properties: {
         Email: {
           type: 'email',
@@ -46,8 +46,6 @@ async function maybeUpdatePageProperties({
     })
   } catch (err) {
     console.error('error updating notion database', err)
-
-    return null
   }
 }
 
@@ -59,7 +57,7 @@ export async function addContactToNotion({
   userfrontID: string
   fullName: string
   email: string
-}) {
+}): Promise<{ contactPage: CreatePageResponse, notionContactsDatabaseId: string } | null> {
   let notion: Client
   try {
     notion = await notionClient(userfrontID)
@@ -68,24 +66,24 @@ export async function addContactToNotion({
     return null
   }
 
-  const notionDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.CONTACTS)
+  const notionContactsDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.CONTACTS)
 
   // no contacts database connected
-  if (!notionDatabaseId) {
+  if (!notionContactsDatabaseId) {
     return null
   }
 
   await maybeUpdatePageProperties({
-    notionDatabaseId,
+    notionContactsDatabaseId,
     notion,
   })
 
   let contactExists = false
-  let contactPage: CreatePageResponse = null
+  let contactPage: CreatePageResponse | null = null
 
   try {
     const contactResp = await notion.databases.query({
-      database_id: notionDatabaseId,
+      database_id: notionContactsDatabaseId,
       filter: {
         property: 'Email',
         email: {
@@ -107,7 +105,7 @@ export async function addContactToNotion({
   if (!contactExists) {
     try {
       contactPage = await notion.pages.create({
-        parent: { database_id: notionDatabaseId },
+        parent: { database_id: notionContactsDatabaseId },
         properties: {
           title: {
             title: [
@@ -138,5 +136,8 @@ export async function addContactToNotion({
     }
   }
 
-  return contactPage
+  return {
+    contactPage,
+    notionContactsDatabaseId,
+  }
 }

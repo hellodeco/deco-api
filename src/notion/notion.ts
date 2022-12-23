@@ -3,6 +3,7 @@ import type {
   GetDatabaseResponse,
   GetPageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
+import type { UpdateDatabaseParameters, CreatePageParameters } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
@@ -269,10 +270,14 @@ export async function addEmailToNotion({
   newEmail,
   userfrontID,
   attachments = [],
+  notionContactsDatabaseId = null,
+  notionContactPage,
 }: {
   newEmail: NewEmail
   userfrontID: string
   attachments?: Array<EmailAttachment>
+  notionContactsDatabaseId?: string
+  notionContactPage: { id: string }
 }): Promise<{ pageId: string } | null> {
   let notion: Client
   try {
@@ -292,6 +297,10 @@ export async function addEmailToNotion({
 
   const requiredProps = ['From', 'Delivered', 'Email_ID']
 
+  if (notionContactsDatabaseId) {
+    requiredProps.push('Contact')
+  }
+
   const containsAll = requiredProps.every((element) => {
     return keys.includes(element)
   })
@@ -299,7 +308,7 @@ export async function addEmailToNotion({
   // recreate properties needed for email delivery if they don't exist
   // this will not duplicate existing properties
   if (!containsAll) {
-    await notion.databases.update({
+    const updatePayload: UpdateDatabaseParameters = {
       database_id: notionDatabaseId,
       properties: {
         From: {
@@ -315,7 +324,20 @@ export async function addEmailToNotion({
           number: {},
         },
       },
-    })
+    }
+
+    if (notionContactsDatabaseId) {
+      updatePayload.properties.Contact = {
+        type: 'relation',
+        relation: {
+          type: 'single_property',
+          database_id: notionContactsDatabaseId,
+          single_property: {},
+        }
+      }
+    }
+
+    await notion.databases.update(updatePayload)
   }
 
   const { subject, from, emailId } = newEmail
@@ -358,7 +380,7 @@ export async function addEmailToNotion({
 
   let pageCreateResp
   try {
-    pageCreateResp = await notion.pages.create({
+    const createEmailPagePayload: CreatePageParameters = {
       parent: { database_id: notionDatabaseId },
       properties: {
         title: {
@@ -383,7 +405,19 @@ export async function addEmailToNotion({
         },
       },
       children: [...firstChildChunk],
-    })
+    }
+
+    if (notionContactPage) {
+      createEmailPagePayload.properties.Contact = {
+        relation: [
+          {
+            id: notionContactPage.id,
+          },
+        ],
+      }
+    }
+
+    pageCreateResp = await notion.pages.create(createEmailPagePayload)
 
     const { status } = pageCreateResp
 
