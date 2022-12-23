@@ -42,7 +42,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - to -> sometimes "to" can be formatted like this: "to": "Matt Ehlinger <ehlinger.matt@gmail.com>"
   // - cc
   // - html
-  // - from
+  // - from -> sometimes "to" can be formatted like this: "from": "Matt Ehlinger <ehlinger.matt@gmail.com>"
   // - text
   // - sender_ip
   // - spam_report
@@ -52,8 +52,6 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   // - spam_score
   // - charsets
   // - SP
-
-  console.log('req.body:', JSON.stringify(req.body, null, 2))
 
   // @ts-ignore
   const files = await storeFiles(req.files as Array<MulterFile>)
@@ -191,7 +189,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     if (shouldDeliver) {
       try {
-        const notionContactResp = await addContactToNotion({
+        // TODO do not destructer because if null is returen, it will throw an error
+        const { contactPage, notionContactsDatabaseId } = await addContactToNotion({
           userfrontID: emailRecipient.userfrontUserId,
           email: envelope.from,
           fullName: getFullNameFromEmailToStr(from),
@@ -201,6 +200,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           newEmail: incomingEmail,
           userfrontID: emailRecipient.userfrontUserId,
           attachments: preppedFiles,
+          notionContactsDatabaseId,
+          notionContactPage: contactPage,
         })
 
         notionPageId = null
