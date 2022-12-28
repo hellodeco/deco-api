@@ -196,35 +196,36 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     if (shouldDeliver) {
       try {
-        const notionClient = await getNotionClient(emailRecipient.userfrontUserId)
+        const notionClient = await getNotionClient(
+          emailRecipient.userfrontUserId,
+        )
 
-        // TODO do not destructer because if null is returen, it will throw an error
-        const { contactPage, notionContactsDatabaseId } =
-          await addContactToNotion({
-            userfrontID: emailRecipient.userfrontUserId,
-            email: envelope.from,
-            fullName: getFullNameFromEmailToStr(from),
-            notionClient,
-          })
+        const notionContactResp = await addContactToNotion({
+          userfrontID: emailRecipient.userfrontUserId,
+          email: envelope.from,
+          fullName: getFullNameFromEmailToStr(from),
+          notionClient,
+        })
 
         const notionEmailResp = await addEmailToNotion({
           newEmail: incomingEmail,
           userfrontID: emailRecipient.userfrontUserId,
           attachments: preppedFiles,
-          notionContactsDatabaseId,
-          notionContactPage: contactPage,
+          notionContactsDatabaseId: notionContactResp?.notionContactsDatabaseId,
+          notionContactPage: notionContactResp?.contactPage,
           notionClient,
         })
 
-        // re update page properties with notion rollup and relation
-        // this is important because these cannot be created until the email is created
-        await maybeUpdateContactsPageProperties({
-          notionContactsDatabaseId: notionContactsDatabaseId,
-          notionEmailDatabaseId: notionEmailResp.notionEmailDatabaseId,
-          notionClient,
-        })
-
-        notionPageId = null
+        // re update page properties with notion rollup and relation. This is important because these cannot be
+        // created until the email is created.
+        if (notionContactResp) {
+          await maybeUpdateContactsPageProperties({
+            notionContactsDatabaseId:
+              notionContactResp?.notionContactsDatabaseId,
+            notionEmailDatabaseId: notionEmailResp.notionEmailDatabaseId,
+            notionClient,
+          })
+        }
 
         if (notionEmailResp?.pageId) {
           emailStatus = EmailStatus.RECEIVED_TO_NOTION
