@@ -149,4 +149,3 @@ describe.only('getFullNameFromEmailToStr', () => {
     expect(fullName).toEqual('Matt Ehlinger')
   })
 })
-

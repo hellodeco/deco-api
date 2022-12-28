@@ -3,7 +3,10 @@ import type {
   GetDatabaseResponse,
   GetPageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
-import type { UpdateDatabaseParameters, CreatePageParameters } from '@notionhq/client/build/src/api-endpoints'
+import type {
+  UpdateDatabaseParameters,
+  CreatePageParameters,
+} from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
@@ -149,10 +152,9 @@ export async function getNotionDatabaseIdFromNotion({
   return { notionDatabaseId }
 }
 
-
 export async function getNotionDatabaseId(
   userfrontID: string,
-  type: DatabaseType
+  type: DatabaseType,
 ): Promise<string | null> {
   const notionIntegration = await db
     .notionIntegrations()
@@ -174,7 +176,10 @@ export async function getNotionDatabaseId(
 
 export async function wipeNotionDatabase(userfrontID: string) {
   const notion = await notionClient(userfrontID)
-  const notionDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.EMAIL)
+  const notionDatabaseId = await getNotionDatabaseId(
+    userfrontID,
+    DatabaseType.EMAIL,
+  )
 
   const response = await notion.databases.query({
     database_id: notionDatabaseId,
@@ -199,7 +204,10 @@ export async function wipeNotionDatabase(userfrontID: string) {
 
 export async function deleteNotionTableProperties(userfrontID: string) {
   const notion = await notionClient(userfrontID)
-  const notionDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.EMAIL)
+  const notionDatabaseId = await getNotionDatabaseId(
+    userfrontID,
+    DatabaseType.EMAIL,
+  )
 
   const response = await notion.databases.retrieve({
     database_id: notionDatabaseId,
@@ -228,7 +236,10 @@ export async function deleteNotionTableProperties(userfrontID: string) {
 
 export async function formatNotionTable(userfrontID: string) {
   const notion = await notionClient(userfrontID)
-  const notionDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.EMAIL)
+  const notionDatabaseId = await getNotionDatabaseId(
+    userfrontID,
+    DatabaseType.EMAIL,
+  )
 
   const response = await notion.databases.retrieve({
     database_id: notionDatabaseId,
@@ -278,7 +289,7 @@ export async function addEmailToNotion({
   attachments?: Array<EmailAttachment>
   notionContactsDatabaseId?: string
   notionContactPage: { id: string }
-}): Promise<{ pageId: string } | null> {
+}): Promise<{ pageId: string; notionEmailDatabaseId: string } | null> {
   let notion: Client
   try {
     notion = await notionClient(userfrontID)
@@ -287,7 +298,10 @@ export async function addEmailToNotion({
     return null
   }
 
-  const notionDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.EMAIL)
+  const notionDatabaseId = await getNotionDatabaseId(
+    userfrontID,
+    DatabaseType.EMAIL,
+  )
 
   const notionDB = await notion.databases.retrieve({
     database_id: notionDatabaseId,
@@ -330,10 +344,10 @@ export async function addEmailToNotion({
       updatePayload.properties.Contact = {
         type: 'relation',
         relation: {
-          type: 'single_property',
+          type: 'dual_property',
           database_id: notionContactsDatabaseId,
-          single_property: {},
-        }
+          dual_property: {},
+        },
       }
     }
 
@@ -449,7 +463,7 @@ export async function addEmailToNotion({
       })
     }
 
-    return { pageId }
+    return { pageId, notionEmailDatabaseId: notionDatabaseId }
   } catch (err) {
     console.error('error adding page to notion', err)
   }

@@ -1,24 +1,83 @@
-import { notionClient } from "./notionClient"
+import { notionClient } from './notionClient'
 import { Client } from '@notionhq/client'
-import { CreatePageResponse } from "@notionhq/client/build/src/api-endpoints"
+import type {
+  CreatePageResponse,
+  UpdateDatabaseParameters,
+  DatabaseObjectResponse,
+} from '@notionhq/client/build/src/api-endpoints'
 import { getNotionDatabaseId } from './notion'
 import { DatabaseType } from '../types/database'
 
-
-async function maybeUpdatePageProperties({
+export async function maybeUpdateContactsPageProperties({
   notionContactsDatabaseId,
-  notion,
+  notionEmailDatabaseId,
+  notionClient,
 }: {
   notionContactsDatabaseId: string
-  notion: Client
+  notionEmailDatabaseId: string
+  notionClient: Client
 }) {
-  const notionDB = await notion.databases.retrieve({
+  const notionDB = await notionClient.databases.retrieve({
     database_id: notionContactsDatabaseId,
   })
 
   const keys = Object.keys(notionDB.properties)
 
-  const requiredProps = ['Email', 'Name']
+  // the email relationship property name is dynamic and auto created
+  // by the notion api, so we need to find it
+  let emailsRelationProp: DatabaseObjectResponse['properties']['relation'] =
+    null
+
+  for (let [, value] of Object.entries(notionDB.properties)) {
+    // @ts-ignore b/c tsc can't figure this one out
+    if (value.relation?.database_id === notionEmailDatabaseId) {
+      emailsRelationProp = value
+      break
+    }
+  }
+
+  // TODO: add 'Last Email' and 'Emails'
+  const requiredProps = ['Email', 'Bio', 'Last Email']
+
+  // recreate properties needed for email delivery if they don't exist
+  // this will not duplicate existing properties
+  const updatePayload: UpdateDatabaseParameters = {
+    database_id: notionContactsDatabaseId,
+    properties: {
+      Email: {
+        type: 'email',
+        email: {},
+      },
+      Bio: {
+        type: 'rich_text',
+        rich_text: {},
+      },
+    },
+  }
+
+  if (emailsRelationProp) {
+    requiredProps.push(emailsRelationProp.name)
+
+    updatePayload.properties[emailsRelationProp.name] = {
+      type: 'relation',
+      relation: {
+        type: 'dual_property',
+        database_id: notionEmailDatabaseId,
+        dual_property: {},
+      },
+    }
+
+    updatePayload.properties['Last Email'] = {
+      type: 'rollup',
+      rollup: {
+        // relation_property_id: emailsRelationProp.id,
+        relation_property_name: emailsRelationProp.name,
+        // TODO store the id and use that instead for this
+        rollup_property_name: 'Delivered',
+        function: 'latest_date',
+      },
+    }
+  }
 
   const containsAll = requiredProps.every((element) => {
     return keys.includes(element)
@@ -28,22 +87,8 @@ async function maybeUpdatePageProperties({
     return
   }
 
-  // recreate properties needed for email delivery if they don't exist
-  // this will not duplicate existing properties
   try {
-    await notion.databases.update({
-      database_id: notionContactsDatabaseId,
-      properties: {
-        Email: {
-          type: 'email',
-          email: {},
-        },
-        'Full Name': {
-          type: 'rich_text',
-          rich_text: {},
-        },
-      },
-    })
+    await notionClient.databases.update(updatePayload)
   } catch (err) {
     console.error('error updating notion database', err)
   }
@@ -52,12 +97,15 @@ async function maybeUpdatePageProperties({
 export async function addContactToNotion({
   userfrontID,
   fullName,
-  email
+  email,
 }: {
   userfrontID: string
   fullName: string
   email: string
-}): Promise<{ contactPage: CreatePageResponse, notionContactsDatabaseId: string } | null> {
+}): Promise<{
+  contactPage: CreatePageResponse
+  notionContactsDatabaseId: string
+} | null> {
   let notion: Client
   try {
     notion = await notionClient(userfrontID)
@@ -66,16 +114,24 @@ export async function addContactToNotion({
     return null
   }
 
-  const notionContactsDatabaseId = await getNotionDatabaseId(userfrontID, DatabaseType.CONTACTS)
+  const notionContactsDatabaseId = await getNotionDatabaseId(
+    userfrontID,
+    DatabaseType.CONTACTS,
+  )
+  const notionEmailDatabaseId = await getNotionDatabaseId(
+    userfrontID,
+    DatabaseType.EMAIL,
+  )
 
   // no contacts database connected
   if (!notionContactsDatabaseId) {
     return null
   }
 
-  await maybeUpdatePageProperties({
+  await maybeUpdateContactsPageProperties({
     notionContactsDatabaseId,
-    notion,
+    notionEmailDatabaseId,
+    notionClient: notion,
   })
 
   let contactExists = false
@@ -88,15 +144,15 @@ export async function addContactToNotion({
         property: 'Email',
         email: {
           contains: email,
-        }
-      }
+        },
+      },
     })
 
     if (contactResp?.results?.length > 0) {
       contactExists = true
       contactPage = contactResp.results[0]
     }
-  } catch(err) {
+  } catch (err) {
     console.error('error finding contact with email', err)
 
     return null
@@ -107,7 +163,7 @@ export async function addContactToNotion({
       contactPage = await notion.pages.create({
         parent: { database_id: notionContactsDatabaseId },
         properties: {
-          title: {
+          Name: {
             title: [
               {
                 text: {
@@ -119,15 +175,8 @@ export async function addContactToNotion({
           Email: {
             email: email,
           },
-          'Full Name': {
-            rich_text: [
-              {
-                type: 'text',
-                text: {
-                  content: fullName,
-                },
-              },
-            ],
+          Bio: {
+            rich_text: [],
           },
         },
       })
