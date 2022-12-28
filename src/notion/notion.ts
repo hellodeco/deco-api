@@ -297,17 +297,44 @@ export async function addEmailToNotion({
     DatabaseType.EMAIL,
   )
 
+  const requiredProps = ['From', 'Delivered', 'Email_ID']
+
+  const updatePayload: UpdateDatabaseParameters = {
+    database_id: notionDatabaseId,
+    properties: {
+      From: {
+        type: 'email',
+        email: {},
+      },
+      Delivered: {
+        type: 'date',
+        date: {},
+      },
+      Email_ID: {
+        type: 'number',
+        number: {},
+      },
+    },
+  }
+
+  if (notionContactsDatabaseId) {
+    requiredProps.push('Contact')
+
+    updatePayload.properties.Contact = {
+      type: 'relation',
+      relation: {
+        type: 'dual_property',
+        database_id: notionContactsDatabaseId,
+        dual_property: {},
+      },
+    }
+  }
+
   const notionDB = await notionClient.databases.retrieve({
     database_id: notionDatabaseId,
   })
 
   const keys = Object.keys(notionDB.properties)
-
-  const requiredProps = ['From', 'Delivered', 'Email_ID']
-
-  if (notionContactsDatabaseId) {
-    requiredProps.push('Contact')
-  }
 
   const containsAll = requiredProps.every((element) => {
     return keys.includes(element)
@@ -316,35 +343,6 @@ export async function addEmailToNotion({
   // recreate properties needed for email delivery if they don't exist
   // this will not duplicate existing properties
   if (!containsAll) {
-    const updatePayload: UpdateDatabaseParameters = {
-      database_id: notionDatabaseId,
-      properties: {
-        From: {
-          type: 'email',
-          email: {},
-        },
-        Delivered: {
-          type: 'date',
-          date: {},
-        },
-        Email_ID: {
-          type: 'number',
-          number: {},
-        },
-      },
-    }
-
-    if (notionContactsDatabaseId) {
-      updatePayload.properties.Contact = {
-        type: 'relation',
-        relation: {
-          type: 'dual_property',
-          database_id: notionContactsDatabaseId,
-          dual_property: {},
-        },
-      }
-    }
-
     await notionClient.databases.update(updatePayload)
   }
 
