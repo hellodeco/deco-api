@@ -1,6 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 import { addEmailToNotion } from '../notion/notion'
+import { getNotionClient } from '../notion/getNotionClient'
 
 export interface NewEmail {
   subject: string
@@ -45,9 +46,12 @@ async function test() {
 
   console.log('adding email to notion...')
 
+  const notionClient = await getNotionClient(userfrontID)
+
   const { pageId } = await addEmailToNotion({
     newEmail,
     userfrontID,
+    notionClient,
   })
 
   console.log('new page id:', pageId)

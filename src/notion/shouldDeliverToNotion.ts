@@ -1,6 +1,6 @@
 import { db } from '../db-connection'
 import { FREE_TIER_EMAIL_LIMIT } from '../constants'
-import { notionClient } from './notion'
+import { getNotionClient } from './getNotionClient'
 import type {
   Subscription,
   NotionDatabase,
@@ -59,7 +59,7 @@ export async function shouldDeliverToNotion(userfrontUserId: string) {
     const { notionDatabaseId } = notionDatabase
 
     // this is a fast and messy way to get the count of rows in the notion database inbox
-    const notion = await notionClient(userfrontUserId)
+    const notion = await getNotionClient(userfrontUserId)
 
     // this is an array of objects where each object represents a row in the email inbox database
     const { results: notionRowData } = await notion.databases.query({

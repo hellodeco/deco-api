@@ -18,7 +18,7 @@ import { FREE_TIER_EMAIL_LIMIT } from '../constants'
 import { storeFiles } from '../s3/storeFiles'
 import type { MulterFile } from '../types/shared'
 import type { EmailAttachment } from '../types/database'
-import { notionClient } from '../notion/notionClient'
+import { getNotionClient } from '../notion/getNotionClient'
 
 interface InboundSendgridParsedEmail {
   userId?: string
@@ -196,12 +196,15 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     if (shouldDeliver) {
       try {
+        const notionClient = await getNotionClient(emailRecipient.userfrontUserId)
+
         // TODO do not destructer because if null is returen, it will throw an error
         const { contactPage, notionContactsDatabaseId } =
           await addContactToNotion({
             userfrontID: emailRecipient.userfrontUserId,
             email: envelope.from,
             fullName: getFullNameFromEmailToStr(from),
+            notionClient,
           })
 
         const notionEmailResp = await addEmailToNotion({
@@ -210,6 +213,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           attachments: preppedFiles,
           notionContactsDatabaseId,
           notionContactPage: contactPage,
+          notionClient,
         })
 
         // re update page properties with notion rollup and relation
@@ -217,7 +221,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         await maybeUpdateContactsPageProperties({
           notionContactsDatabaseId: notionContactsDatabaseId,
           notionEmailDatabaseId: notionEmailResp.notionEmailDatabaseId,
-          notionClient: await notionClient(emailRecipient.userfrontUserId),
+          notionClient,
         })
 
         notionPageId = null

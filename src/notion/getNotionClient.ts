@@ -2,7 +2,7 @@ import { Client } from '@notionhq/client'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 
-export async function notionClient(userfrontID: string): Promise<Client> {
+export async function getNotionClient(userfrontID: string): Promise<Client> {
   let notionIntegration: NotionIntegration
   try {
     notionIntegration = await db

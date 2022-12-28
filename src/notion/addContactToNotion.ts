@@ -1,4 +1,3 @@
-import { notionClient } from './notionClient'
 import { Client } from '@notionhq/client'
 import type {
   CreatePageResponse,
@@ -98,22 +97,16 @@ export async function addContactToNotion({
   userfrontID,
   fullName,
   email,
+  notionClient,
 }: {
   userfrontID: string
   fullName: string
   email: string
+  notionClient: Client
 }): Promise<{
   contactPage: CreatePageResponse
   notionContactsDatabaseId: string
 } | null> {
-  let notion: Client
-  try {
-    notion = await notionClient(userfrontID)
-  } catch (err) {
-    console.error(err)
-    return null
-  }
-
   const notionContactsDatabaseId = await getNotionDatabaseId(
     userfrontID,
     DatabaseType.CONTACTS,
@@ -131,14 +124,14 @@ export async function addContactToNotion({
   await maybeUpdateContactsPageProperties({
     notionContactsDatabaseId,
     notionEmailDatabaseId,
-    notionClient: notion,
+    notionClient,
   })
 
   let contactExists = false
   let contactPage: CreatePageResponse | null = null
 
   try {
-    const contactResp = await notion.databases.query({
+    const contactResp = await notionClient.databases.query({
       database_id: notionContactsDatabaseId,
       filter: {
         property: 'Email',
@@ -160,7 +153,7 @@ export async function addContactToNotion({
 
   if (!contactExists) {
     try {
-      contactPage = await notion.pages.create({
+      contactPage = await notionClient.pages.create({
         parent: { database_id: notionContactsDatabaseId },
         properties: {
           Name: {
