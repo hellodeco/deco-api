@@ -2,6 +2,7 @@ import { attachPaginate } from 'knex-paginate'
 import { db } from '../db-connection'
 import { addEmailToNotion } from '../notion/notion'
 import { EmailStatus } from '../constants'
+import { getNotionClient } from '../notion/getNotionClient'
 import type { DecoDBEmail } from '../types/database'
 
 attachPaginate()
@@ -53,6 +54,8 @@ async function gentlyPlaceEmailIntoNotion(email: DecoDBEmail) {
     .select('*')
     .where('email_id', email.id)
 
+  const notionClient = await getNotionClient(userfrontID)
+
   const notionResp = await addEmailToNotion({
     newEmail: {
       subject: email.subject,
@@ -65,6 +68,7 @@ async function gentlyPlaceEmailIntoNotion(email: DecoDBEmail) {
     },
     userfrontID,
     attachments,
+    notionClient,
   })
 
   if (!notionResp?.pageId) {

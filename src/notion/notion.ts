@@ -15,7 +15,7 @@ import { convertHTMLToNotionBlocks } from './html-parser'
 import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr } from '../utils'
-import { notionClient } from './notionClient'
+import { getNotionClient } from './getNotionClient'
 
 /**
  * Notion formatting setup order of operations:
@@ -82,7 +82,7 @@ export interface NewEmail {
 
 export async function getSharedNotionDatabases(userfrontID: string) {
   try {
-    const notion = await notionClient(userfrontID)
+    const notion = await getNotionClient(userfrontID)
 
     const resp = await notion.search({
       filter: {
@@ -99,7 +99,7 @@ export async function getSharedNotionDatabases(userfrontID: string) {
 
 export async function getSharedNotionPages(userfrontID: string) {
   try {
-    const notion = await notionClient(userfrontID)
+    const notion = await getNotionClient(userfrontID)
 
     const resp = await notion.search({
       filter: {
@@ -175,7 +175,7 @@ export async function getNotionDatabaseId(
 }
 
 export async function wipeNotionDatabase(userfrontID: string) {
-  const notion = await notionClient(userfrontID)
+  const notion = await getNotionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
     DatabaseType.EMAIL,
@@ -203,7 +203,7 @@ export async function wipeNotionDatabase(userfrontID: string) {
 }
 
 export async function deleteNotionTableProperties(userfrontID: string) {
-  const notion = await notionClient(userfrontID)
+  const notion = await getNotionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
     DatabaseType.EMAIL,
@@ -235,7 +235,7 @@ export async function deleteNotionTableProperties(userfrontID: string) {
 }
 
 export async function formatNotionTable(userfrontID: string) {
-  const notion = await notionClient(userfrontID)
+  const notion = await getNotionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
     DatabaseType.EMAIL,
@@ -283,27 +283,21 @@ export async function addEmailToNotion({
   attachments = [],
   notionContactsDatabaseId = null,
   notionContactPage,
+  notionClient,
 }: {
   newEmail: NewEmail
   userfrontID: string
   attachments?: Array<EmailAttachment>
   notionContactsDatabaseId?: string
-  notionContactPage: { id: string }
+  notionContactPage?: { id: string }
+  notionClient: Client
 }): Promise<{ pageId: string; notionEmailDatabaseId: string } | null> {
-  let notion: Client
-  try {
-    notion = await notionClient(userfrontID)
-  } catch (err) {
-    console.error(err)
-    return null
-  }
-
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
     DatabaseType.EMAIL,
   )
 
-  const notionDB = await notion.databases.retrieve({
+  const notionDB = await notionClient.databases.retrieve({
     database_id: notionDatabaseId,
   })
 
@@ -351,7 +345,7 @@ export async function addEmailToNotion({
       }
     }
 
-    await notion.databases.update(updatePayload)
+    await notionClient.databases.update(updatePayload)
   }
 
   const { subject, from, emailId } = newEmail
@@ -431,7 +425,7 @@ export async function addEmailToNotion({
       }
     }
 
-    pageCreateResp = await notion.pages.create(createEmailPagePayload)
+    pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
 
     const { status } = pageCreateResp
 
@@ -457,7 +451,7 @@ export async function addEmailToNotion({
      * we know that the chilren are added in the correct order.
      */
     for (let childChunk of childChunks) {
-      await notion.blocks.children.append({
+      await notionClient.blocks.children.append({
         block_id: pageId,
         children: [...childChunk],
       })
