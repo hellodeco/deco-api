@@ -348,11 +348,46 @@ export function addRoutes(app: Express) {
   })
 
   app.get(
-    '/files/attachments/:attachmentId/:filename',
+    '/files/attachments/:attachmentUuid/:filename',
     async (req: Request, res: Response) => {
-      let { authToken } = req.query
+      // st === 'signing token' and can be included in a request
+      // as an authentication method for downloading files
+      let { authToken, st: signingToken } = req.query
       let { authorization } = req.headers
-      const { attachmentId, filename } = req.params
+      const { attachmentUuid, filename } = req.params
+      
+      /**
+       * try authing with the following items, falling back to later items if earlier
+       * items fail
+       * 
+       * 1. use authToken from authorization header if existing and valid
+       * 2. use authToken query string if existing, valid and different
+       *    from authorization header
+       * 3. use signing token query string if existing
+       */
+
+      let hasAccess = false
+
+      const attachement = await db.emailAttachments()
+        .where('uuid', attachmentUuid)
+        .select('id')
+        .first()
+
+      if (signingToken as string && attachement?.id) {
+        const tokenRow = await db.emailAttachmentTokens()
+          // TODO type signingToken as string so that type casting is not needed
+          .where('token', signingToken as string)
+          .andWhere('attachment_id', attachement.id)
+          .select('id')
+          .first()
+
+        console.log('tokenRow', tokenRow)
+
+        if (tokenRow) {
+          hasAccess = true
+          // send file response and return
+        }
+      }
 
       if (!authToken && authorization) {
         authToken = authorization.split(' ')[1]
@@ -378,7 +413,7 @@ export function addRoutes(app: Express) {
           .emailAttachments()
           .where(
             objectCamelToSnake({
-              uuid: attachmentId,
+              uuid: attachmentUuid,
               userfrontUserId: user.userfrontID,
             }),
           )
@@ -394,7 +429,7 @@ export function addRoutes(app: Express) {
         const file = await s3Client.send(
           new GetObjectCommand({
             Bucket: S3_BUCKET,
-            Key: `${attachmentId}-${attachment.filename}`,
+            Key: `${attachmentUuid}-${attachment.filename}`,
           }),
         )
 
