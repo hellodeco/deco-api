@@ -7,6 +7,7 @@ export enum Tables {
   EMAIL_HEADERS = 'email_headers',
   EMAIL_THREADS = 'email_threads',
   EMAIL_ATTACHMENTS = 'email_attachments',
+  EMAIL_ATTACHMENT_TOKENS = 'email_attachment_tokens',
 }
 
 export interface User {
@@ -95,4 +96,13 @@ export interface EmailAttachment {
   mimetype: string
   userfrontUserId: string
   emailId: number
+}
+
+export interface EmailAttachmentTokens {
+  id?: number
+  deletedAt?: string
+  createdAt: string
+  updatedAt: string
+  attachmentId: number
+  token: string
 }
