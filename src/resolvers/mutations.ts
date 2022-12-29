@@ -7,6 +7,7 @@ import {
 import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
+import { NotionDatabaseType } from '../types/database'
 import { objectCamelToSnake } from '../utils'
 import Userfront from '@userfront/core'
 
@@ -127,6 +128,12 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     { db, user: { userfrontID } },
   ) => {
     try {
+      /**
+       * Constraints of the notion_databases table (this mutation should enforce these):
+       *
+       * 1. only two rows allowed per unique notion_integration_id, one with type "EMAIL" and one with type "CONTACTS"
+       */
+
       // TODO: validate that databaseId is good to go
       const integration = await db
         .notionIntegrations()
@@ -136,15 +143,62 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       if (!integration) {
         // TODO: do something better
+        console.log(
+          'no integration found for user with userfront ID: ',
+          userfrontID,
+        )
         return false
       }
 
-      const existingDatabase = await db
+      const existingDatabases = await db
         .notionDatabases()
         .where('notion_integration_id', integration.id)
-        .andWhere('type', type)
-        .select('id')
-        .first()
+        .select('id', 'type', 'notion_database_id')
+
+      const emailDatabase = existingDatabases.find(
+        (db) => db.type === NotionDatabaseType.EMAIL,
+      )
+      const contactsDatabase = existingDatabases.find(
+        (db) => db.type === NotionDatabaseType.CONTACTS,
+      )
+
+      const existingDatabase =
+        type === NotionDatabaseType.EMAIL ? emailDatabase : contactsDatabase
+
+      /**
+       * determine if this integration already has a notion_database with notion_database_id === databaseId
+       * set as another type.
+       * 
+       * for example: if this is attempting to set an "EMAIL" database, check if the user's
+       * integration already has this database set as a "CONTACTS" database.
+       * if it does, then we want to abort the operation
+       */
+      let databaseIsUsedByOtherType = false
+      switch (type) {
+        case NotionDatabaseType.EMAIL: {
+          if (contactsDatabase?.notionDatabaseId === databaseId) {
+            databaseIsUsedByOtherType = true
+          }
+
+          break
+        }
+        case NotionDatabaseType.CONTACTS: {
+          if (emailDatabase?.notionDatabaseId === databaseId) {
+            databaseIsUsedByOtherType = true
+          }
+
+          break
+        }
+      }
+
+      if (databaseIsUsedByOtherType) {
+        console.error(
+          `Database ${databaseId} is already set as a ${
+            type === NotionDatabaseType.EMAIL ? 'CONTACTS' : 'EMAIL'
+          } database for notion_integation: ${integration.id}`,
+        )
+        return false
+      }
 
       let database
       if (existingDatabase) {
