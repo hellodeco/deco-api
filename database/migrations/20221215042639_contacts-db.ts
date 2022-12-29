@@ -26,6 +26,12 @@ export async function up(knex: Knex): Promise<void> {
 
 
 export async function down(knex: Knex): Promise<void> {
+  await knex.transaction(async (trx) => {
+    await trx('notion_databases')
+      .where('type', 'CONTACTS')
+      .delete()
+  })
+
   await knex.schema.alterTable('notion_databases', async (table) => {
     await table.dropColumn('type')
   })
