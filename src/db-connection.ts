@@ -28,5 +28,6 @@ export const db = {
   emailThreads: () => dbConnection<EmailThread>(Tables.EMAIL_THREADS),
   emailAttachments: () =>
     dbConnection<EmailAttachment>(Tables.EMAIL_ATTACHMENTS),
-  emailAttachmentTokens: () => dbConnection<EmailAttachmentTokens>(Tables.EMAIL_ATTACHMENT_TOKENS),
+  emailAttachmentTokens: () =>
+    dbConnection<EmailAttachmentTokens>(Tables.EMAIL_ATTACHMENT_TOKENS),
 }
