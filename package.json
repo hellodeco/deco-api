@@ -41,6 +41,7 @@
     "@graphql-tools/schema": "^8.3.1",
     "@notionhq/client": "^1.0.4",
     "@userfront/core": "^0.3.5",
+    "bcrypt": "^5.1.0",
     "body-parser": "^1.20.0",
     "busboy": "^1.6.0",
     "camelcase": "^6.3.0",
