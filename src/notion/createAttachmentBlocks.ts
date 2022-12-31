@@ -1,13 +1,29 @@
 import { EmailAttachment } from '../types/database'
-import { FRONTEND_BASE_URL } from '../constants'
+import { SERVER_BASE_URL } from '../constants'
+import { createAttachmentSigningToken } from '../auth-utils/create-attachment-signing-token'
 
-export function createAttachmentBlocks(attachments: Array<EmailAttachment>) {
+export async function createAttachmentBlocks(attachments: Array<EmailAttachment>) {
   const attachmentContent = []
 
-  const attachmentLinks = attachments.reduce(
-    (items, { uuid, filename }, idx) => {
-      let url = encodeURI(
-        `${FRONTEND_BASE_URL}/files/attachments/${uuid}/${filename}/preview`,
+  const augmentedAttachments = await Promise.all(
+    attachments.map(async (attachment) => {
+      const signingToken = await createAttachmentSigningToken({ attachment })
+      return {
+        ...attachment,
+        signingToken,
+      }
+    })
+  )
+
+  const attachmentLinks = augmentedAttachments.reduce(
+    (items, { uuid, filename, signingToken }, idx) => {
+      // signing token could be null if there was an error creating it
+      if (!signingToken) {
+        return items
+      }
+
+      const url = encodeURI(
+        `${SERVER_BASE_URL}/files/attachments/${uuid}/${filename}?st=${signingToken}`,
       )
 
       items.push({

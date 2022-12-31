@@ -24,7 +24,7 @@ import { Knex } from "knex";
  * const { promisify } = require('util')
  * const { randomBytes } = require('crypto')
  * 
- * syncRandomBytes = promisify(randomBytes)
+ * const syncRandomBytes = promisify(randomBytes)
  * 
  * async function generateToken() {
  *   const buf = await syncRandomBytes(20)
