@@ -43,7 +43,7 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('updated_at', { useTz: false }).defaultTo(knex.fn.now())
     table.timestamp('deleted_at', { useTz: false })
 
-    table.integer('attachment_id').notNullable().references('id').inTable('email_attachments').onDelete('CASCADE')
+    table.integer('email_attachment_id').notNullable().references('id').inTable('email_attachments').onDelete('CASCADE')
     table.string('token').notNullable().unique()
   })
 }
