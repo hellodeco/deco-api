@@ -341,7 +341,7 @@ export async function addEmailToNotion({
   const deliveryDate = new Date(newEmail.createdAt)
   const deliveryDateAsISOString = deliveryDate.toISOString()
 
-  const attachmentBlocks = createAttachmentBlocks(attachments)
+  const attachmentBlocks = await createAttachmentBlocks(attachments)
 
   if (!plainTextContent) {
     plainTextContent = ''
