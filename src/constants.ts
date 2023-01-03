@@ -54,16 +54,10 @@ export const JWT_PUBLIC_KEY = getSecretFromEnvVarOrFile({
 })
 
 export enum EmailStatus {
-  // a generic status that means the email has been received by us, but not made it to Notion yet
+  TO_ADDRESS_NOT_FOUND = 'TO_ADDRESS_NOT_FOUND',
   RECEIVED_TO_DECO = 'RECEIVED_TO_DECO',
-  // received by us and no "to" address was found in our database
-  RECEIVED_TO_DECO__TO_ADDRESS_NOT_FOUND = 'RECEIVED_TO_NOTION__TO_ADDRESS_NOT_FOUND',
-  // received by us and the user has reached their free tier limit and has no active subscription
-  RECEIVED_TO_DECO__FREE_TIER_LIMIT_EXCEEDED = 'RECEIVED_TO_NOTION__FREE_TIER_LIMIT_EXCEEDED',
-  // received by us but there was a problem when importing to Notion
-  RECEIVED_TO_DECO__NOTION_IMPORT_FAILED = 'RECEIVED_TO_NOTION__NOTION_IMPORT_FAILED',
-  // a generic status that means the email has been received by us and successfully made it to Notion
   RECEIVED_TO_NOTION = 'RECEIVED_TO_NOTION',
+  NOTION_FAILED = 'NOTION_FAILED',
 }
 
 export const IS_LOCAL = !['production', 'staging'].includes(
