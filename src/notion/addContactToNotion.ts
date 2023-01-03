@@ -5,7 +5,7 @@ import type {
   DatabaseObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import { getNotionDatabaseId } from './notion'
-import { DatabaseType } from '../types/database'
+import { NotionDatabaseType } from '../types/database'
 
 export async function maybeUpdateContactsPageProperties({
   notionContactsDatabaseId,
@@ -109,11 +109,11 @@ export async function addContactToNotion({
 } | null> {
   const notionContactsDatabaseId = await getNotionDatabaseId(
     userfrontID,
-    DatabaseType.CONTACTS,
+    NotionDatabaseType.CONTACTS,
   )
   const notionEmailDatabaseId = await getNotionDatabaseId(
     userfrontID,
-    DatabaseType.EMAIL,
+    NotionDatabaseType.EMAIL,
   )
 
   // no contacts database connected

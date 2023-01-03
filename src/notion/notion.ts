@@ -10,7 +10,7 @@ import type {
 import 'dotenv/config'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
-import { EmailAttachment, DatabaseType } from '../types/database'
+import { EmailAttachment, NotionDatabaseType } from '../types/database'
 import { convertHTMLToNotionBlocks } from './html-parser'
 import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
@@ -154,7 +154,7 @@ export async function getNotionDatabaseIdFromNotion({
 
 export async function getNotionDatabaseId(
   userfrontID: string,
-  type: DatabaseType,
+  type: NotionDatabaseType,
 ): Promise<string | null> {
   const notionIntegration = await db
     .notionIntegrations()
@@ -178,7 +178,7 @@ export async function wipeNotionDatabase(userfrontID: string) {
   const notion = await getNotionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
-    DatabaseType.EMAIL,
+    NotionDatabaseType.EMAIL,
   )
 
   const response = await notion.databases.query({
@@ -206,7 +206,7 @@ export async function deleteNotionTableProperties(userfrontID: string) {
   const notion = await getNotionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
-    DatabaseType.EMAIL,
+    NotionDatabaseType.EMAIL,
   )
 
   const response = await notion.databases.retrieve({
@@ -238,7 +238,7 @@ export async function formatNotionTable(userfrontID: string) {
   const notion = await getNotionClient(userfrontID)
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
-    DatabaseType.EMAIL,
+    NotionDatabaseType.EMAIL,
   )
 
   const response = await notion.databases.retrieve({
@@ -294,7 +294,7 @@ export async function addEmailToNotion({
 }): Promise<{ pageId: string; notionEmailDatabaseId: string } | null> {
   const notionDatabaseId = await getNotionDatabaseId(
     userfrontID,
-    DatabaseType.EMAIL,
+    NotionDatabaseType.EMAIL,
   )
 
   const requiredProps = ['From', 'Delivered', 'Email_ID']
