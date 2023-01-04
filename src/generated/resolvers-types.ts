@@ -54,7 +54,7 @@ export type MutationCreateUserfrontAndDecoUserArgs = {
 
 export type MutationSelectNotionDatabaseArgs = {
   databaseId: Scalars['String'];
-  type?: InputMaybe<NotionDatabaseType>;
+  type: NotionDatabaseType;
 };
 
 
@@ -64,11 +64,10 @@ export type MutationSetDecoEmailArgs = {
 
 export type NotionDatabaseInfo = {
   __typename?: 'NotionDatabaseInfo';
-  icon?: Maybe<Scalars['String']>;
-  needsFormatting?: Maybe<Scalars['Boolean']>;
   needsManualFormatting?: Maybe<Scalars['Boolean']>;
   status?: Maybe<NotionDatabaseStatus>;
   title?: Maybe<Scalars['String']>;
+  type?: Maybe<NotionDatabaseType>;
   url?: Maybe<Scalars['String']>;
 };
 
@@ -290,17 +289,16 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createUserfrontAndDecoUser?: Resolver<Maybe<ResolversTypes['CreateUserfrontAndDecoUserResult']>, ParentType, ContextType, Partial<MutationCreateUserfrontAndDecoUserArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  selectNotionDatabase?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSelectNotionDatabaseArgs, 'databaseId'>>;
+  selectNotionDatabase?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSelectNotionDatabaseArgs, 'databaseId' | 'type'>>;
   setDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationSetDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
 
 export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionDatabaseInfo'] = ResolversParentTypes['NotionDatabaseInfo']> = ResolversObject<{
-  icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  needsFormatting?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   needsManualFormatting?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['NotionDatabaseStatus']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  type?: Resolver<Maybe<ResolversTypes['NotionDatabaseType']>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
