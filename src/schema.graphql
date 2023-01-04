@@ -32,10 +32,8 @@ enum NotionDatabaseStatus {
 type NotionDatabaseInfo {
   title: String
   url: String
-  icon: String
   status: NotionDatabaseStatus
-  # needs to be formatted programatically by deco
-  needsFormatting: Boolean
+  type: NotionDatabaseType
   # user needs to manually format the notion page
   needsManualFormatting: Boolean
 }
@@ -110,7 +108,7 @@ type Mutation {
   formatNotionTable: Boolean
   setDecoEmail(username: String): UpdateDecoEmailResult
   # TODO make type a required arg in a followon PR once the frontend uses this updated mutation
-  selectNotionDatabase(databaseId: String!, type: NotionDatabaseType): Boolean
+  selectNotionDatabase(databaseId: String!, type: NotionDatabaseType!): Boolean
   createUserfrontAndDecoUser(
     email: String
     password: String
