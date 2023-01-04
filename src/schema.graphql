@@ -97,7 +97,7 @@ type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
   emailUsernameAvailable(username: String!): Boolean
-  getCurrentUserNotionDatabaseInfo: NotionDatabaseInfo
+  getCurrentUserNotionDatabaseInfo: [NotionDatabaseInfo]
   emailDomain: String
   # will return list of databases and pages that the current user has shared
   connectedNotionPages: [NotionPage]

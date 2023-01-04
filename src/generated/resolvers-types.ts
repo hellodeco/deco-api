@@ -126,7 +126,7 @@ export type Query = {
   currentUserHasFileAccess?: Maybe<Scalars['Boolean']>;
   emailDomain?: Maybe<Scalars['String']>;
   emailUsernameAvailable?: Maybe<Scalars['Boolean']>;
-  getCurrentUserNotionDatabaseInfo?: Maybe<NotionDatabaseInfo>;
+  getCurrentUserNotionDatabaseInfo?: Maybe<Array<Maybe<NotionDatabaseInfo>>>;
   getCurrentUserNotionIntegration?: Maybe<NotionIntegration>;
 };
 
@@ -347,7 +347,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   currentUserHasFileAccess?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryCurrentUserHasFileAccessArgs, 'attachmentId'>>;
   emailDomain?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   emailUsernameAvailable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<QueryEmailUsernameAvailableArgs, 'username'>>;
-  getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<ResolversTypes['NotionDatabaseInfo']>, ParentType, ContextType>;
+  getCurrentUserNotionDatabaseInfo?: Resolver<Maybe<Array<Maybe<ResolversTypes['NotionDatabaseInfo']>>>, ParentType, ContextType>;
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
 }>;
 
