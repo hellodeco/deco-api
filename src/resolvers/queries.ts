@@ -67,57 +67,53 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
         return null
       }
 
-      const notionDatabase = await db
+      const notionDatabases = await db
         .notionDatabases()
         .where('notion_integration_id', notionIntegration.id)
-        .select('notion_database_id')
-        .first()
+        .select('notion_database_id', 'type')
 
-      if (!notionDatabase) {
+      if (!notionDatabases) {
         return null
       }
 
-      const { notionDatabaseId } = notionDatabase
+      const responseData = await Promise.all(
+        notionDatabases.map(async (notionDatabase) => {
+          const { notionDatabaseId, type } = notionDatabase
 
-      const notionDBResp = await notionAccess.notionDatabaseInfo({
-        notionIntegration,
-        notionDatabaseId,
-      })
+          const notionDBResp = await notionAccess.notionDatabaseInfo({
+            notionIntegration,
+            notionDatabaseId,
+          })
 
-      if (!notionDBResp) {
-        return null
-      }
+          if (!notionDBResp) {
+            return null
+          }
 
-      // @ts-ignore Typescript you're goddamn high!
-      const dbProperties = Object.keys(notionDBResp.properties)
+          // @ts-ignore Typescript you're goddamn high!
+          const dbProperties = Object.keys(notionDBResp.properties)
 
-      // Check to see if the database has the correct properties required to receive emails
-      const containsAll = REQUIRED_NOTION_DATABASE_PROPERTIES.every(
-        (propKey) => {
-          return dbProperties.includes(propKey)
-        },
+          const title =
+            // @ts-ignore
+            notionDBResp.title?.[0]?.plain_text ||
+            // @ts-ignore
+            notionDBResp.properties?.title?.title?.[0]?.plain_text ||
+            'Untitled Notion Page'
+
+          const needsManualFormatting = notionDBResp.object === 'page'
+
+          const data = {
+            title,
+            needsManualFormatting,
+            // @ts-ignore
+            url: notionDBResp?.url,
+            type: type,
+          }
+
+          return data
+        }),
       )
 
-      const title =
-        // @ts-ignore
-        notionDBResp.title?.[0]?.plain_text ||
-        // @ts-ignore
-        notionDBResp.properties?.title?.title?.[0]?.plain_text ||
-        'Untitled Notion Page'
-
-      const needsManualFormatting = notionDBResp.object === 'page'
-
-      const data = {
-        title,
-        needsManualFormatting,
-        // @ts-ignore
-        url: notionDBResp?.url,
-        // @ts-ignore
-        icon: notionDBResp?.icon?.emoji, // only supporting emoji icon for now
-        needsFormatting: !containsAll,
-      }
-
-      return data
+      return responseData
     } catch (err) {
       console.error(err)
     }
