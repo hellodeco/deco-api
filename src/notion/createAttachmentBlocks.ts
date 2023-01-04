@@ -76,7 +76,8 @@ export async function createAttachmentBlocks(attachments: Array<EmailAttachment>
     },
   ]
 
-  if (attachments.length > 0) {
+
+  if (attachmentLinks.length > 0) {
     attachmentContent.push(...attachmentSection)
   }
 

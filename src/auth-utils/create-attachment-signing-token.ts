@@ -33,7 +33,7 @@ export async function createAttachmentSigningToken({
 
     return token
   } catch (err) {
-    console.error(`Error creating attachment signing token for attachment with uuidid: ${attachment.uuid}`, err)
+    console.error(`Error creating attachment signing token for attachment with uuid: ${attachment.uuid}`, err)
     return null
   }
 }
