@@ -307,13 +307,12 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
     // add span, a, etc here?
     // const textNodeTypes = ['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'SPAN', 'STRONG', 'A']
-    const textNodeTypes = ['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6']
+    const textNodeTypes = ['P', 'LI', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'TD', 'TH']
     const inlineNodeTypes = ['A', 'B', 'I', 'STRONG', 'EM', 'SPAN']
 
-    let node = walker.nextNode()
+    let node: Node & { tagName?: string } = walker.nextNode()
 
     while (node !== null) {
-      // @ts-ignore
       if (textNodeTypes.includes(node.tagName)) {
         const nextNodeSibling = node.nextSibling
 
