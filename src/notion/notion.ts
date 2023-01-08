@@ -323,6 +323,8 @@ export async function addEmailToNotion({
     updatePayload.properties.Contact = {
       type: 'relation',
       relation: {
+        // TODO remove this and actually figure out the type here.
+        // @ts-ignore
         type: 'dual_property',
         database_id: notionContactsDatabaseId,
         dual_property: {},
