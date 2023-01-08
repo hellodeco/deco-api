@@ -1,6 +1,6 @@
 import { db } from '../db-connection'
 import { FREE_TIER_EMAIL_LIMIT } from '../constants'
-import { notionClient } from '../notion/notion'
+import { getNotionClient } from '../notion/getNotionClient'
 import { NotionDatabase } from '../types/database'
 
 async function main() {
@@ -10,7 +10,7 @@ async function main() {
     throw new Error('Please set USERFRONT_UUID.')
   }
 
-  const client = await notionClient(userfrontUuid)
+  const client = await getNotionClient(userfrontUuid)
 
   const notionIntegration = await db
     .notionIntegrations()
