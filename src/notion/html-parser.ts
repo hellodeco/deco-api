@@ -271,12 +271,22 @@ export async function convertHTMLToNotionBlocks(html: string) {
   }
 
   let textNodes: ContentNode[] = await page.evaluate(() => {
+    const isValidLink = (link: string) => {
+      // filter out any relative links as these don't really do any good within
+      // the context of a notion page.
+      const invalidStartChars = [
+        '/',
+        '#',
+        'about:blank',
+      ]
+      return invalidStartChars.every((char) => !link.startsWith(char))
+    }
+
     const isAnchor = (node: Node) => {
-      let parent = node.parentElement
+      let parent: HTMLElement & { href?: string } = node.parentElement
 
       while (parent) {
-        if (parent.tagName === 'A') {
-          // @ts-ignore
+        if (parent.tagName === 'A' && isValidLink(parent.href)) {
           return [true, parent.href]
         }
 
@@ -377,7 +387,8 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
   // returns a promise, but we don't necessarily need to wait for it to resolve
   // before continuing with parsing. We just want to eventually free up memory
-  // etc for future parsing operations.
+  // etc for future parsing operations because if we don't call page.close(), the
+  // page will stay open indefinitely.
   page.close()
 
   textNodes = textNodes
