@@ -2,7 +2,8 @@ import { Client } from '@notionhq/client'
 import type {
   CreatePageResponse,
   UpdateDatabaseParameters,
-  DatabaseObjectResponse,
+  // DatabaseObjectResponse,
+  GetDatabaseResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import { getNotionDatabaseId } from './notion'
 import { NotionDatabaseType } from '../types/database'
@@ -24,7 +25,7 @@ export async function maybeUpdateContactsPageProperties({
 
   // the email relationship property name is dynamic and auto created
   // by the notion api, so we need to find it
-  let emailsRelationProp: DatabaseObjectResponse['properties']['relation'] =
+  let emailsRelationProp: GetDatabaseResponse['properties']['relation'] =
     null
 
   for (let [, value] of Object.entries(notionDB.properties)) {
@@ -60,6 +61,8 @@ export async function maybeUpdateContactsPageProperties({
     updatePayload.properties[emailsRelationProp.name] = {
       type: 'relation',
       relation: {
+        // TODO remove this and actually figure out the type here.
+        // @ts-ignore
         type: 'dual_property',
         database_id: notionEmailDatabaseId,
         dual_property: {},
