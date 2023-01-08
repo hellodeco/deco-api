@@ -277,6 +277,7 @@ export async function convertHTMLToNotionBlocks(html: string) {
       const invalidStartChars = [
         '/',
         '#',
+        'wallet://',
         'about:blank',
       ]
       return invalidStartChars.every((char) => !link.startsWith(char))
