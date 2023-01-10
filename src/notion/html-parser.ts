@@ -4,7 +4,7 @@ import { isNumber } from 'lodash'
 import puppeteer from 'puppeteer'
 import type { Browser } from 'puppeteer'
 import dotenv from 'dotenv'
-import { wait, chunkStr } from '../utils'
+import { wait, chunkStr, chunkArr } from '../utils'
 import { IS_LOCAL } from '../constants'
 
 interface ContentNode {
@@ -163,12 +163,21 @@ export function convertNodesToNotionBlocks(nodes: ContentNode[]) {
       richText.push(...convertContentNodeToNotionRichText(node))
     }
 
-    blocks.push({
-      type,
-      [type]: {
-        rich_text: richText,
-      },
-    })
+    /**
+     * The Notion API limits the number rich_text objects to 100.
+     * If there are more than 100 rich_text objectsj, we need to break them up into multiple blocks
+     * or else the request to Notion will fail.
+     */
+    const richTextChunks = chunkArr(richText, 100)
+
+    for (let richTextChunk of richTextChunks) {
+      blocks.push({
+        type,
+        [type]: {
+          rich_text: richTextChunk,
+        },
+      })
+    }
   }
 
   return blocks
