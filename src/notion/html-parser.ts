@@ -281,15 +281,33 @@ export async function convertHTMLToNotionBlocks(html: string) {
 
   let textNodes: ContentNode[] = await page.evaluate(() => {
     const isValidLink = (link: string) => {
-      // filter out any relative links as these don't really do any good within
-      // the context of a notion page.
+      // filter out any relative links or links with bad protocols as these
+      // don't really do any good or mean anything within the context of a notion page.
       const invalidStartChars = [
         '/',
         '#',
         'wallet://',
         'about:blank',
       ]
-      return invalidStartChars.every((char) => !link.startsWith(char))
+
+      const hasInvalidStartChars = invalidStartChars.every((char) => !link.startsWith(char))
+
+      if (hasInvalidStartChars) {
+        return false
+      }
+
+      // test wether or not the link will is valid with the context of `new URL`. If not,
+      // it will throw an error and `validUrl` will remain false.
+      let validUrl = false
+
+      try {
+        new URL(link)
+        validUrl = true
+      } catch (err) {
+        // noop
+      }
+
+      return validUrl
     }
 
     const isAnchor = (node: Node) => {
