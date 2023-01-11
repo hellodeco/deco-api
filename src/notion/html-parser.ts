@@ -290,32 +290,22 @@ export async function convertHTMLToNotionBlocks(html: string) {
         'about:blank',
       ]
 
-      const hasInvalidStartChars = invalidStartChars.every((char) => !link.startsWith(char))
+      // A list of characters that Notion does not allow in links.
+      const invalidChars = [' ']
 
-      if (hasInvalidStartChars) {
-        return false
-      }
+      // url decode the link so we can check for characters that Notion does not allow in links.
+      const decodedLink = decodeURI(link)
 
-      // test wether or not the link will is valid with the context of `new URL`. If not,
-      // it will throw an error and `validUrl` will remain false.
-      let validUrl = false
-
-      try {
-        new URL(link)
-        validUrl = true
-      } catch (err) {
-        // noop
-      }
-
-      return validUrl
+      return !invalidChars.some((char) => decodedLink.includes(char)) && !invalidStartChars.some((char) => link.startsWith(char))
     }
 
     const isAnchor = (node: Node) => {
       let parent: HTMLElement & { href?: string } = node.parentElement
 
       while (parent) {
-        if (parent.tagName === 'A' && isValidLink(parent.href)) {
-          return [true, parent.href]
+        const href = parent.href?.trim()
+        if (parent.tagName === 'A' && isValidLink(href)) {
+          return [true, href]
         }
 
         parent = parent.parentElement
