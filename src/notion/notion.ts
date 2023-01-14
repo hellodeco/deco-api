@@ -1,13 +1,9 @@
-import fs from 'fs'
-import path from 'path'
 import { Client } from '@notionhq/client'
 import type {
   GetDatabaseResponse,
   GetPageResponse,
-  CreatePageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
-import { IS_LOCAL, IS_STAGING } from '../constants'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment } from '../types/database'

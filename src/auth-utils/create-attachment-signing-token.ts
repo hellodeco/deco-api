@@ -23,17 +23,19 @@ export async function createAttachmentSigningToken({
     const token = await generateToken()
     const hash = await bcrypt.hash(token, 10)
 
-    await db.emailAttachmentTokens()
-      .insert(
-        objectCamelToSnake({
-          emailAttachmentId: attachment.id,
-          token: hash,
-        })
-      )
+    await db.emailAttachmentTokens().insert(
+      objectCamelToSnake({
+        emailAttachmentId: attachment.id,
+        token: hash,
+      }),
+    )
 
     return token
   } catch (err) {
-    console.error(`Error creating attachment signing token for attachment with uuidid: ${attachment.uuid}`, err)
+    console.error(
+      `Error creating attachment signing token for attachment with uuidid: ${attachment.uuid}`,
+      err,
+    )
     return null
   }
 }

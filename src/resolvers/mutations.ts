@@ -168,7 +168,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       /**
        * determine if this integration already has a notion_database with notion_database_id === databaseId
        * set as another type.
-       * 
+       *
        * for example: if this is attempting to set an "EMAIL" database, check if the user's
        * integration already has this database set as a "CONTACTS" database.
        * if it does, then we want to abort the operation

@@ -2,7 +2,9 @@ import { EmailAttachment } from '../types/database'
 import { SERVER_BASE_URL } from '../constants'
 import { createAttachmentSigningToken } from '../auth-utils/create-attachment-signing-token'
 
-export async function createAttachmentBlocks(attachments: Array<EmailAttachment>) {
+export async function createAttachmentBlocks(
+  attachments: Array<EmailAttachment>,
+) {
   const attachmentContent = []
 
   const augmentedAttachments = await Promise.all(
@@ -12,7 +14,7 @@ export async function createAttachmentBlocks(attachments: Array<EmailAttachment>
         ...attachment,
         signingToken,
       }
-    })
+    }),
   )
 
   const attachmentLinks = augmentedAttachments.reduce(
