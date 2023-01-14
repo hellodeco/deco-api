@@ -1,8 +1,8 @@
 import { attachPaginate } from 'knex-paginate'
 import { db } from '../db-connection'
 import { addEmailToNotion } from '../notion/notion'
-import { EmailStatus } from '../constants'
 import type { DecoDBEmail } from '../types/database'
+import { EmailStatus } from '../types/database'
 
 attachPaginate()
 

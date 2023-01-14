@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
 import { db } from '../db-connection'
-import { EmailStatus } from '../constants'
 import { addEmailToNotion } from '../notion/notion'
 import { shouldDeliverToNotion } from '../notion/shouldDeliverToNotion'
 import {
@@ -13,6 +12,7 @@ import { FREE_TIER_EMAIL_LIMIT } from '../constants'
 import { storeFiles } from '../s3/storeFiles'
 import type { MulterFile } from '../types/shared'
 import type { EmailAttachment } from '../types/database'
+import { EmailStatus } from '../types/database'
 
 interface InboundSendgridParsedEmail {
   userId?: string
