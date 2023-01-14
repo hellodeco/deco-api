@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
 import { db } from '../db-connection'
-import { EmailStatus } from '../constants'
+import { EmailStatus } from '../types/database'
 import { addEmailToNotion } from '../notion/notion'
 import { shouldDeliverToNotion } from '../notion/shouldDeliverToNotion'
 import {
