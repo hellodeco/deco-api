@@ -113,17 +113,24 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     }
 
     if (!emailRecipient) {
-      /**
-       * @todo persist the "to" address for these
-       */
-
-      incomingEmail.status = EmailStatus.TO_ADDRESS_NOT_FOUND
+      incomingEmail.status = EmailStatus.RECEIVED_TO_DECO__TO_ADDRESS_NOT_FOUND
 
       try {
-        await db
+        const newEmail = await db
           .emails()
-          .returning('*')
-          .insert(objectCamelToSnake(incomingEmail))
+          .insert(
+            objectCamelToSnake(incomingEmail),
+            ['id']
+          )
+          .first()
+
+        await db
+          .emailHeaders()
+          .insert(
+            headerMapToArray(headersMap, newEmail.id).map((header) =>
+              objectCamelToSnake(header),
+            ),
+          )
       } catch (err) {
         console.error('error inserting email', err)
       }
@@ -232,9 +239,12 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           notionPageId = notionEmailResp.pageId
         }
       } catch (err) {
+        emailStatus = EmailStatus.RECEIVED_TO_DECO__NOTION_IMPORT_FAILED
         console.error(err)
       }
     } else {
+      emailStatus = EmailStatus.RECEIVED_TO_DECO__FREE_TIER_LIMIT_EXCEEDED
+
       console.warn(
         `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription or has exceeded their free tier limit of ${FREE_TIER_EMAIL_LIMIT} emails in their inbox`,
       )
