@@ -116,16 +116,14 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       incomingEmail.status = EmailStatus.RECEIVED_TO_DECO__TO_ADDRESS_NOT_FOUND
 
       try {
-        const newEmail = await db
+        const [newEmail] = await db
           .emails()
           .insert(
             objectCamelToSnake(incomingEmail),
             ['id']
           )
-          .first()
 
-        await db
-          .emailHeaders()
+        await db.emailHeaders()
           .insert(
             headerMapToArray(headersMap, newEmail.id).map((header) =>
               objectCamelToSnake(header),
