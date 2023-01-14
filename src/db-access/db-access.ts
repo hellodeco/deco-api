@@ -1,8 +1,7 @@
 import dbConnection from '../db-connection'
 import { objectCamelToSnake } from '../utils'
-import { EmailStatus } from '../constants'
 import type { Header } from '../types/shared'
-import { Tables } from '../types/database'
+import { Tables, EmailStatus } from '../types/database'
 import type {
   User,
   NotionDatabase,
