@@ -4,6 +4,7 @@ import {
   parseHeaderString,
   headerMapToArray,
   getFullNameFromEmailToStr,
+  getEmailFromEmailToStr,
 } from './index'
 
 describe('chunkStr', () => {
@@ -142,10 +143,22 @@ describe('headerMapToArray', () => {
   })
 })
 
-describe.only('getFullNameFromEmailToStr', () => {
+describe('getFullNameFromEmailToStr', () => {
   it('returns the full name from an email string', () => {
     const fullName = getFullNameFromEmailToStr('Matt Ehlinger <matt@deco.so>')
 
     expect(fullName).toEqual('Matt Ehlinger')
+  })
+})
+
+describe('getEmailFromEmailToStr', () => {
+  it('returns the email from an email string', () => {
+    let email = getEmailFromEmailToStr('Matt Ehlinger <matt@deco.so>')
+
+    expect(email).toEqual('matt@deco.so')
+
+    email = getEmailFromEmailToStr('Matt Ehlinger <MATT@DECO.SO>')
+
+    expect(email).toEqual('MATT@DECO.SO')
   })
 })

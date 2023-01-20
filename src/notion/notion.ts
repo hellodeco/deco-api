@@ -14,7 +14,7 @@ import { EmailAttachment, NotionDatabaseType } from '../types/database'
 import { convertHTMLToNotionBlocks } from './html-parser'
 import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
-import { chunkArr } from '../utils'
+import { chunkArr, getEmailFromEmailToStr } from '../utils'
 import { getNotionClient } from './getNotionClient'
 
 /**
@@ -73,6 +73,7 @@ import { getNotionClient } from './getNotionClient'
 export interface NewEmail {
   subject: string
   from: string
+  uuid: string
   emailId?: number
   emailThreadId?: number
   plainTextContent: string
@@ -297,7 +298,7 @@ export async function addEmailToNotion({
     NotionDatabaseType.EMAIL,
   )
 
-  const requiredProps = ['From', 'Delivered', 'Email_ID']
+  const requiredProps = ['From', 'Delivered', 'UUID']
 
   const updatePayload: UpdateDatabaseParameters = {
     database_id: notionDatabaseId,
@@ -310,9 +311,9 @@ export async function addEmailToNotion({
         type: 'date',
         date: {},
       },
-      Email_ID: {
-        type: 'number',
-        number: {},
+      UUID: {
+        type: 'rich_text',
+        rich_text: {},
       },
     },
   }
@@ -401,15 +402,22 @@ export async function addEmailToNotion({
           ],
         },
         From: {
-          email: from,
+          email: getEmailFromEmailToStr(from) || '',
         },
         Delivered: {
           date: {
             start: deliveryDateAsISOString,
           },
         },
-        Email_ID: {
-          number: emailId,
+        UUID: {
+          rich_text: [
+            {
+              type: 'text',
+              text: {
+                content: newEmail.uuid,
+              }
+            }
+          ]
         },
       },
       children: [...firstChildChunk],

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
 import { db } from '../db-connection'
-import { EmailStatus } from '../types/database'
+import { DecoDBEmail, EmailStatus } from '../types/database'
 import { addEmailToNotion } from '../notion/notion'
 import { shouldDeliverToNotion } from '../notion/shouldDeliverToNotion'
 import {
@@ -155,7 +155,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
 
     incomingEmail.emailThreadId = newEmailThread?.id
 
-    let newEmail
+    let newEmail: DecoDBEmail
     try {
       const [email] = await db
         .emails()
@@ -213,7 +213,10 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         })
 
         const notionEmailResp = await addEmailToNotion({
-          newEmail: incomingEmail,
+          newEmail: {
+            ...incomingEmail,
+            uuid: newEmail.uuid,
+          },
           userfrontID: emailRecipient.userfrontUserId,
           attachments: preppedFiles,
           notionContactsDatabaseId: notionContactResp?.notionContactsDatabaseId,
