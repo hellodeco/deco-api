@@ -113,3 +113,20 @@ export function getFullNameFromEmailToStr(emailToStr: string): string {
 
   return emailToStr.replace(pattern, '').trim()
 }
+
+/**
+ * Given a string in the form of "First Name <name@domain.com>", returns just the
+ * the email portion of the string.
+ *
+ * For example, given "Jackery Sellwood <jack@deco.so>", this will return "jack@deco.so"
+ */
+export function getEmailFromEmailToStr(emailToStr: string): string {
+  /**
+   * Note that this regex does not include the "g" flag, which means that it will always
+   * stop at the first match found. If we want to return an array of all matches in the future,
+   * the "g" flag simply needs to be added.
+   */
+  const match = emailToStr.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/i);
+
+  return match[0] ? match[0] : null
+}
