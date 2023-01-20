@@ -25,6 +25,7 @@ export interface DecoDBEmail {
   subject: string
   plainTextContent: string
   from: string
+  uuid: string
   userId?: number
   emailThreadId?: number
   htmlContent?: string
