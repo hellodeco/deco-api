@@ -65,6 +65,7 @@ async function gentlyPlaceEmailIntoNotion(email: DecoDBEmail) {
       plainTextContent: email.plainTextContent,
       htmlContent: email.htmlContent,
       createdAt: email.createdAt,
+      uuid: email.uuid,
     },
     userfrontID,
     attachments,
