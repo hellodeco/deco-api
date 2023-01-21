@@ -1,5 +1,6 @@
 import path from 'path'
 import fs from 'fs'
+import { v4 as uuidv4 } from 'uuid'
 import { addEmailToNotion } from '../notion/notion'
 import { getNotionClient } from '../notion/getNotionClient'
 
@@ -42,6 +43,7 @@ async function test() {
     plainTextContent: 'This is a test email',
     htmlContent,
     createdAt: new Date().toISOString(),
+    uuid: uuidv4(),
   }
 
   console.log('adding email to notion...')
