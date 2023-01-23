@@ -7,7 +7,18 @@ import 'dotenv/config'
 import { NotionDatabaseType } from '../types/database'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr } from '../utils'
-import { getNotionDatabaseId, NewReply } from './notion';
+import { getNotionDatabaseId } from './notion';
+
+export interface NewReply {
+   subject: string
+   to: string
+   from: string
+   uuid: string
+   inReplyTo: string
+   emailThreadId: number
+   plainTextContent: string
+   createdAt: string
+ }
 
 export async function addReplyEmailToNotion({
    newReply,
@@ -18,7 +29,6 @@ export async function addReplyEmailToNotion({
    userfrontID: string
    notionClient: Client
  }): Promise<{ pageId: string; notionEmailDatabaseId: string } | null> {
-
    const notionDatabaseId = await getNotionDatabaseId(
      userfrontID,
      NotionDatabaseType.EMAIL,
@@ -73,7 +83,7 @@ export async function addReplyEmailToNotion({
    if (!containsAll) {
      await notionClient.databases.update(updatePayload)
    }
-   console.log(newReply, 'NEW REPLY');
+
    const { to, subject, from, inReplyTo } = newReply
    let { plainTextContent } = newReply
 
