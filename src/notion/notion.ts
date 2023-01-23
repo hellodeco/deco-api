@@ -81,6 +81,17 @@ export interface NewEmail {
   createdAt: string
 }
 
+export interface NewReply {
+   subject: string
+   to: string
+   from: string
+   uuid: string
+   inReplyTo: string
+   emailThreadId: number
+   plainTextContent: string
+   createdAt: string
+ }
+
 export async function getSharedNotionDatabases(userfrontID: string) {
   try {
     const notion = await getNotionClient(userfrontID)
