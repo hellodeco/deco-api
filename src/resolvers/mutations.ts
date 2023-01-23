@@ -241,18 +241,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
   },
 
   createEmailReplyPage: async (_, { originalEmailUUID, replyEmailUUID }, { dbAccess, db, user: { userfrontID } }) => {
-   // export interface NewEmail {
-   //    subject: string
-   //    from: string
-   //    uuid: string
-   //    emailId?: number
-   //    emailThreadId?: number
-   //    plainTextContent: string
-   //    htmlContent?: string
-   //    createdAt: string
-   //  }
-
-
    const notionClient = await getNotionClient(
       userfrontID,
    )
