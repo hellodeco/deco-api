@@ -146,7 +146,23 @@ export async function addReplyEmailToNotion({
            ]
          },
        },
-       children: [...firstChildChunk],
+       children: [{
+        "type": "callout",
+        "callout": {
+         "rich_text": [{
+           "type": "text",
+           "text": {
+             "content": "Send this email",
+             // TODO - replace with correct URL for sending once we build it
+             "link": { "url": "https://google.com"}
+           },
+          }],
+          "icon": {
+            "emoji": "▶️"
+          },
+          "color": "default"
+        }
+     }],
      }
 
      pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
