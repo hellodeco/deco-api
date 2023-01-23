@@ -4,11 +4,16 @@ import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
 } from '../generated/resolvers-types'
-import { createUser, getUserBySignupEmail } from './../db-access/db-access'
+import { createUser, getUserBySignupEmail, getEmailByUUID, getUserByUserfrontID } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 import { NotionDatabaseType } from '../types/database'
 import { objectCamelToSnake } from '../utils'
+import { addEmailToNotion } from '../notion/notion'
+import { getNotionClient } from '../notion/getNotionClient'
+import {
+  addContactToNotion,
+} from '../notion/addContactToNotion'
 import Userfront from '@userfront/core'
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
@@ -168,7 +173,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       /**
        * determine if this integration already has a notion_database with notion_database_id === databaseId
        * set as another type.
-       * 
+       *
        * for example: if this is attempting to set an "EMAIL" database, check if the user's
        * integration already has this database set as a "CONTACTS" database.
        * if it does, then we want to abort the operation
@@ -236,5 +241,47 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       console.error(err)
       return false
     }
+  },
+
+  createEmailReplyPage: async (_, { originalEmailUUID, replyEmailUUID }, { dbAccess, db, user: { userfrontID } }) => {
+   // export interface NewEmail {
+   //    subject: string
+   //    from: string
+   //    uuid: string
+   //    emailId?: number
+   //    emailThreadId?: number
+   //    plainTextContent: string
+   //    htmlContent?: string
+   //    createdAt: string
+   //  }
+
+
+   const notionClient = await getNotionClient(
+      userfrontID,
+   )
+
+   const user = await getUserByUserfrontID(userfrontID);
+
+   const originalEmail = await getEmailByUUID(originalEmailUUID);
+   console.log(originalEmail);
+   const replyEmail = {
+      subject: `RE: ${originalEmail.subject}`,
+      from: user.emailAddress,
+      uuid: replyEmailUUID,
+      emailThreadId: originalEmail.emailThreadId,
+      plainTextContent: '',
+      createdAt: new Date().toISOString(),
+   }
+
+    const notionEmailResp = await addEmailToNotion({
+      newEmail: replyEmail,
+
+      userfrontID: userfrontID,
+      notionClient,
+    })
+
+
+
+    return true;
   },
 }

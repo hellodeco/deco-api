@@ -113,4 +113,5 @@ type Mutation {
     email: String
     password: String
   ): CreateUserfrontAndDecoUserResult
+  createEmailReplyPage(originalEmailUUID: String, replyEmailUUID: String): Boolean
 }
