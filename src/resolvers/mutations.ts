@@ -248,32 +248,35 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
   createEmailReplyPage: async (
     _,
     { originalEmailUUID, replyEmailUUID },
-    { dbAccess, db, user: { userfrontID } },
+    { user: { userfrontID } },
   ) => {
-    const notionClient = await getNotionClient(userfrontID)
+    try {
+      const notionClient = await getNotionClient(userfrontID)
 
-    const user = await getUserByUserfrontID(userfrontID)
+      const user = await getUserByUserfrontID(userfrontID)
 
-    const originalEmail: DecoDBEmail = await getEmailByUUID(originalEmailUUID)
+      const originalEmail: DecoDBEmail = await getEmailByUUID(originalEmailUUID)
 
-    const replyEmail = {
-      subject: `RE: ${originalEmail.subject}`,
-      to: originalEmail.from,
-      from: user.emailAddress,
-      uuid: replyEmailUUID,
-      inReplyTo: originalEmail.notionPageId,
-      emailThreadId: originalEmail.emailThreadId,
-      plainTextContent: '',
-      createdAt: new Date().toISOString(),
+      const replyEmail = {
+        subject: `RE: ${originalEmail.subject}`,
+        to: originalEmail.from,
+        from: user.emailAddress,
+        uuid: replyEmailUUID,
+        inReplyTo: originalEmail.notionPageId,
+        emailThreadId: originalEmail.emailThreadId,
+        plainTextContent: '',
+        createdAt: new Date().toISOString(),
+      }
+
+      const notionEmailResp = await addReplyEmailToNotion({
+        newReply: replyEmail,
+        userfrontID: userfrontID,
+        notionClient,
+      })
+
+      return notionEmailResp
+    } catch (err) {
+      return { pageId: '', notionEmailDatabaseId: '' }
     }
-
-    const notionEmailResp = await addReplyEmailToNotion({
-      newReply: replyEmail,
-
-      userfrontID: userfrontID,
-      notionClient,
-    })
-
-    return true
   },
 }

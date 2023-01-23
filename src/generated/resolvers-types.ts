@@ -37,7 +37,7 @@ export type Email = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  createEmailReplyPage?: Maybe<Scalars['Boolean']>;
+  createEmailReplyPage?: Maybe<NotionEmailCreatedResponse>;
   createUserfrontAndDecoUser?: Maybe<CreateUserfrontAndDecoUserResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
@@ -88,6 +88,12 @@ export enum NotionDatabaseType {
   Contacts = 'CONTACTS',
   Email = 'EMAIL'
 }
+
+export type NotionEmailCreatedResponse = {
+  __typename?: 'NotionEmailCreatedResponse';
+  notionEmailDatabaseId?: Maybe<Scalars['String']>;
+  pageId?: Maybe<Scalars['String']>;
+};
 
 export type NotionFile = {
   __typename?: 'NotionFile';
@@ -248,6 +254,7 @@ export type ResolversTypes = ResolversObject<{
   NotionDatabaseInfo: ResolverTypeWrapper<NotionDatabaseInfo>;
   NotionDatabaseStatus: NotionDatabaseStatus;
   NotionDatabaseType: NotionDatabaseType;
+  NotionEmailCreatedResponse: ResolverTypeWrapper<NotionEmailCreatedResponse>;
   NotionFile: ResolverTypeWrapper<NotionFile>;
   NotionIcon: ResolverTypeWrapper<NotionIcon>;
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
@@ -269,6 +276,7 @@ export type ResolversParentTypes = ResolversObject<{
   Int: Scalars['Int'];
   Mutation: {};
   NotionDatabaseInfo: NotionDatabaseInfo;
+  NotionEmailCreatedResponse: NotionEmailCreatedResponse;
   NotionFile: NotionFile;
   NotionIcon: NotionIcon;
   NotionIntegration: NotionIntegration;
@@ -293,7 +301,7 @@ export type CreateUserfrontAndDecoUserResultResolvers<ContextType = any, ParentT
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  createEmailReplyPage?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationCreateEmailReplyPageArgs>>;
+  createEmailReplyPage?: Resolver<Maybe<ResolversTypes['NotionEmailCreatedResponse']>, ParentType, ContextType, Partial<MutationCreateEmailReplyPageArgs>>;
   createUserfrontAndDecoUser?: Resolver<Maybe<ResolversTypes['CreateUserfrontAndDecoUserResult']>, ParentType, ContextType, Partial<MutationCreateUserfrontAndDecoUserArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -308,6 +316,12 @@ export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends Re
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['NotionDatabaseType']>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NotionEmailCreatedResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionEmailCreatedResponse'] = ResolversParentTypes['NotionEmailCreatedResponse']> = ResolversObject<{
+  notionEmailDatabaseId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  pageId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -381,6 +395,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   CreateUserfrontAndDecoUserResult?: CreateUserfrontAndDecoUserResultResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   NotionDatabaseInfo?: NotionDatabaseInfoResolvers<ContextType>;
+  NotionEmailCreatedResponse?: NotionEmailCreatedResponseResolvers<ContextType>;
   NotionFile?: NotionFileResolvers<ContextType>;
   NotionIcon?: NotionIconResolvers<ContextType>;
   NotionIntegration?: NotionIntegrationResolvers<ContextType>;

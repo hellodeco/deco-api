@@ -91,6 +91,11 @@ type NotionPage {
   icon: NotionIcon
 }
 
+type NotionEmailCreatedResponse {
+  pageId: String
+  notionEmailDatabaseId: String
+}
+
 type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
@@ -113,5 +118,8 @@ type Mutation {
     email: String
     password: String
   ): CreateUserfrontAndDecoUserResult
-  createEmailReplyPage(originalEmailUUID: String, replyEmailUUID: String): Boolean
+  createEmailReplyPage(
+    originalEmailUUID: String
+    replyEmailUUID: String
+  ): NotionEmailCreatedResponse
 }
