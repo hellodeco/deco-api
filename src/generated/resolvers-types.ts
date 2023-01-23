@@ -37,12 +37,19 @@ export type Email = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createEmailReplyPage?: Maybe<Scalars['Boolean']>;
   createUserfrontAndDecoUser?: Maybe<CreateUserfrontAndDecoUserResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
   selectNotionDatabase?: Maybe<Scalars['Boolean']>;
   setDecoEmail?: Maybe<UpdateDecoEmailResult>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
+};
+
+
+export type MutationCreateEmailReplyPageArgs = {
+  originalEmailUUID?: InputMaybe<Scalars['String']>;
+  replyEmailUUID?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -286,6 +293,7 @@ export type CreateUserfrontAndDecoUserResultResolvers<ContextType = any, ParentT
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  createEmailReplyPage?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, Partial<MutationCreateEmailReplyPageArgs>>;
   createUserfrontAndDecoUser?: Resolver<Maybe<ResolversTypes['CreateUserfrontAndDecoUserResult']>, ParentType, ContextType, Partial<MutationCreateUserfrontAndDecoUserArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;

@@ -23,6 +23,12 @@ const isDecoFrontend = rule({ cache: 'contextual' })(
   },
 )
 
+const open = rule()(
+   (_, args, ctx: ResolverContext) => {
+     return true
+   },
+ )
+
 const permissions = shield(
   {
     Query: {
@@ -41,6 +47,7 @@ const permissions = shield(
       setDecoEmail: isAuthenticated,
       createUserfrontAndDecoUser: isDecoFrontend,
       selectNotionDatabase: isAuthenticated,
+      createEmailReplyPage: open,
     },
   },
   {
