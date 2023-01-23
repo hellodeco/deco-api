@@ -1,5 +1,5 @@
 import { isArray } from 'lodash'
-import { EMAIL_DOMAIN, FRONTEND_BASE_URL, IS_LOCAL } from '../constants'
+import { EMAIL_DOMAIN } from '../constants'
 import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
@@ -7,13 +7,10 @@ import {
 import { createUser, getUserBySignupEmail, getEmailByUUID, getUserByUserfrontID } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
-import { NotionDatabaseType } from '../types/database'
+import { NotionDatabaseType, DecoDBEmail } from '../types/database'
 import { objectCamelToSnake } from '../utils'
-import { addEmailToNotion } from '../notion/notion'
+import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
-import {
-  addContactToNotion,
-} from '../notion/addContactToNotion'
 import Userfront from '@userfront/core'
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
@@ -262,25 +259,25 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
    const user = await getUserByUserfrontID(userfrontID);
 
-   const originalEmail = await getEmailByUUID(originalEmailUUID);
-   console.log(originalEmail);
-   const replyEmail = {
-      subject: `RE: ${originalEmail.subject}`,
-      from: user.emailAddress,
-      uuid: replyEmailUUID,
-      emailThreadId: originalEmail.emailThreadId,
-      plainTextContent: '',
-      createdAt: new Date().toISOString(),
-   }
+   const originalEmail: DecoDBEmail = await getEmailByUUID(originalEmailUUID);
 
-    const notionEmailResp = await addEmailToNotion({
-      newEmail: replyEmail,
+      const replyEmail = {
+         subject: `RE: ${originalEmail.subject}`,
+         to: originalEmail.from,
+         from: user.emailAddress,
+         uuid: replyEmailUUID,
+         inReplyTo: originalEmail.notionPageId,
+         emailThreadId: originalEmail.emailThreadId,
+         plainTextContent: '',
+         createdAt: new Date().toISOString(),
+      }
 
-      userfrontID: userfrontID,
-      notionClient,
-    })
+      const notionEmailResp = await addReplyEmailToNotion({
+        newReply: replyEmail,
 
-
+        userfrontID: userfrontID,
+        notionClient,
+      })
 
     return true;
   },

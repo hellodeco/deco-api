@@ -1,32 +1,21 @@
 import { Client } from '@notionhq/client'
 import type {
-  GetDatabaseResponse,
-  GetPageResponse,
-} from '@notionhq/client/build/src/api-endpoints'
-import type {
   UpdateDatabaseParameters,
   CreatePageParameters,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
-import { db } from '../db-connection'
-import type { NotionIntegration } from '../types/database'
-import { EmailAttachment, NotionDatabaseType } from '../types/database'
-import { convertHTMLToNotionBlocks } from './html-parser'
-import { createAttachmentBlocks } from './createAttachmentBlocks'
+import { NotionDatabaseType } from '../types/database'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr } from '../utils'
-import { getNotionClient } from './getNotionClient'
-import { getNotionDatabaseId, NewEmail } from './notion';
+import { getNotionDatabaseId, NewReply } from './notion';
 
 export async function addReplyEmailToNotion({
-   newEmail,
+   newReply,
    userfrontID,
-   originalEmailPageId,
    notionClient,
  }: {
-   newEmail: NewEmail
+   newReply: NewReply
    userfrontID: string
-   originalEmailPageId,
    notionClient: Client
  }): Promise<{ pageId: string; notionEmailDatabaseId: string } | null> {
 
@@ -84,11 +73,11 @@ export async function addReplyEmailToNotion({
    if (!containsAll) {
      await notionClient.databases.update(updatePayload)
    }
+   console.log(newReply, 'NEW REPLY');
+   const { to, subject, from, inReplyTo } = newReply
+   let { plainTextContent } = newReply
 
-   const { subject, from } = newEmail
-   let { plainTextContent } = newEmail
-
-   const deliveryDate = new Date(newEmail.createdAt)
+   const deliveryDate = new Date(newReply.createdAt)
    const deliveryDateAsISOString = deliveryDate.toISOString()
 
    if (!plainTextContent) {
@@ -104,6 +93,7 @@ export async function addReplyEmailToNotion({
    const [firstChildChunk, ...childChunks] = chunkArr(createPlainTextBlocks(plainTextContent), 100)
 
    let pageCreateResp
+
    try {
      const createEmailPagePayload: CreatePageParameters = {
        parent: { database_id: notionDatabaseId },
@@ -117,8 +107,18 @@ export async function addReplyEmailToNotion({
              },
            ],
          },
+         To: {
+            email: getEmailFromEmailToStr(to) || '',
+         },
          From: {
            email: getEmailFromEmailToStr(from) || '',
+         },
+         InReplyTo: {
+            relation: [
+               {
+                 id: inReplyTo,
+               },
+             ],
          },
          Delivered: {
            date: {
@@ -130,7 +130,7 @@ export async function addReplyEmailToNotion({
              {
                type: 'text',
                text: {
-                 content: newEmail.uuid,
+                 content: newReply.uuid,
                }
              }
            ]
