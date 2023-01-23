@@ -415,9 +415,9 @@ export async function addEmailToNotion({
               type: 'text',
               text: {
                 content: newEmail.uuid,
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
       },
       children: [...firstChildChunk],
