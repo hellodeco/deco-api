@@ -8,6 +8,7 @@ import type {
   CreatePageParameters,
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
+import { DateTime } from 'luxon'
 import { db } from '../db-connection'
 import type { NotionIntegration } from '../types/database'
 import { EmailAttachment, NotionDatabaseType } from '../types/database'
@@ -352,8 +353,11 @@ export async function addEmailToNotion({
   const { subject, from, emailId } = newEmail
   let { plainTextContent } = newEmail
 
-  const deliveryDate = new Date(newEmail.createdAt)
-  const deliveryDateAsISOString = deliveryDate.toISOString()
+  const deliveryDateAsISOString = DateTime.fromJSDate(new Date(newEmail.createdAt)).toISO({ extendedZone: true })
+  console.log(deliveryDateAsISOString)
+
+  // const deliveryDate = new Date(newEmail.createdAt)
+  // const deliveryDateAsISOString = deliveryDate.toISOString()
 
   const attachmentBlocks = await createAttachmentBlocks(attachments)
 

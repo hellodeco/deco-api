@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { isArray } from 'lodash'
+import { DateTime } from 'luxon'
 import { db } from '../db-connection'
 import { DecoDBEmail, EmailStatus } from '../types/database'
 import { addEmailToNotion } from '../notion/notion'
@@ -66,6 +67,21 @@ export async function emailReceiveHandler(req: Request, res: Response) {
   const references = headersMap['references']
   const messageID = headersMap['message-id']
 
+
+  const dateHeader = headersMap['date']?.[0]
+  let sentDate = null
+
+  if (dateHeader) {
+    sentDate = DateTime.fromJSDate(new Date(dateHeader))
+  } else {
+    sentDate = DateTime.now()
+  }
+
+  const sentDateTimeStr = sentDate.toISO()
+
+  console.log(sentDateTimeStr)
+
+
   let envelope = { to: [], from: '' }
   try {
     envelope = JSON.parse(envelopeStr)
@@ -97,7 +113,8 @@ export async function emailReceiveHandler(req: Request, res: Response) {
       from,
       plainTextContent: text,
       htmlContent: html,
-      createdAt: new Date().toISOString(),
+      // createdAt: new Date().toISOString(),
+      createdAt: sentDateTimeStr,
     }
 
     if (references) {
