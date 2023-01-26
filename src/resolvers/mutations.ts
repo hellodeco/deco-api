@@ -258,6 +258,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       const originalEmail = await db.emails()
         .where('uuid', originalEmailUUID)
+        .andWhere('user_id', user.id)
         .select('*')
         .first()
 
@@ -277,8 +278,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         userfrontID: userfrontID,
         notionClient,
       })
-
-      console.log('notionEmailResp: ', notionEmailResp)
 
       return notionEmailResp
     } catch (err) {
