@@ -245,7 +245,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
   createEmailReplyPage: async (
     _,
-    { originalEmailUUID, replyEmailUUID },
+    { originalEmailUUID },
     { user: { userfrontID }, db },
   ) => {
     try {
@@ -266,7 +266,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         subject: `RE: ${originalEmail.subject}`,
         to: originalEmail.from,
         from: user.emailAddress,
-        uuid: replyEmailUUID,
         inReplyTo: originalEmail.notionPageId,
         emailThreadId: originalEmail.emailThreadId,
         plainTextContent: '',
