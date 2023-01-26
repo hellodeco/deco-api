@@ -7,8 +7,6 @@ import {
 import {
   createUser,
   getUserBySignupEmail,
-  getEmailByUUID,
-  getUserByUserfrontID,
 } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
@@ -248,14 +246,20 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
   createEmailReplyPage: async (
     _,
     { originalEmailUUID, replyEmailUUID },
-    { user: { userfrontID } },
+    { user: { userfrontID }, db },
   ) => {
     try {
       const notionClient = await getNotionClient(userfrontID)
 
-      const user = await getUserByUserfrontID(userfrontID)
+      const user = await db.users()
+        .where('userfront_user_id', userfrontID)
+        .select('*')
+        .first()
 
-      const originalEmail: DecoDBEmail = await getEmailByUUID(originalEmailUUID)
+      const originalEmail = await db.emails()
+        .where('uuid', originalEmailUUID)
+        .select('*')
+        .first()
 
       const replyEmail = {
         subject: `RE: ${originalEmail.subject}`,
@@ -273,6 +277,8 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         userfrontID: userfrontID,
         notionClient,
       })
+
+      console.log('notionEmailResp: ', notionEmailResp)
 
       return notionEmailResp
     } catch (err) {

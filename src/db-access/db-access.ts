@@ -100,13 +100,6 @@ export function getEmailByMessageID(messageID: string) {
     .first()
 }
 
-export function getEmailByUUID(emailUUID: string) {
-   return dbConnection('emails')
-     .where('uuid', emailUUID)
-     .select('*')
-     .first()
- }
-
 export function getEmailThreadByID(threadID: string) {
   return dbConnection('email_threads').where('id', threadID).select('*').first()
 }
