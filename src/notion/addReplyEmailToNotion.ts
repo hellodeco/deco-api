@@ -29,7 +29,7 @@ export async function addReplyEmailToNotion({
   newReply: NewReply
   userfrontID: string
   notionClient: Client
-}): Promise<{ pageId: string; notionEmailDatabaseId: string } | null> {
+}): Promise<{ pageId: string; notionEmailDatabaseId: string; notionPageUrl: string } | null> {
   try {
     const existingSubscription = await getSubscriptionByUserfrontUserId(
       userfrontID,
@@ -187,7 +187,7 @@ export async function addReplyEmailToNotion({
 
       pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
 
-      const { status } = pageCreateResp
+      const { status, url } = pageCreateResp
 
       if (status === 429) {
         console.warn(
@@ -217,7 +217,7 @@ export async function addReplyEmailToNotion({
         })
       }
 
-      return { pageId, notionEmailDatabaseId: notionDatabaseId }
+      return { pageId, notionEmailDatabaseId: notionDatabaseId, notionPageUrl: url }
     } catch (err) {
       console.error('error adding page to notion', err)
     }

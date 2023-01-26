@@ -282,7 +282,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       return notionEmailResp
     } catch (err) {
-      return { pageId: '', notionEmailDatabaseId: '' }
+      return { pageId: '', notionEmailDatabaseId: '', notionPageUrl: '' }
     }
   },
 }
