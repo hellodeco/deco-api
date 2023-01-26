@@ -49,7 +49,6 @@ export type Mutation = {
 
 export type MutationCreateEmailReplyPageArgs = {
   originalEmailUUID?: InputMaybe<Scalars['String']>;
-  replyEmailUUID?: InputMaybe<Scalars['String']>;
 };
 
 

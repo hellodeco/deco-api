@@ -121,6 +121,5 @@ type Mutation {
   ): CreateUserfrontAndDecoUserResult
   createEmailReplyPage(
     originalEmailUUID: String
-    replyEmailUUID: String
   ): NotionEmailCreatedResponse
 }

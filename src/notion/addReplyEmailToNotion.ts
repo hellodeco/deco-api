@@ -14,7 +14,6 @@ export interface NewReply {
   subject: string
   to: string
   from: string
-  uuid: string
   inReplyTo: string
   emailThreadId: number
   plainTextContent: string
@@ -150,16 +149,6 @@ export async function addReplyEmailToNotion({
             date: {
               start: deliveryDateAsISOString,
             },
-          },
-          UUID: {
-            rich_text: [
-              {
-                type: 'text',
-                text: {
-                  content: newReply.uuid,
-                },
-              },
-            ],
           },
         },
         children: [
