@@ -1,5 +1,7 @@
 import { isArray } from 'lodash'
-import { EMAIL_DOMAIN } from '../constants'
+import Userfront, { user } from '@userfront/core'
+import sendgrid from '@sendgrid/mail'
+import { EMAIL_DOMAIN, SENDGRID_API_KEY } from '../constants'
 import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
@@ -14,7 +16,10 @@ import { NotionDatabaseType, DecoDBEmail } from '../types/database'
 import { objectCamelToSnake } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
-import Userfront from '@userfront/core'
+import { getNotionPageContent } from '../notion/getNotionPageContent'
+
+
+sendgrid.setApiKey(SENDGRID_API_KEY)
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
   wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
@@ -280,7 +285,88 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       return notionEmailResp
     } catch (err) {
+      console.error('error creating email reply page: ', err)
       return { pageId: '', notionEmailDatabaseId: '', notionPageUrl: '' }
     }
   },
+
+  sendEmailReply: async (
+    _,
+    { notionPageId, originalEmailUUID },
+    { db, user: { userfrontID } },
+  ) => {
+    try {
+      const user = await db.users()
+        .where('userfront_user_id', userfrontID)
+        .select('*')
+        .first()
+      
+      const originalEmail = await db.emails()
+        .where('uuid', originalEmailUUID)
+        .andWhere('user_id', user.id)
+        .select('*')
+        .first()
+
+
+      const { pageMetadata, plainText } = await getNotionPageContent({
+        userfrontId: userfrontID,
+        notionPageId,
+      })
+
+      // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
+      // @ts-ignore
+      const to = pageMetadata.properties.To.email.split(',').map((email) => email.trim())
+
+      // @ts-ignore
+      const subject = pageMetadata.properties.Name.title.map((title) => title.plain_text).join('')
+
+      const sendGridResp = await sendgrid.send({
+        to,
+        subject,
+        from: user.emailAddress,
+        text: plainText,
+        // TODO convert notion blocks to HTML and send it
+        // html: '',
+        headers: {
+          'In-Reply-To': originalEmail.messageId,
+          'References': originalEmail.messageId,
+        },
+      })
+
+      // this is an array that sometimes contains empty strings for some reason
+      const [sendGridData] = sendGridResp.filter(Boolean)
+
+      console.log('sendgrid response: ', sendGridData)
+
+      const [replyEmail] = await db.emails()
+        .insert(
+          objectCamelToSnake({
+            subject,
+            notionPageId,
+            plainTextContent: plainText,
+            from: user.emailAddress,
+            // TODO we do not have a "to" field currently and should add this to the email table
+            // to: '',
+            userId: user.id,
+            // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
+            status: 'FAKE_STATUS',
+            // @ts-ignore
+            messageId: sendGridData.headers['x-message-id'],
+            inReplyTo: originalEmail.messageId,
+            references: originalEmail.messageId,
+          })
+        )
+        .returning('*')
+
+      console.log('reply email: ', replyEmail)
+      
+      // @ts-ignore beacuse there is most definitely a url on this object
+      const notionPageUrl = pageMetadata.url
+    
+      return { notionPageUrl }
+    } catch (err) {
+      console.error('error sending email reply: ', err)
+      return { notionPageUrl: '' }
+    }
+  }
 }
