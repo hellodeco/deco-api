@@ -46,6 +46,7 @@ export async function addReplyEmailToNotion({
       NotionDatabaseType.EMAIL,
     )
 
+    // TODO rename InReplyTo to In_Reply_To from consistency with the other property names we add.
     const requiredProps = ['To', 'From', 'InReplyTo', 'Delivered', 'UUID']
 
     const updatePayload: UpdateDatabaseParameters = {

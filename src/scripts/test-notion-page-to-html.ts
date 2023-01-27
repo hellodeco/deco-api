@@ -1,4 +1,4 @@
-import { getNotionPageContent } from '../notion/convertNotionPageToHtml'
+import { getNotionPageContent } from '../notion/getNotionPageContent'
 
 /**
  * * Need to account for possibly nested chilren as noted in the warning here:
