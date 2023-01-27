@@ -19,12 +19,23 @@ export async function getNotionPageContent({
 }) {
   const notionClient = await getNotionClient(userfrontId)
 
+  const pageMetadata = await notionClient.pages.retrieve({
+    page_id: notionPageId,
+  })
+
+  /**
+   * TODO filter out the "Send this email" link that we auto add to the Notion page
+   */
+
   const blocks = await buildChildTree({
     blockId: notionPageId,
     notionClient,
   })
 
-  return blocksToPlainText({ blocks })
+  return {
+    pageMetadata,
+    plainText: blocksToPlainText({ blocks }),
+  }
 }
 
 /**

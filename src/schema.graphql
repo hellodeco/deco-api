@@ -97,6 +97,10 @@ type NotionEmailCreatedResponse {
   notionPageUrl: String
 }
 
+type SendEmailReplyResponse {
+  notionPageUrl: String
+}
+
 type Query {
   currentUser: User
   getCurrentUserNotionIntegration: NotionIntegration
@@ -122,4 +126,8 @@ type Mutation {
   createEmailReplyPage(
     originalEmailUUID: String
   ): NotionEmailCreatedResponse
+  sendEmailReply(
+    notionPageId: String
+    originalEmailUUID: String
+  ): SendEmailReplyResponse
 }
