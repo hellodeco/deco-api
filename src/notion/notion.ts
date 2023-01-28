@@ -16,6 +16,7 @@ import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr } from '../utils'
 import { getNotionClient } from './getNotionClient'
+import{ REPLY_FEATURE_ENABLED } from '../constants'
 
 /**
  * Notion formatting setup order of operations:
@@ -377,7 +378,31 @@ export async function addEmailToNotion({
     emailBodyBlocks = createPlainTextBlocks(plainTextContent)
   }
 
-  const children = [...attachmentBlocks, ...emailBodyBlocks]
+  const replySectionBlocks = []
+
+  if (REPLY_FEATURE_ENABLED) {
+    replySectionBlocks.push({
+      type: 'callout',
+      callout: {
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: 'Reply to this email',
+              // TODO - replace with correct URL for sending once we build it
+              link: { url: 'https://google.com' },
+            },
+          },
+        ],
+        icon: {
+          emoji: '📧',
+        },
+        color: 'default',
+      }
+    })
+  }
+
+  const children = [...attachmentBlocks, ...replySectionBlocks, ...emailBodyBlocks]
 
   /**
    * The Notion API limits children passed to the create page endpoint to 100.

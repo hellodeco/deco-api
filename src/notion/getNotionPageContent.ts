@@ -12,13 +12,11 @@ type NotionBlock = (BlockObjectResponse | PartialBlockObjectResponse) & {
 
 export async function getNotionPageContent({
   notionPageId,
-  userfrontId,
+  notionClient,
 }: {
   notionPageId: string
-  userfrontId: string
+  notionClient: Client
 }) {
-  const notionClient = await getNotionClient(userfrontId)
-
   const pageMetadata = await notionClient.pages.retrieve({
     page_id: notionPageId,
   })
@@ -56,7 +54,7 @@ async function buildChildTree({
     let startCursor
     let hasMore = true
 
-    // get all child blocks, making multiple calls to the notion api if necessary
+    // get all child blocks within the current level, making multiple calls to the notion api if necessary
     while (hasMore) {
       const resp = await notionClient.blocks.children.list({
         block_id: blockId,
@@ -73,6 +71,22 @@ async function buildChildTree({
       'Error querying for notion blocks while converting notion page to html.',
       err,
     )
+  }
+
+  // filter out the send link that we include in the Notion reply page.
+  if (level === 0) {
+    blocks = blocks.filter((block) => {
+      const { type } = block
+      if (type === 'callout') {
+        // TODO update this regex to match the path used on the "send this email" link.
+        return !block[type]?.rich_text?.some(({ href }: { href: string }) => {
+          const regex = /^https:\/\/google.com$/
+          return regex.test(href)
+        })
+      }
+
+      return true
+    })
   }
 
   for (let block of blocks) {

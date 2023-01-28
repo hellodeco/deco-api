@@ -12,7 +12,7 @@ import {
 } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
-import { NotionDatabaseType, DecoDBEmail } from '../types/database'
+import { NotionDatabaseType, DecoDBEmail, EmailStatus } from '../types/database'
 import { objectCamelToSnake } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
@@ -295,7 +295,16 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     { notionPageId, originalEmailUUID },
     { db, user: { userfrontID } },
   ) => {
+    /**
+     * TODO 💅 polish 💅
+     *  - should we append a "reply success message" the "reply button" in notion if this succeeds?
+     *  - should we add a new email to our db for each "to" address?
+     *  - update the email status to EmailStatus.REPLY_SENT__FAILED if something goes wrong
+     */
+
     try {
+      const notionClient = await getNotionClient(userfrontID)
+
       const user = await db.users()
         .where('userfront_user_id', userfrontID)
         .select('*')
@@ -307,26 +316,27 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         .select('*')
         .first()
 
+      if ( !originalEmail ) {
+        return { notionPageUrl: '' }
+      }
 
       const { pageMetadata, plainText } = await getNotionPageContent({
-        userfrontId: userfrontID,
+        notionClient,
         notionPageId,
       })
 
       // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
       // @ts-ignore
-      const to = pageMetadata.properties.To.email.split(',').map((email) => email.trim())
+      const to = pageMetadata?.properties?.To?.email?.split(',').map((email) => email.trim())
 
       // @ts-ignore
-      const subject = pageMetadata.properties.Name.title.map((title) => title.plain_text).join('')
+      const subject = pageMetadata?.properties?.Name?.title?.map((title) => title.plain_text).join('')
 
       const sendGridResp = await sendgrid.send({
         to,
         subject,
         from: user.emailAddress,
         text: plainText,
-        // TODO convert notion blocks to HTML and send it
-        // html: '',
         headers: {
           'In-Reply-To': originalEmail.messageId,
           'References': originalEmail.messageId,
@@ -335,8 +345,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       // this is an array that sometimes contains empty strings for some reason
       const [sendGridData] = sendGridResp.filter(Boolean)
-
-      console.log('sendgrid response: ', sendGridData)
 
       const [replyEmail] = await db.emails()
         .insert(
@@ -349,7 +357,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
             // to: '',
             userId: user.id,
             // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
-            status: 'FAKE_STATUS',
+            status: EmailStatus.REPLY_SENT__SUCCEEDED,
             // @ts-ignore
             messageId: sendGridData.headers['x-message-id'],
             inReplyTo: originalEmail.messageId,
@@ -358,8 +366,24 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         )
         .returning('*')
 
-      console.log('reply email: ', replyEmail)
-      
+
+      // TODO validate that the UUID property exists on the database
+      await notionClient.pages.update({
+        page_id: notionPageId,
+        properties: {
+          UUID: {
+            rich_text: [
+              {
+                type: 'text',
+                text: {
+                  content: replyEmail.uuid,
+                },
+              },
+            ],
+          },
+        }
+      })
+
       // @ts-ignore beacuse there is most definitely a url on this object
       const notionPageUrl = pageMetadata.url
     
