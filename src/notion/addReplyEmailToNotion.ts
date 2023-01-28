@@ -9,6 +9,7 @@ import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr } from '../utils'
 import { getNotionDatabaseId } from './notion'
 import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
+import { FRONTEND_BASE_URL } from '../constants'
 
 export interface NewReply {
   subject: string
@@ -23,10 +24,12 @@ export interface NewReply {
 export async function addReplyEmailToNotion({
   newReply,
   userfrontID,
+  originalEmailUUID,
   notionClient,
 }: {
   newReply: NewReply
   userfrontID: string
+  originalEmailUUID: string
   notionClient: Client
 }): Promise<{ pageId: string; notionEmailDatabaseId: string; notionPageUrl: string } | null> {
   try {
@@ -98,14 +101,14 @@ export async function addReplyEmailToNotion({
     }
 
     const { to, subject, from, inReplyTo } = newReply
-    let { plainTextContent } = newReply
+    // let { plainTextContent } = newReply
 
     const deliveryDate = new Date(newReply.createdAt)
     const deliveryDateAsISOString = deliveryDate.toISOString()
 
-    if (!plainTextContent) {
-      plainTextContent = ''
-    }
+    // if (!plainTextContent) {
+    //   plainTextContent = ''
+    // }
 
     /**
      * The Notion API limits children passed to the create page endpoint to 100.
@@ -113,10 +116,10 @@ export async function addReplyEmailToNotion({
      * up into chunks of 100, create the page with the first chunk and then append to the
      * page to add the remaining children chunks
      */
-    const [...childChunks] = chunkArr(
-      createPlainTextBlocks(plainTextContent),
-      100,
-    )
+    // const [...childChunks] = chunkArr(
+    //   createPlainTextBlocks(plainTextContent),
+    //   100,
+    // )
 
     let pageCreateResp
 
@@ -152,32 +155,34 @@ export async function addReplyEmailToNotion({
             },
           },
         },
-        children: [
-          {
-            type: 'callout',
-            callout: {
-              rich_text: [
-                {
-                  type: 'text',
-                  text: {
-                    content: 'Send this email',
-                    // TODO - replace with correct URL for sending once we build it
-                    link: { url: 'https://google.com' },
-                  },
-                },
-              ],
-              icon: {
-                emoji: '▶️',
-              },
-              color: 'default',
-            },
-          },
-        ],
+        // children: [
+        //   {
+        //     type: 'callout',
+        //     callout: {
+        //       rich_text: [
+        //         {
+        //           type: 'text',
+        //           text: {
+        //             content: 'Send this email',
+        //             // TODO - replace with correct URL for sending once we build it
+        //             link: { url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${originalEmailUUID}/${}` },
+        //           },
+        //         },
+        //       ],
+        //       icon: {
+        //         emoji: '▶️',
+        //       },
+        //       color: 'default',
+        //     },
+        //   },
+        // ],
       }
 
       pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
 
-      const { status, url } = pageCreateResp
+      const { status, url, id: notionPageID } = pageCreateResp
+
+      console.log('pageCreateResp', pageCreateResp)
 
       if (status === 429) {
         console.warn(
@@ -195,17 +200,42 @@ export async function addReplyEmailToNotion({
 
       const pageId = pageCreateResp.id
 
+      await notionClient.blocks.children.append({
+        block_id: pageId,
+        children: [
+          {
+            type: 'callout',
+            callout: {
+              rich_text: [
+                {
+                  type: 'text',
+                  text: {
+                    content: 'Send this email',
+                    // TODO - replace with correct URL for sending once we build it
+                    link: { url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}` },
+                  },
+                },
+              ],
+              icon: {
+                emoji: '▶️',
+              },
+              color: 'default',
+            },
+          },
+        ]
+
+      })
       /**
        * Append any existing child chunks to a Notion page.
        * We await the append call in each loop iteration so that
        * we know that the chilren are added in the correct order.
        */
-      for (let childChunk of childChunks) {
-        await notionClient.blocks.children.append({
-          block_id: pageId,
-          children: [...childChunk],
-        })
-      }
+      // for (let childChunk of childChunks) {
+      //   await notionClient.blocks.children.append({
+      //     block_id: pageId,
+      //     children: [...childChunk],
+      //   })
+      // }
 
       return { pageId, notionEmailDatabaseId: notionDatabaseId, notionPageUrl: url }
     } catch (err) {
