@@ -119,4 +119,10 @@ export enum EmailStatus {
   RECEIVED_TO_DECO__NOTION_IMPORT_FAILED = 'RECEIVED_TO_DECO__NOTION_IMPORT_FAILED',
   // a generic status that means the email has been received by us and successfully made it to Notion
   RECEIVED_TO_NOTION = 'RECEIVED_TO_NOTION',
+  // the email has been drafted by notion and sent to the final recipient by us
+  NOTION_REPLY_DRAFT_CREATED = 'NOTION_REPLY_DRAFT_CREATED',
+  // the email is a reply to and was sent successfully
+  REPLY_SENT__SUCCEEDED = 'REPLY_SENT__SUCCEEDED',
+  // the email is a reply to and failed to send
+  REPLY_SENT__FAILED = 'RREPLY_SENT__FAILED',
 }
