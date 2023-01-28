@@ -127,7 +127,7 @@ type Mutation {
     originalEmailUUID: String
   ): NotionEmailCreatedResponse
   sendEmailReply(
-    notionPageId: String
+    notionPageID: String
     originalEmailUUID: String
   ): SendEmailReplyResponse
 }
