@@ -16,7 +16,7 @@ import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr } from '../utils'
 import { getNotionClient } from './getNotionClient'
-import{ REPLY_FEATURE_ENABLED } from '../constants'
+import{ REPLY_FEATURE_ENABLED, FRONTEND_BASE_URL } from '../constants'
 
 /**
  * Notion formatting setup order of operations:
@@ -395,7 +395,7 @@ export async function addEmailToNotion({
             text: {
               content: 'Reply to this email',
               // TODO - replace with correct URL for sending once we build it
-              link: { url: 'https://google.com' },
+              link: { url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${newEmail.uuid}` },
             },
           },
         ],

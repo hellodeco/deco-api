@@ -280,6 +280,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       const notionEmailResp = await addReplyEmailToNotion({
         newReply: replyEmail,
         userfrontID: userfrontID,
+        originalEmailUUID,
         notionClient,
       })
 
@@ -292,7 +293,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
   sendEmailReply: async (
     _,
-    { notionPageId, originalEmailUUID },
+    { notionPageID, originalEmailUUID },
     { db, user: { userfrontID } },
   ) => {
     /**
@@ -322,8 +323,13 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       const { pageMetadata, plainText } = await getNotionPageContent({
         notionClient,
-        notionPageId,
+        notionPageID,
       })
+
+      console.log('pageMetadata: ', pageMetadata)
+      console.log('plainText: ', plainText)
+
+
 
       // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
       // @ts-ignore
@@ -350,7 +356,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         .insert(
           objectCamelToSnake({
             subject,
-            notionPageId,
+            notionPageID,
             plainTextContent: plainText,
             from: user.emailAddress,
             // TODO we do not have a "to" field currently and should add this to the email table
@@ -369,7 +375,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
       // TODO validate that the UUID property exists on the database
       await notionClient.pages.update({
-        page_id: notionPageId,
+        page_id: notionPageID,
         properties: {
           UUID: {
             rich_text: [

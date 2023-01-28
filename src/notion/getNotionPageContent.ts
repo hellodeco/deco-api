@@ -11,14 +11,14 @@ type NotionBlock = (BlockObjectResponse | PartialBlockObjectResponse) & {
 }
 
 export async function getNotionPageContent({
-  notionPageId,
+  notionPageID,
   notionClient,
 }: {
-  notionPageId: string
+  notionPageID: string
   notionClient: Client
 }) {
   const pageMetadata = await notionClient.pages.retrieve({
-    page_id: notionPageId,
+    page_id: notionPageID,
   })
 
   /**
@@ -26,7 +26,7 @@ export async function getNotionPageContent({
    */
 
   const blocks = await buildChildTree({
-    blockId: notionPageId,
+    blockId: notionPageID,
     notionClient,
   })
 

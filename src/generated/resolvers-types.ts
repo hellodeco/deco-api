@@ -66,7 +66,7 @@ export type MutationSelectNotionDatabaseArgs = {
 
 
 export type MutationSendEmailReplyArgs = {
-  notionPageId?: InputMaybe<Scalars['String']>;
+  notionPageID?: InputMaybe<Scalars['String']>;
   originalEmailUUID?: InputMaybe<Scalars['String']>;
 };
 
