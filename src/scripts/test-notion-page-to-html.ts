@@ -1,4 +1,5 @@
 import { getNotionPageContent } from '../notion/getNotionPageContent'
+import { getNotionClient } from '../notion/getNotionClient'
 
 /**
  * * Need to account for possibly nested chilren as noted in the warning here:
@@ -17,20 +18,22 @@ import { getNotionPageContent } from '../notion/getNotionPageContent'
  */
 
 async function main() {
-  const userfrontId = process.env.USERFRONT_ID
-  const notionPageId = process.env.NOTION_PAGE_ID
+  const userfrontID = process.env.USERFRONT_ID
+  const notionPageID = process.env.NOTION_PAGE_ID
 
-  if (!userfrontId) {
+  if (!userfrontID) {
     throw new Error('Plz pass a userfront id')
   }
 
-  if (!notionPageId) {
+  if (!notionPageID) {
     throw new Error('Plz pass a notion page id')
   }
 
+  const notionClient = await getNotionClient(userfrontID)
+
   const plainText = await getNotionPageContent({
-    notionPageId,
-    userfrontId,
+    notionPageID,
+    notionClient,
   })
 
   console.log(plainText)

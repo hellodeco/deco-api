@@ -1,6 +1,7 @@
 import { isArray } from 'lodash'
 import Userfront, { user } from '@userfront/core'
 import sendgrid from '@sendgrid/mail'
+import { GraphQLError } from 'graphql'
 import { EMAIL_DOMAIN, SENDGRID_API_KEY } from '../constants'
 import {
   MutationResolvers,
@@ -253,44 +254,42 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     { originalEmailUUID },
     { user: { userfrontID }, db },
   ) => {
-    try {
-      const notionClient = await getNotionClient(userfrontID)
+    const notionClient = await getNotionClient(userfrontID)
 
-      const user = await db.users()
-        .where('userfront_user_id', userfrontID)
-        .select('*')
-        .first()
+    const user = await db.users()
+      .where('userfront_user_id', userfrontID)
+      .select('*')
+      .first()
 
-      const originalEmail = await db.emails()
-        .where('uuid', originalEmailUUID)
-        .andWhere('user_id', user.id)
-        .select('*')
-        .first()
+    const originalEmail = await db.emails()
+      .where('uuid', originalEmailUUID)
+      .andWhere('user_id', user.id)
+      .select('*')
+      .first()
 
-      const replyEmail = {
-        subject: `RE: ${originalEmail.subject}`,
-        to: originalEmail.from,
-        from: user.emailAddress,
-        inReplyTo: originalEmail.notionPageId,
-        emailThreadId: originalEmail.emailThreadId,
-        plainTextContent: '',
-        createdAt: new Date().toISOString(),
-      }
-
-      const notionEmailResp = await addReplyEmailToNotion({
-        newReply: replyEmail,
-        userfrontID: userfrontID,
-        originalEmailUUID,
-        notionClient,
-      })
-
-      return notionEmailResp
-    } catch (err) {
-      console.error('error creating email reply page: ', err)
-      return { pageId: '', notionEmailDatabaseId: '', notionPageUrl: '' }
+    if (!originalEmail) {
+      throw new GraphQLError('"Reply to" email not found. You may not have access to the email you are trying to reply to.')
     }
-  },
 
+    const replyEmail = {
+      subject: `RE: ${originalEmail.subject}`,
+      to: originalEmail.from,
+      from: user.emailAddress,
+      inReplyTo: originalEmail.notionPageId,
+      emailThreadId: originalEmail.emailThreadId,
+      plainTextContent: '',
+      createdAt: new Date().toISOString(),
+    }
+
+    const notionEmailResp = await addReplyEmailToNotion({
+      newReply: replyEmail,
+      userfrontID: userfrontID,
+      originalEmailUUID,
+      notionClient,
+    })
+
+    return notionEmailResp
+  },
   sendEmailReply: async (
     _,
     { notionPageID, originalEmailUUID },
@@ -303,100 +302,93 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
      *  - update the email status to EmailStatus.REPLY_SENT__FAILED if something goes wrong
      */
 
-    try {
-      const notionClient = await getNotionClient(userfrontID)
+    const notionClient = await getNotionClient(userfrontID)
 
-      const user = await db.users()
-        .where('userfront_user_id', userfrontID)
-        .select('*')
-        .first()
+    const user = await db.users()
+      .where('userfront_user_id', userfrontID)
+      .select('*')
+      .first()
       
-      const originalEmail = await db.emails()
-        .where('uuid', originalEmailUUID)
-        .andWhere('user_id', user.id)
-        .select('*')
-        .first()
+    const originalEmail = await db.emails()
+      .where('uuid', originalEmailUUID)
+      .andWhere('user_id', user.id)
+      .select('*')
+      .first()
 
-      if ( !originalEmail ) {
-        return { notionPageUrl: '' }
-      }
-
-      const { pageMetadata, plainText } = await getNotionPageContent({
-        notionClient,
-        notionPageID,
-      })
-
-      console.log('pageMetadata: ', pageMetadata)
-      console.log('plainText: ', plainText)
-
-
-
-      // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
-      // @ts-ignore
-      const to = pageMetadata?.properties?.To?.email?.split(',').map((email) => email.trim())
-
-      // @ts-ignore
-      const subject = pageMetadata?.properties?.Name?.title?.map((title) => title.plain_text).join('')
-
-      const sendGridResp = await sendgrid.send({
-        to,
-        subject,
-        from: user.emailAddress,
-        text: plainText,
-        headers: {
-          'In-Reply-To': originalEmail.messageId,
-          'References': originalEmail.messageId,
-        },
-      })
-
-      // this is an array that sometimes contains empty strings for some reason
-      const [sendGridData] = sendGridResp.filter(Boolean)
-
-      const [replyEmail] = await db.emails()
-        .insert(
-          objectCamelToSnake({
-            subject,
-            notionPageID,
-            plainTextContent: plainText,
-            from: user.emailAddress,
-            // TODO we do not have a "to" field currently and should add this to the email table
-            // to: '',
-            userId: user.id,
-            // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
-            status: EmailStatus.REPLY_SENT__SUCCEEDED,
-            // @ts-ignore
-            messageId: sendGridData.headers['x-message-id'],
-            inReplyTo: originalEmail.messageId,
-            references: originalEmail.messageId,
-          })
-        )
-        .returning('*')
-
-
-      // TODO validate that the UUID property exists on the database
-      await notionClient.pages.update({
-        page_id: notionPageID,
-        properties: {
-          UUID: {
-            rich_text: [
-              {
-                type: 'text',
-                text: {
-                  content: replyEmail.uuid,
-                },
-              },
-            ],
-          },
-        }
-      })
-
-      // @ts-ignore beacuse there is most definitely a url on this object
-      const notionPageUrl = pageMetadata.url
-    
-      return { notionPageUrl }
-    } catch (err) {
-      console.error('error sending email reply: ', err)
-      return { notionPageUrl: '' }
+    if (!originalEmail) {
+      throw new GraphQLError('"Reply to" email not found. You may not have access to the email you are trying to reply to.')
     }
+
+    const { pageMetadata, plainText } = await getNotionPageContent({
+      notionClient,
+      notionPageID,
+    })
+
+    console.log('pageMetadata: ', pageMetadata)
+    console.log('plainText: ', plainText)
+
+    // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
+    // @ts-ignore
+    const to = pageMetadata?.properties?.To?.email?.split(',').map((email) => email.trim())
+
+    // @ts-ignore
+    const subject = pageMetadata?.properties?.Name?.title?.map((title) => title.plain_text).join('')
+
+    const sendGridResp = await sendgrid.send({
+      to,
+      subject,
+      from: user.emailAddress,
+      text: plainText,
+      headers: {
+        'In-Reply-To': originalEmail.messageId,
+        'References': originalEmail.messageId,
+      },
+    })
+
+    // this is an array that sometimes contains empty strings for some reason
+    const [sendGridData] = sendGridResp.filter(Boolean)
+
+    const [replyEmail] = await db.emails()
+      .insert(
+        objectCamelToSnake({
+          subject,
+          notionPageID,
+          plainTextContent: plainText,
+          from: user.emailAddress,
+          // TODO we do not have a "to" field currently and should add this to the email table
+          // to: '',
+          userId: user.id,
+          // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
+          status: EmailStatus.REPLY_SENT__SUCCEEDED,
+          // @ts-ignore
+          messageId: sendGridData.headers['x-message-id'],
+          inReplyTo: originalEmail.messageId,
+          references: originalEmail.messageId,
+        })
+      )
+      .returning('*')
+
+
+    // TODO validate that the UUID property exists on the database
+    await notionClient.pages.update({
+      page_id: notionPageID,
+      properties: {
+        UUID: {
+          rich_text: [
+            {
+              type: 'text',
+              text: {
+                content: replyEmail.uuid,
+              },
+            },
+          ],
+        },
+      }
+    })
+
+    // @ts-ignore beacuse there is most definitely a url on this object
+    const notionPageUrl = pageMetadata.url
+    
+    return { notionPageUrl }
   }
 }
