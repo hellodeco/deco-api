@@ -31,7 +31,11 @@ export async function addReplyEmailToNotion({
   userfrontID: string
   originalEmailUUID: string
   notionClient: Client
-}): Promise<{ pageId: string; notionEmailDatabaseId: string; notionPageUrl: string } | null> {
+}): Promise<{
+  pageId: string
+  notionEmailDatabaseId: string
+  notionPageUrl: string
+} | null> {
   try {
     const existingSubscription = await getSubscriptionByUserfrontUserId(
       userfrontID,
@@ -101,25 +105,9 @@ export async function addReplyEmailToNotion({
     }
 
     const { to, subject, from, inReplyTo } = newReply
-    // let { plainTextContent } = newReply
 
     const deliveryDate = new Date(newReply.createdAt)
     const deliveryDateAsISOString = deliveryDate.toISOString()
-
-    // if (!plainTextContent) {
-    //   plainTextContent = ''
-    // }
-
-    /**
-     * The Notion API limits children passed to the create page endpoint to 100.
-     * If there are more than 100 children when creating the new page, we break the children
-     * up into chunks of 100, create the page with the first chunk and then append to the
-     * page to add the remaining children chunks
-     */
-    // const [...childChunks] = chunkArr(
-    //   createPlainTextBlocks(plainTextContent),
-    //   100,
-    // )
 
     let pageCreateResp
 
@@ -142,6 +130,12 @@ export async function addReplyEmailToNotion({
           From: {
             email: getEmailFromEmailToStr(from) || '',
           },
+          Status: {
+            status: {
+              name: 'Draft',
+              color: 'orange',
+            },
+          },
           InReplyTo: {
             relation: [
               {
@@ -155,34 +149,11 @@ export async function addReplyEmailToNotion({
             },
           },
         },
-        // children: [
-        //   {
-        //     type: 'callout',
-        //     callout: {
-        //       rich_text: [
-        //         {
-        //           type: 'text',
-        //           text: {
-        //             content: 'Send this email',
-        //             // TODO - replace with correct URL for sending once we build it
-        //             link: { url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${originalEmailUUID}/${}` },
-        //           },
-        //         },
-        //       ],
-        //       icon: {
-        //         emoji: '▶️',
-        //       },
-        //       color: 'default',
-        //     },
-        //   },
-        // ],
       }
 
       pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
 
       const { status, url, id: notionPageID } = pageCreateResp
-
-      console.log('pageCreateResp', pageCreateResp)
 
       if (status === 429) {
         console.warn(
@@ -212,7 +183,9 @@ export async function addReplyEmailToNotion({
                   text: {
                     content: 'Send this email',
                     // TODO - replace with correct URL for sending once we build it
-                    link: { url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}` },
+                    link: {
+                      url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
+                    },
                   },
                 },
               ],
@@ -222,22 +195,14 @@ export async function addReplyEmailToNotion({
               color: 'default',
             },
           },
-        ]
-
+        ],
       })
-      /**
-       * Append any existing child chunks to a Notion page.
-       * We await the append call in each loop iteration so that
-       * we know that the chilren are added in the correct order.
-       */
-      // for (let childChunk of childChunks) {
-      //   await notionClient.blocks.children.append({
-      //     block_id: pageId,
-      //     children: [...childChunk],
-      //   })
-      // }
 
-      return { pageId, notionEmailDatabaseId: notionDatabaseId, notionPageUrl: url }
+      return {
+        pageId,
+        notionEmailDatabaseId: notionDatabaseId,
+        notionPageUrl: url,
+      }
     } catch (err) {
       console.error('error adding page to notion', err)
     }
