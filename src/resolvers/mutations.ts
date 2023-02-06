@@ -324,9 +324,6 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       notionPageID,
     })
 
-    console.log('pageMetadata: ', pageMetadata)
-    console.log('plainText: ', plainText)
-
     // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
     // @ts-ignore
     const to = pageMetadata?.properties?.To?.email?.split(',').map((email) => email.trim())
