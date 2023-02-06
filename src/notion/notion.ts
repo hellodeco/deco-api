@@ -16,7 +16,7 @@ import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr } from '../utils'
 import { getNotionClient } from './getNotionClient'
-import{ REPLY_FEATURE_ENABLED, FRONTEND_BASE_URL } from '../constants'
+import { REPLY_FEATURE_ENABLED, FRONTEND_BASE_URL } from '../constants'
 
 /**
  * Notion formatting setup order of operations:
@@ -334,6 +334,15 @@ export async function addEmailToNotion({
     }
   }
 
+  if (REPLY_FEATURE_ENABLED) {
+    requiredProps.push('Actions')
+
+    updatePayload.properties.Actions = {
+      type: 'rich_text',
+      rich_text: {},
+    }
+  }
+
   try {
     const notionDB = await notionClient.databases.retrieve({
       database_id: notionDatabaseId,
@@ -355,7 +364,7 @@ export async function addEmailToNotion({
     throw new Error(err)
   }
 
-  const { subject, from, emailId } = newEmail
+  const { subject, from } = newEmail
   let { plainTextContent } = newEmail
 
   const deliveryDate = new Date(newEmail.createdAt)
@@ -368,8 +377,6 @@ export async function addEmailToNotion({
   }
 
   let emailBodyBlocks = []
-
-  // const shouldUseHTMLParsing = IS_LOCAL || IS_STAGING || HTML_ENABLED_USER_IDS.has(userfrontID)
 
   if (newEmail.htmlContent) {
     try {
@@ -385,29 +392,11 @@ export async function addEmailToNotion({
 
   const replySectionBlocks = []
 
-  if (REPLY_FEATURE_ENABLED) {
-    replySectionBlocks.push({
-      type: 'callout',
-      callout: {
-        rich_text: [
-          {
-            type: 'text',
-            text: {
-              content: 'Reply to this email',
-              // TODO - replace with correct URL for sending once we build it
-              link: { url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${newEmail.uuid}` },
-            },
-          },
-        ],
-        icon: {
-          emoji: '📧',
-        },
-        color: 'default',
-      }
-    })
-  }
-
-  const children = [...attachmentBlocks, ...replySectionBlocks, ...emailBodyBlocks]
+  const children = [
+    ...attachmentBlocks,
+    ...replySectionBlocks,
+    ...emailBodyBlocks,
+  ]
 
   /**
    * The Notion API limits children passed to the create page endpoint to 100.
@@ -458,6 +447,28 @@ export async function addEmailToNotion({
         relation: [
           {
             id: notionContactPage.id,
+          },
+        ],
+      }
+    }
+
+    if (REPLY_FEATURE_ENABLED) {
+      createEmailPagePayload.properties.Actions = {
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: '📧',
+            },
+          },
+          {
+            type: 'text',
+            text: {
+              content: 'Reply to this email',
+              link: {
+                url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${newEmail.uuid}`,
+              },
+            },
           },
         ],
       }
