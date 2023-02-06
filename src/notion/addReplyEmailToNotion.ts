@@ -5,8 +5,7 @@ import type {
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { NotionDatabaseType } from '../types/database'
-import { createPlainTextBlocks } from './createPlainTextBlocks'
-import { chunkArr, getEmailFromEmailToStr } from '../utils'
+import { getEmailFromEmailToStr } from '../utils'
 import { getNotionDatabaseId } from './notion'
 import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
 import { FRONTEND_BASE_URL } from '../constants'
@@ -109,107 +108,92 @@ export async function addReplyEmailToNotion({
     const deliveryDate = new Date(newReply.createdAt)
     const deliveryDateAsISOString = deliveryDate.toISOString()
 
-    let pageCreateResp
-
-    try {
-      const createEmailPagePayload: CreatePageParameters = {
-        parent: { database_id: notionDatabaseId },
-        properties: {
-          title: {
-            title: [
-              {
-                text: {
-                  content: subject,
-                },
+    const createEmailPagePayload: CreatePageParameters = {
+      parent: { database_id: notionDatabaseId },
+      properties: {
+        title: {
+          title: [
+            {
+              text: {
+                content: subject,
               },
-            ],
-          },
-          To: {
-            email: getEmailFromEmailToStr(to) || '',
-          },
-          From: {
-            email: getEmailFromEmailToStr(from) || '',
-          },
-          Status: {
-            status: {
-              name: 'Draft',
-              color: 'orange',
             },
-          },
-          InReplyTo: {
-            relation: [
-              {
-                id: inReplyTo,
-              },
-            ],
-          },
-          Delivered: {
-            date: {
-              start: deliveryDateAsISOString,
+          ],
+        },
+        To: {
+          email: getEmailFromEmailToStr(to) || '',
+        },
+        From: {
+          email: getEmailFromEmailToStr(from) || '',
+        },
+        InReplyTo: {
+          relation: [
+            {
+              id: inReplyTo,
             },
+          ],
+        },
+        Delivered: {
+          date: {
+            start: deliveryDateAsISOString,
           },
         },
-      }
-
-      pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
-
-      const { status, url, id: notionPageID } = pageCreateResp
-
-      if (status === 429) {
-        console.warn(
-          `user with id ${userfrontID} is hitting notion api rate limits during page creation`,
-        )
-        return null
-      }
-
-      if (status === 404) {
-        console.warn(
-          `notion database with id ${notionDatabaseId} could not be found`,
-        )
-        return null
-      }
-
-      const pageId = pageCreateResp.id
-
-      await notionClient.blocks.children.append({
-        block_id: pageId,
-        children: [
-          {
-            type: 'callout',
-            callout: {
-              rich_text: [
-                {
-                  type: 'text',
-                  text: {
-                    content: 'Send this email',
-                    // TODO - replace with correct URL for sending once we build it
-                    link: {
-                      url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
-                    },
-                  },
-                },
-              ],
-              icon: {
-                emoji: '▶️',
-              },
-              color: 'default',
-            },
-          },
-        ],
-      })
-
-      return {
-        pageId,
-        notionEmailDatabaseId: notionDatabaseId,
-        notionPageUrl: url,
-      }
-    } catch (err) {
-      console.error('error adding page to notion', err)
+      },
     }
 
-    return null
+    const pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
+
+    // @ts-ignore because the CreatePageResponse interface is missing some fields that do exist
+    const { status, url, id: notionPageID } = pageCreateResp
+
+    if (status === 429) {
+      const message = `user with id ${userfrontID} is hitting notion api rate limits during page creation`
+      console.warn(message)
+      throw new Error(message)
+    }
+
+    if (status === 404) {
+      const message = `notion database with id ${notionDatabaseId} could not be found`
+      console.warn(message)
+      throw new Error(message)
+    }
+
+    const pageId = pageCreateResp.id
+
+    await notionClient.blocks.children.append({
+      block_id: pageId,
+      children: [
+        {
+          type: 'callout',
+          callout: {
+            rich_text: [
+              {
+                type: 'text',
+                text: {
+                  content: 'Send this email',
+                  // TODO - replace with correct URL for sending once we build it
+                  link: {
+                    url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
+                  },
+                },
+              },
+            ],
+            icon: {
+              emoji: '▶️',
+            },
+            color: 'default',
+          },
+        },
+      ],
+    })
+
+    return {
+      pageId,
+      notionEmailDatabaseId: notionDatabaseId,
+      notionPageUrl: url,
+    }
   } catch (err) {
-    console.log(err)
-    return null
+    console.error('error adding reply email to notion', err)
+    throw new Error(`error adding reply email to notion: ${err.message}`)
   }
 }
