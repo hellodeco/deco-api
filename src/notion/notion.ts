@@ -334,6 +334,15 @@ export async function addEmailToNotion({
     }
   }
 
+  if (REPLY_FEATURE_ENABLED) {
+    requiredProps.push('Actions')
+
+    updatePayload.properties.Actions = {
+      type: 'rich_text',
+      rich_text: {},
+    }
+  }
+
   const notionDB = await notionClient.databases.retrieve({
     database_id: notionDatabaseId,
   })
@@ -364,8 +373,6 @@ export async function addEmailToNotion({
 
   let emailBodyBlocks = []
 
-  // const shouldUseHTMLParsing = IS_LOCAL || IS_STAGING || HTML_ENABLED_USER_IDS.has(userfrontID)
-
   if (newEmail.htmlContent) {
     try {
       emailBodyBlocks = await convertHTMLToNotionBlocks(newEmail.htmlContent)
@@ -379,28 +386,6 @@ export async function addEmailToNotion({
   }
 
   const replySectionBlocks = []
-
-  if (REPLY_FEATURE_ENABLED) {
-    replySectionBlocks.push({
-      type: 'callout',
-      callout: {
-        rich_text: [
-          {
-            type: 'text',
-            text: {
-              content: 'Reply to this email',
-              // TODO - replace with correct URL for sending once we build it
-              link: { url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${newEmail.uuid}` },
-            },
-          },
-        ],
-        icon: {
-          emoji: '📧',
-        },
-        color: 'default',
-      }
-    })
-  }
 
   const children = [...attachmentBlocks, ...replySectionBlocks, ...emailBodyBlocks]
 
@@ -453,6 +438,26 @@ export async function addEmailToNotion({
         relation: [
           {
             id: notionContactPage.id,
+          },
+        ],
+      }
+    }
+
+    if (REPLY_FEATURE_ENABLED) {
+      createEmailPagePayload.properties.Actions = {
+        rich_text: [
+          {
+            type: 'text',
+            text: {
+              content: '📧',
+            },
+          },
+          {
+            type: 'text',
+            text: {
+              content: 'Reply to this email',
+              link: { url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${newEmail.uuid}` },
+            },
           },
         ],
       }

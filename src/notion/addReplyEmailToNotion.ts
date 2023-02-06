@@ -8,7 +8,7 @@ import { NotionDatabaseType } from '../types/database'
 import { getEmailFromEmailToStr } from '../utils'
 import { getNotionDatabaseId } from './notion'
 import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
-import { FRONTEND_BASE_URL } from '../constants'
+import { FRONTEND_BASE_URL, REPLY_FEATURE_ENABLED } from '../constants'
 
 export interface NewReply {
   subject: string
@@ -52,8 +52,7 @@ export async function addReplyEmailToNotion({
       NotionDatabaseType.EMAIL,
     )
 
-    // TODO rename InReplyTo to In_Reply_To from consistency with the other property names we add.
-    const requiredProps = ['To', 'From', 'InReplyTo', 'Delivered', 'UUID']
+    const requiredProps = ['To', 'From', 'In_Reply_To', 'Delivered', 'UUID']
 
     const updatePayload: UpdateDatabaseParameters = {
       database_id: notionDatabaseId,
@@ -66,7 +65,7 @@ export async function addReplyEmailToNotion({
           type: 'email',
           email: {},
         },
-        InReplyTo: {
+        In_Reply_To: {
           type: 'relation',
           relation: {
             // TODO remove this and actually figure out the type here.
@@ -85,6 +84,15 @@ export async function addReplyEmailToNotion({
           rich_text: {},
         },
       },
+    }
+
+    if (REPLY_FEATURE_ENABLED) {
+      requiredProps.push('Actions')
+
+      updatePayload.properties.Actions = {
+        type: 'rich_text',
+        rich_text: {},
+      }
     }
 
     const notionDB = await notionClient.databases.retrieve({
@@ -126,7 +134,7 @@ export async function addReplyEmailToNotion({
         From: {
           email: getEmailFromEmailToStr(from) || '',
         },
-        InReplyTo: {
+        In_Reply_To: {
           relation: [
             {
               id: inReplyTo,
@@ -160,32 +168,32 @@ export async function addReplyEmailToNotion({
 
     const pageId = pageCreateResp.id
 
-    await notionClient.blocks.children.append({
-      block_id: pageId,
-      children: [
-        {
-          type: 'callout',
-          callout: {
+    if (REPLY_FEATURE_ENABLED) {
+      await notionClient.pages.update({
+        page_id: pageId,
+        properties: {
+          Actions: {
             rich_text: [
               {
                 type: 'text',
                 text: {
+                  content: '🏹',
+                },
+              },
+              {
+                type: 'text',
+                text: {
                   content: 'Send this email',
-                  // TODO - replace with correct URL for sending once we build it
                   link: {
                     url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
                   },
                 },
               },
             ],
-            icon: {
-              emoji: '▶️',
-            },
-            color: 'default',
-          },
-        },
-      ],
-    })
+          }
+        }
+      })
+    }
 
     return {
       pageId,

@@ -21,10 +21,6 @@ export async function getNotionPageContent({
     page_id: notionPageID,
   })
 
-  /**
-   * TODO filter out the "Send this email" link that we auto add to the Notion page
-   */
-
   const blocks = await buildChildTree({
     blockId: notionPageID,
     notionClient,
@@ -71,22 +67,6 @@ async function buildChildTree({
       'Error querying for notion blocks while converting notion page to html.',
       err,
     )
-  }
-
-  // filter out the send link that we include in the Notion reply page.
-  if (level === 0) {
-    blocks = blocks.filter((block) => {
-      const { type } = block
-      if (type === 'callout') {
-        // TODO update this regex to match the path used on the "send this email" link.
-        return !block[type]?.rich_text?.some(({ href }: { href: string }) => {
-          const regex = /^https:\/\/google.com$/
-          return regex.test(href)
-        })
-      }
-
-      return true
-    })
   }
 
   for (let block of blocks) {
