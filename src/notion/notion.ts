@@ -464,7 +464,7 @@ export async function addEmailToNotion({
           {
             type: 'text',
             text: {
-              content: 'Reply to this email',
+              content: ' Reply to this email',
               link: {
                 url: `${FRONTEND_BASE_URL}/email/reply/create-notion-page/${newEmail.uuid}`,
               },
