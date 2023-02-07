@@ -183,7 +183,7 @@ export async function addReplyEmailToNotion({
               {
                 type: 'text',
                 text: {
-                  content: 'Send this email',
+                  content: ' Send this email',
                   link: {
                     url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
                   },
