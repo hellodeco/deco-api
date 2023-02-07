@@ -98,7 +98,7 @@ type NotionEmailCreatedResponse {
 }
 
 type SendEmailReplyResponse {
-  notionPageUrl: String
+  inboxPageURL: String
 }
 
 type Query {
@@ -123,9 +123,7 @@ type Mutation {
     email: String
     password: String
   ): CreateUserfrontAndDecoUserResult
-  createEmailReplyPage(
-    originalEmailUUID: String
-  ): NotionEmailCreatedResponse
+  createEmailReplyPage(originalEmailUUID: String): NotionEmailCreatedResponse
   sendEmailReply(
     notionPageID: String
     originalEmailUUID: String

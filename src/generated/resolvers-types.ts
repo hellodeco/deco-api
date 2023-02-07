@@ -161,7 +161,7 @@ export type QueryEmailUsernameAvailableArgs = {
 
 export type SendEmailReplyResponse = {
   __typename?: 'SendEmailReplyResponse';
-  notionPageUrl?: Maybe<Scalars['String']>;
+  inboxPageURL?: Maybe<Scalars['String']>;
 };
 
 export enum UpdateDecoEmailErrorReasons {
@@ -388,7 +388,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 }>;
 
 export type SendEmailReplyResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendEmailReplyResponse'] = ResolversParentTypes['SendEmailReplyResponse']> = ResolversObject<{
-  notionPageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  inboxPageURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
