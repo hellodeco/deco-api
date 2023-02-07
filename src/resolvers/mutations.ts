@@ -7,10 +7,7 @@ import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
 } from '../generated/resolvers-types'
-import {
-  createUser,
-  getUserBySignupEmail,
-} from './../db-access/db-access'
+import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 import { NotionDatabaseType, DecoDBEmail, EmailStatus } from '../types/database'
@@ -18,7 +15,6 @@ import { objectCamelToSnake } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
 import { getNotionPageContent } from '../notion/getNotionPageContent'
-
 
 sendgrid.setApiKey(SENDGRID_API_KEY)
 
@@ -256,19 +252,23 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
   ) => {
     const notionClient = await getNotionClient(userfrontID)
 
-    const user = await db.users()
+    const user = await db
+      .users()
       .where('userfront_user_id', userfrontID)
       .select('*')
       .first()
 
-    const originalEmail = await db.emails()
+    const originalEmail = await db
+      .emails()
       .where('uuid', originalEmailUUID)
       .andWhere('user_id', user.id)
       .select('*')
       .first()
 
     if (!originalEmail) {
-      throw new GraphQLError('"Reply to" email not found. You may not have access to the email you are trying to reply to.')
+      throw new GraphQLError(
+        '"Reply to" email not found. You may not have access to the email you are trying to reply to.',
+      )
     }
 
     const replyEmail = {
@@ -304,19 +304,23 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     const notionClient = await getNotionClient(userfrontID)
 
-    const user = await db.users()
+    const user = await db
+      .users()
       .where('userfront_user_id', userfrontID)
       .select('*')
       .first()
-      
-    const originalEmail = await db.emails()
+
+    const originalEmail = await db
+      .emails()
       .where('uuid', originalEmailUUID)
       .andWhere('user_id', user.id)
       .select('*')
       .first()
 
     if (!originalEmail) {
-      throw new GraphQLError('"Reply to" email not found. You may not have access to the email you are trying to reply to.')
+      throw new GraphQLError(
+        '"Reply to" email not found. You may not have access to the email you are trying to reply to.',
+      )
     }
 
     const { pageMetadata, plainText } = await getNotionPageContent({
@@ -326,10 +330,14 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
     // @ts-ignore
-    const to = pageMetadata?.properties?.To?.email?.split(',').map((email) => email.trim())
+    const to = pageMetadata?.properties?.To?.email
+      ?.split(',')
+      .map((email) => email.trim())
 
     // @ts-ignore
-    const subject = pageMetadata?.properties?.Name?.title?.map((title) => title.plain_text).join('')
+    const subject = pageMetadata?.properties?.Name?.title
+      ?.map((title) => title.plain_text)
+      .join('')
 
     const sendGridResp = await sendgrid.send({
       to,
@@ -338,14 +346,15 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       text: plainText,
       headers: {
         'In-Reply-To': originalEmail.messageId,
-        'References': originalEmail.messageId,
+        References: originalEmail.messageId,
       },
     })
 
     // this is an array that sometimes contains empty strings for some reason
     const [sendGridData] = sendGridResp.filter(Boolean)
 
-    const [replyEmail] = await db.emails()
+    const [replyEmail] = await db
+      .emails()
       .insert(
         objectCamelToSnake({
           subject,
@@ -361,10 +370,9 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           messageId: sendGridData.headers['x-message-id'],
           inReplyTo: originalEmail.messageId,
           references: originalEmail.messageId,
-        })
+        }),
       )
       .returning('*')
-
 
     // TODO validate that the UUID property exists on the database
     await notionClient.pages.update({
@@ -380,12 +388,17 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
             },
           ],
         },
-      }
+      },
+    })
+
+    const inbox = await notionClient.databases.retrieve({
+      // @ts-ignore beacuse there is most definitely a parent on this object
+      database_id: pageMetadata.parent.database_id,
     })
 
     // @ts-ignore beacuse there is most definitely a url on this object
-    const notionPageUrl = pageMetadata.url
-    
-    return { notionPageUrl }
-  }
+    const inboxPageURL = inbox.url
+
+    return { inboxPageURL }
+  },
 }
