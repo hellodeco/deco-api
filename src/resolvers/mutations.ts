@@ -398,7 +398,11 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     // @ts-ignore beacuse there is most definitely a url on this object
     const inboxPageURL = inbox.url
+    const https = 'https://'
+    const trimmedURL = inboxPageURL.slice(https.length)
 
-    return { inboxPageURL }
+    const notionInboxURL = 'notion://'.concat(trimmedURL)
+
+    return { inboxPageURL: notionInboxURL }
   },
 }

@@ -149,7 +149,9 @@ export async function addReplyEmailToNotion({
       },
     }
 
-    const pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
+    const pageCreateResp = await notionClient.pages.create(
+      createEmailPagePayload,
+    )
 
     // @ts-ignore because the CreatePageResponse interface is missing some fields that do exist
     const { status, url, id: notionPageID } = pageCreateResp
@@ -190,15 +192,21 @@ export async function addReplyEmailToNotion({
                 },
               },
             ],
-          }
-        }
+          },
+        },
       })
     }
+
+    // @ts-ignore beacuse there is most definitely a url on this object
+    const https = 'https://'
+    const trimmedURL = url.slice(https.length)
+
+    const notionPageURL = 'notion://'.concat(trimmedURL)
 
     return {
       pageId,
       notionEmailDatabaseId: notionDatabaseId,
-      notionPageUrl: url,
+      notionPageUrl: notionPageURL,
     }
   } catch (err) {
     console.error('error adding reply email to notion', err)
