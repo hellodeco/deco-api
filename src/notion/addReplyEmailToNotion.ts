@@ -33,7 +33,7 @@ export async function addReplyEmailToNotion({
 }): Promise<{
   pageId: string
   notionEmailDatabaseId: string
-  notionPageUrl: string
+  notionPageURL: string
 } | null> {
   try {
     const existingSubscription = await getSubscriptionByUserfrontUserId(
@@ -206,7 +206,7 @@ export async function addReplyEmailToNotion({
     return {
       pageId,
       notionEmailDatabaseId: notionDatabaseId,
-      notionPageUrl: notionPageURL,
+      notionPageURL,
     }
   } catch (err) {
     console.error('error adding reply email to notion', err)
