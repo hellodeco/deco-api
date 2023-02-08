@@ -241,7 +241,7 @@ export async function emailReceiveHandler(req: Request, res: Response) {
         }
       } catch (err) {
         emailStatus = EmailStatus.RECEIVED_TO_DECO__NOTION_IMPORT_FAILED
-        console.error(err)
+        console.error('Error importing email into notion:', err)
       }
     } else {
       emailStatus = EmailStatus.RECEIVED_TO_DECO__FREE_TIER_LIMIT_EXCEEDED
