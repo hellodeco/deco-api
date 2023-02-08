@@ -98,7 +98,7 @@ export enum NotionDatabaseType {
 export type NotionEmailCreatedResponse = {
   __typename?: 'NotionEmailCreatedResponse';
   notionEmailDatabaseId?: Maybe<Scalars['String']>;
-  notionPageUrl?: Maybe<Scalars['String']>;
+  notionPageURL?: Maybe<Scalars['String']>;
   pageId?: Maybe<Scalars['String']>;
 };
 
@@ -336,7 +336,7 @@ export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends Re
 
 export type NotionEmailCreatedResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionEmailCreatedResponse'] = ResolversParentTypes['NotionEmailCreatedResponse']> = ResolversObject<{
   notionEmailDatabaseId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  notionPageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  notionPageURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   pageId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

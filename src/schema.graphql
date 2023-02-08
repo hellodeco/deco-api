@@ -94,7 +94,7 @@ type NotionPage {
 type NotionEmailCreatedResponse {
   pageId: String
   notionEmailDatabaseId: String
-  notionPageUrl: String
+  notionPageURL: String
 }
 
 type SendEmailReplyResponse {
