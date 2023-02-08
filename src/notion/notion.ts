@@ -333,20 +333,25 @@ export async function addEmailToNotion({
     }
   }
 
-  const notionDB = await notionClient.databases.retrieve({
-    database_id: notionDatabaseId,
-  })
+  try {
+    const notionDB = await notionClient.databases.retrieve({
+      database_id: notionDatabaseId,
+    })
 
-  const keys = Object.keys(notionDB.properties)
+    const keys = Object.keys(notionDB.properties)
 
-  const containsAll = requiredProps.every((element) => {
-    return keys.includes(element)
-  })
+    const containsAll = requiredProps.every((element) => {
+      return keys.includes(element)
+    })
 
-  // recreate properties needed for email delivery if they don't exist
-  // this will not duplicate existing properties
-  if (!containsAll) {
-    await notionClient.databases.update(updatePayload)
+    // recreate properties needed for email delivery if they don't exist
+    // this will not duplicate existing properties
+    if (!containsAll) {
+      await notionClient.databases.update(updatePayload)
+    }
+  } catch (err) {
+    // throw so that the caller can do something with the error.
+    throw new Error(err)
   }
 
   const { subject, from, emailId } = newEmail
