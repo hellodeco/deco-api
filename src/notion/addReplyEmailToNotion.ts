@@ -197,16 +197,10 @@ export async function addReplyEmailToNotion({
       })
     }
 
-    // @ts-ignore beacuse there is most definitely a url on this object
-    const https = 'https://'
-    const trimmedURL = url.slice(https.length)
-
-    const notionPageURL = 'notion://'.concat(trimmedURL)
-
     return {
       pageId,
       notionEmailDatabaseId: notionDatabaseId,
-      notionPageURL,
+      notionPageURL: url,
     }
   } catch (err) {
     console.error('error adding reply email to notion', err)
