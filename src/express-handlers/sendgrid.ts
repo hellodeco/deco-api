@@ -195,12 +195,12 @@ export async function emailReceiveHandler(req: Request, res: Response) {
     let emailStatus = EmailStatus.RECEIVED_TO_DECO
     let notionPageId = null
 
-    const shouldDeliver = await shouldDeliverToNotion(
-      emailRecipient.userfrontUserId,
-    )
+    try {
+      const shouldDeliver = await shouldDeliverToNotion(
+        emailRecipient.userfrontUserId,
+      )
 
-    if (shouldDeliver) {
-      try {
+      if (shouldDeliver) {
         const notionClient = await getNotionClient(
           emailRecipient.userfrontUserId,
         )
@@ -239,16 +239,16 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           emailStatus = EmailStatus.RECEIVED_TO_NOTION
           notionPageId = notionEmailResp.pageId
         }
-      } catch (err) {
-        emailStatus = EmailStatus.RECEIVED_TO_DECO__NOTION_IMPORT_FAILED
-        console.error('Error importing email into notion:', err)
-      }
-    } else {
-      emailStatus = EmailStatus.RECEIVED_TO_DECO__FREE_TIER_LIMIT_EXCEEDED
+      } else {
+        emailStatus = EmailStatus.RECEIVED_TO_DECO__FREE_TIER_LIMIT_EXCEEDED
 
-      console.warn(
-        `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription or has exceeded their free tier limit of ${FREE_TIER_EMAIL_LIMIT} emails in their inbox`,
-      )
+        console.warn(
+          `warn: email not delivered to Notion because ${toAddresses} does not have an active subscription or has exceeded their free tier limit of ${FREE_TIER_EMAIL_LIMIT} emails in their inbox`,
+        )
+      }
+    } catch(err) {
+      emailStatus = EmailStatus.RECEIVED_TO_DECO__NOTION_IMPORT_FAILED
+      console.error('Error importing email into notion:', err)
     }
 
     try {
