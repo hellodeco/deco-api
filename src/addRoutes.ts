@@ -266,6 +266,7 @@ export function addRoutes(app: Express) {
       } = json
 
       if (tokenError) {
+        console.error('error authenticating with notion: ', tokenError)
         return res.redirect(
           createNotionAuthFailedRedirectURL({
             message: 'unable to authenticate with notion',
