@@ -27,8 +27,6 @@ export async function getNotionPageContent({
     notionClient,
   })
 
-  console.log('blocks', JSON.stringify(blocks, null, 2))
-
   return {
     pageMetadata,
     plainText: blocksToPlainText({ blocks }),
@@ -157,9 +155,23 @@ const notionTypeToHTMLMap = {
 
 function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
   const content = []
-  for (let block of blocks) {
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i]
+
+    // if (block.type === 'numbered_list_item' && blocks[i - 1]?.type !== 'numbered_list_item') {
+    //   console.log('pushing opening ol')
+    //   content.push({
+    //     type: 'ol',
+    //   })
+    // }
+
+    /**
+     * compress any rich_text items into an HTML node.
+     */
     content.push({
       type: notionTypeToHTMLMap[block.type],
+      // keep track of the "notion type" so that we can use this later on to add "ol", "ul", etc.
+      notionType: block.type,
       content: block[block.type].rich_text.reduce((acc, richTextItem, idx, richText) => {
         const { type, annotations } = richTextItem
         const styles = []
@@ -194,7 +206,68 @@ function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
         return acc
       }, [])
     })
+
+    // if (block.type === 'numbered_list_item' && block[i + 1]?.type !== 'numbered_list_item') {
+    //   console.log('pushing closing ol')
+    //   content.push({
+    //     type: 'ol',
+    //   })
+    // }
   }
 
-  return content
+  const finalContent = []
+  for (let i = 0; i < content.length; i++) {
+    const item = content[i]
+
+    // Begin handling ordered lists
+    if (['bulleted_list_item', 'numbered_list_item'].includes(item.notionType)) {
+      const originalListType = item.notionType
+      const olContent = []
+      while (true) {
+        if (content[i]?.notionType !== originalListType) {
+          break
+        }
+
+        olContent.push({ ...content[i] })
+
+        i++
+      }
+
+      i--
+
+      finalContent.push({
+        type: originalListType === 'numbered_list_item' ? 'ol' : 'ul',
+        content: olContent
+      })
+    } else {
+      finalContent.push(item)
+    }
+
+  }
+
+  return finalContent
+
+  // return content.reduce((acc, item, i, content) => {
+  //   if (item.type === 'numbered_list_item' && content[i - 1]?.type !== 'numbered_list_item') {
+  //     console.log('pushing opening ol')
+  //     acc.push({
+  //       type: 'ol',
+  //       content: [],
+  //     })
+  //   }
+
+  //   acc.push({
+  //     ...item,
+  //     type: notionTypeToHTMLMap[item.type],
+  //   })
+
+  //   if (item.type === 'numbered_list_item' && content[i + 1]?.type !== 'numbered_list_item') {
+  //     console.log('pushing closing ol')
+  //     acc.push({
+  //       type: 'ol',
+  //     })
+  //   }
+
+  //   return acc
+  // }, [])
 }
