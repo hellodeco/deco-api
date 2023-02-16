@@ -3,6 +3,7 @@ import {
   BlockObjectResponse,
   PartialBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints'
+import htmlCreator from 'html-creator'
 import { getNotionClient } from '../notion/getNotionClient'
 
 type NotionBlock = (BlockObjectResponse | PartialBlockObjectResponse) & {
@@ -26,9 +27,12 @@ export async function getNotionPageContent({
     notionClient,
   })
 
+  console.log('blocks', JSON.stringify(blocks, null, 2))
+
   return {
     pageMetadata,
     plainText: blocksToPlainText({ blocks }),
+    html: blocksToHTML({ blocks }),
   }
 }
 
@@ -93,7 +97,7 @@ async function buildChildTree({
   return blocks
 }
 
-function blocksToPlainText({ blocks }: { blocks: NotionBlock[] }) {
+function blocksToPlainText({ blocks }: { blocks: NotionBlock[] }): string {
   const contentLines = []
   for (let block of blocks) {
     let contentStr = ''
@@ -122,4 +126,75 @@ function blocksToPlainText({ blocks }: { blocks: NotionBlock[] }) {
   }
 
   return contentLines.join('')
+}
+
+function blocksToHTML({ blocks }: { blocks: NotionBlock[] }) {
+
+  const html = new htmlCreator([
+    {
+      type: 'head',
+      content: [{ type: 'title', content: 'Generated HTML' }]
+    },
+    {
+      type: 'body',
+      attributes: { style: 'padding: 1rem' },
+      content: blocksToHTMLContent({ blocks })
+    },
+  ])
+
+
+  return html.renderHTML()
+}
+
+const notionTypeToHTMLMap = {
+  heading_1: 'h1',
+  heading_2: 'h2',
+  heading_3: 'h3',
+  paragraph: 'p',
+  bulleted_list_item: 'li',
+  numbered_list_item: 'li',
+}
+
+function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
+  const content = []
+  for (let block of blocks) {
+    content.push({
+      type: notionTypeToHTMLMap[block.type],
+      content: block[block.type].rich_text.reduce((acc, richTextItem, idx, richText) => {
+        const { type, annotations } = richTextItem
+        const styles = []
+
+        // if this is null, then a simple text node will be added.
+        let htmlType = null
+
+        if (annotations.bold) {
+          htmlType = 'span'
+          styles.push('font-weight: bold')
+        }
+
+        if (annotations.italic) {
+          htmlType = 'span'
+          styles.push('font-style: italic')
+        }
+
+        const attributes: { [key: string]: string } = { style: styles.join(';') }
+
+        if (richTextItem[type].link) {
+          htmlType = 'a'
+          attributes.href = richTextItem[type].link.url
+          attributes.target = '_blank'
+        }
+
+        acc.push({
+          type: htmlType,
+          content: richTextItem[type].content,
+          attributes,
+        })
+
+        return acc
+      }, [])
+    })
+  }
+
+  return content
 }

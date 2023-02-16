@@ -53,6 +53,7 @@
     "graphql-middleware": "^6.1.14",
     "graphql-scalars": "^1.14.1",
     "graphql-shield": "^7.5.0",
+    "html-creator": "^0.6.2",
     "jsonwebtoken": "^8.5.1",
     "knex": "^1.0.3",
     "knex-paginate": "^3.0.2",

@@ -1,3 +1,7 @@
+import os from 'os'
+import path from 'path'
+import fs from 'fs'
+import { v4 as uuidv4 } from 'uuid'
 import { getNotionPageContent } from '../notion/getNotionPageContent'
 import { getNotionClient } from '../notion/getNotionClient'
 
@@ -31,12 +35,21 @@ async function main() {
 
   const notionClient = await getNotionClient(userfrontID)
 
-  const plainText = await getNotionPageContent({
+  const {
+    pageMetadata,
+    plainText,
+    html,
+  } = await getNotionPageContent({
     notionPageID,
     notionClient,
   })
 
-  console.log(plainText)
+  const htmlPath = path.join(os.tmpdir(), `notion-page-${notionPageID}-${uuidv4()}.html`)
+  fs.writeFileSync(htmlPath, html)
+
+  console.log(`Wrote html to: ${htmlPath}`)
+  
+  console.log(`Open in browser: file://${htmlPath}`)
 }
 
 main()
