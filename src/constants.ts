@@ -79,4 +79,6 @@ export const FREE_TIER_EMAIL_LIMIT = 100
 
 export const REPLY_FEATURE_ENABLED = ['1', 'true'].includes(process.env.REPLY_FEATURE_ENABLED || '')
 
+export const FOUNDERS_USERFRONT_IDS = (process.env.FOUNDERS_USERFRONT_IDS || '').split(',').filter(Boolean);
+
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''

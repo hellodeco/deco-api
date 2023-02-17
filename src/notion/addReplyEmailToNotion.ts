@@ -5,7 +5,7 @@ import type {
 } from '@notionhq/client/build/src/api-endpoints'
 import 'dotenv/config'
 import { NotionDatabaseType } from '../types/database'
-import { getEmailFromEmailToStr } from '../utils'
+import { getEmailFromEmailToStr, isFounder } from '../utils'
 import { getNotionDatabaseId } from './notion'
 import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
 import { FRONTEND_BASE_URL, REPLY_FEATURE_ENABLED } from '../constants'
@@ -86,7 +86,7 @@ export async function addReplyEmailToNotion({
       },
     }
 
-    if (REPLY_FEATURE_ENABLED) {
+    if (REPLY_FEATURE_ENABLED || isFounder(userfrontID)) {
       requiredProps.push('Actions')
 
       updatePayload.properties.Actions = {
@@ -170,7 +170,7 @@ export async function addReplyEmailToNotion({
 
     const pageId = pageCreateResp.id
 
-    if (REPLY_FEATURE_ENABLED) {
+    if (REPLY_FEATURE_ENABLED || isFounder(userfrontID)) {
       await notionClient.pages.update({
         page_id: pageId,
         properties: {
