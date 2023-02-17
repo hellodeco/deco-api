@@ -50,36 +50,5 @@ export async function createAttachmentBlocks(attachments: Array<EmailAttachment>
     [],
   )
 
-  const attachmentSection = [
-    {
-      object: 'block',
-      type: 'paragraph',
-      paragraph: {
-        rich_text: [
-          {
-            type: 'text',
-            text: {
-              content: 'Attachments: ',
-            },
-            annotations: {
-              bold: true,
-            },
-          },
-          // @ts-ignore
-          ...attachmentLinks,
-        ],
-      },
-    },
-    {
-      type: 'divider',
-      divider: {},
-    },
-  ]
-
-
-  if (attachmentLinks.length > 0) {
-    attachmentContent.push(...attachmentSection)
-  }
-
-  return attachmentContent
+  return attachmentLinks
 }
