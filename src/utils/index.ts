@@ -1,6 +1,7 @@
 import camelcase from 'camelcase'
 import { snakeCase } from 'snake-case'
 import type { Header } from '../types/shared'
+import { FOUNDERS_USERFRONT_IDS } from '../constants'
 
 export function objectSnakeToCamel(o: { [key: string]: any }) {
   return Object.entries(o).reduce((acc, [k, v]) => {
@@ -129,4 +130,8 @@ export function getEmailFromEmailToStr(emailToStr: string): string {
   const match = emailToStr.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/i);
 
   return match[0] ? match[0] : null
+}
+
+export function isFounder(userfrontID: string) {
+  return FOUNDERS_USERFRONT_IDS.includes(userfrontID)
 }
