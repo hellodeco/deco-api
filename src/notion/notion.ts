@@ -299,7 +299,7 @@ export async function addEmailToNotion({
     NotionDatabaseType.EMAIL,
   )
 
-  const requiredProps = ['From', 'Delivered', 'UUID']
+  const requiredProps = ['From', 'Delivered', 'UUID', 'Attachments']
 
   const updatePayload: UpdateDatabaseParameters = {
     database_id: notionDatabaseId,
@@ -316,6 +316,10 @@ export async function addEmailToNotion({
         type: 'rich_text',
         rich_text: {},
       },
+      Attachments: {
+        type: 'rich_text',
+        rich_text: {},
+      }
     },
   }
 
@@ -393,7 +397,6 @@ export async function addEmailToNotion({
   const replySectionBlocks = []
 
   const children = [
-    ...attachmentBlocks,
     ...replySectionBlocks,
     ...emailBodyBlocks,
   ]
@@ -438,6 +441,9 @@ export async function addEmailToNotion({
             },
           ],
         },
+        Attachments: {
+          rich_text: [ ...attachmentBlocks ],
+        }
       },
       children: [...firstChildChunk],
     }
