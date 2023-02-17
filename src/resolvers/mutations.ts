@@ -2,7 +2,11 @@ import { isArray } from 'lodash'
 import Userfront, { user } from '@userfront/core'
 import sendgrid from '@sendgrid/mail'
 import { GraphQLError } from 'graphql'
-import { EMAIL_DOMAIN, SENDGRID_API_KEY } from '../constants'
+import {
+  EMAIL_DOMAIN,
+  SENDGRID_API_KEY,
+  REPLY_FEATURE_ENABLED,
+} from '../constants'
 import {
   MutationResolvers,
   UpdateDecoEmailErrorReasons,
@@ -11,7 +15,7 @@ import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
 import { NotionDatabaseType, DecoDBEmail, EmailStatus } from '../types/database'
-import { objectCamelToSnake } from '../utils'
+import { objectCamelToSnake, isFounder } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
 import { getNotionPageContent } from '../notion/getNotionPageContent'
@@ -250,6 +254,10 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     { originalEmailUUID },
     { user: { userfrontID }, db },
   ) => {
+    if (!REPLY_FEATURE_ENABLED || !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
+    }
+
     const notionClient = await getNotionClient(userfrontID)
 
     const user = await db
@@ -301,6 +309,10 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
      *  - should we add a new email to our db for each "to" address?
      *  - update the email status to EmailStatus.REPLY_SENT__FAILED if something goes wrong
      */
+
+    if (!REPLY_FEATURE_ENABLED || !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
+    }
 
     const notionClient = await getNotionClient(userfrontID)
 
