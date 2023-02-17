@@ -254,7 +254,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     { originalEmailUUID },
     { user: { userfrontID }, db },
   ) => {
-    if (!REPLY_FEATURE_ENABLED || !isFounder(userfrontID)) {
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
       throw new GraphQLError('You do not have access to this feature.')
     }
 
@@ -310,7 +310,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
      *  - update the email status to EmailStatus.REPLY_SENT__FAILED if something goes wrong
      */
 
-    if (!REPLY_FEATURE_ENABLED || !isFounder(userfrontID)) {
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
       throw new GraphQLError('You do not have access to this feature.')
     }
 

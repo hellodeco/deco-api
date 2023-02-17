@@ -43,6 +43,7 @@ const permissions = shield(
       createUserfrontAndDecoUser: isDecoFrontend,
       selectNotionDatabase: isAuthenticated,
       createEmailReplyPage: isAuthenticated,
+      sendEmailReply: isAuthenticated,
     },
   },
   {
