@@ -2,6 +2,7 @@ import type { Client } from '@notionhq/client'
 import {
   BlockObjectResponse,
   PartialBlockObjectResponse,
+  GetPageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import { getNotionClient } from '../notion/getNotionClient'
 
@@ -9,6 +10,19 @@ type NotionBlock = (BlockObjectResponse | PartialBlockObjectResponse) & {
   children?: NotionBlock[]
   type: string
 }
+
+interface NotionEmailPageProperties {
+  Name: {
+    title: Array<{
+      plain_text: string
+    }>
+  }
+  To: {
+    email: string
+  }
+}
+
+type NotionEmailPage = GetPageResponse & { properties: NotionEmailPageProperties }
 
 export async function getNotionPageContent({
   notionPageID,
@@ -19,7 +33,7 @@ export async function getNotionPageContent({
 }) {
   const pageMetadata = await notionClient.pages.retrieve({
     page_id: notionPageID,
-  })
+  }) as NotionEmailPage
 
   const blocks = await buildChildTree({
     blockId: notionPageID,
