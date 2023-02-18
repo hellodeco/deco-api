@@ -309,114 +309,107 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
      *  - should we add a new email to our db for each "to" address?
      *  - update the email status to EmailStatus.REPLY_SENT__FAILED if something goes wrong
      */
-    try {
-
-
-      if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
-        throw new GraphQLError('You do not have access to this feature.')
-      }
-
-      const notionClient = await getNotionClient(userfrontID)
-
-      const user = await db
-        .users()
-        .where('userfront_user_id', userfrontID)
-        .select('*')
-        .first()
-
-      const originalEmail = await db
-        .emails()
-        .where('uuid', originalEmailUUID)
-        .andWhere('user_id', user.id)
-        .select('*')
-        .first()
-
-      if (!originalEmail) {
-        throw new GraphQLError(
-          '"Reply to" email not found. You may not have access to the email you are trying to reply to.',
-        )
-      }
-
-      const { pageMetadata, plainText } = await getNotionPageContent({
-        notionClient,
-        notionPageID,
-      })
-
-      // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
-      // @ts-ignore
-      const to = pageMetadata?.properties?.To?.email
-        ?.split(',')
-        .map((email) => email.trim())
-
-      // @ts-ignore
-      const subject = pageMetadata?.properties?.Name?.title
-        ?.map((title) => title.plain_text)
-        .join('')
-
-      const sendGridResp = await sendgrid.send({
-        to,
-        subject,
-        from: user.emailAddress,
-        text: plainText,
-        headers: {
-          'In-Reply-To': originalEmail.messageId,
-          References: originalEmail.messageId,
-        },
-      })
-
-      // this is an array that sometimes contains empty strings for some reason
-      const [sendGridData] = sendGridResp.filter(Boolean)
-
-      const [replyEmail] = await db
-        .emails()
-        .insert(
-          objectCamelToSnake({
-            subject,
-            notionPageID,
-            plainTextContent: plainText,
-            from: user.emailAddress,
-            // TODO we do not have a "to" field currently and should add this to the email table
-            // to: '',
-            userId: user.id,
-            // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
-            status: EmailStatus.REPLY_SENT__SUCCEEDED,
-            // @ts-ignore
-            messageId: sendGridData.headers['x-message-id'],
-            inReplyTo: originalEmail.messageId,
-            references: originalEmail.messageId,
-          }),
-        )
-        .returning('*')
-
-      // TODO validate that the UUID property exists on the database
-      await notionClient.pages.update({
-        page_id: notionPageID,
-        properties: {
-          UUID: {
-            rich_text: [
-              {
-                type: 'text',
-                text: {
-                  content: replyEmail.uuid,
-                },
-              },
-            ],
-          },
-        },
-      })
-
-      const inbox = await notionClient.databases.retrieve({
-        // @ts-ignore beacuse there is most definitely a parent on this object
-        database_id: pageMetadata.parent.database_id,
-      })
-
-      // @ts-ignore beacuse there is most definitely a url on this object
-      const inboxPageURL = inbox.url
-
-      return { inboxPageURL }
-    } catch (err) {
-      console.error('Error sending email reply', err)
-      throw new GraphQLError(err.message);
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
     }
+
+    const notionClient = await getNotionClient(userfrontID)
+
+    const user = await db
+      .users()
+      .where('userfront_user_id', userfrontID)
+      .select('*')
+      .first()
+
+    const originalEmail = await db
+      .emails()
+      .where('uuid', originalEmailUUID)
+      .andWhere('user_id', user.id)
+      .select('*')
+      .first()
+
+    if (!originalEmail) {
+      throw new GraphQLError(
+        '"Reply to" email not found. You may not have access to the email you are trying to reply to.',
+      )
+    }
+
+    const { pageMetadata, plainText } = await getNotionPageContent({
+      notionClient,
+      notionPageID,
+    })
+
+    // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
+    // @ts-ignore
+    const to = pageMetadata?.properties?.To?.email
+      ?.split(',')
+      .map((email) => email.trim())
+
+    // @ts-ignore
+    const subject = pageMetadata?.properties?.Name?.title
+      ?.map((title) => title.plain_text)
+      .join('')
+
+    const sendGridResp = await sendgrid.send({
+      to,
+      subject,
+      from: user.emailAddress,
+      text: plainText,
+      headers: {
+        'In-Reply-To': originalEmail.messageId,
+        References: originalEmail.messageId,
+      },
+    })
+
+    // this is an array that sometimes contains empty strings for some reason
+    const [sendGridData] = sendGridResp.filter(Boolean)
+
+    const [replyEmail] = await db
+      .emails()
+      .insert(
+        objectCamelToSnake({
+          subject,
+          notionPageID,
+          plainTextContent: plainText,
+          from: user.emailAddress,
+          // TODO we do not have a "to" field currently and should add this to the email table
+          // to: '',
+          userId: user.id,
+          // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
+          status: EmailStatus.REPLY_SENT__SUCCEEDED,
+          // @ts-ignore
+          messageId: sendGridData.headers['x-message-id'],
+          inReplyTo: originalEmail.messageId,
+          references: originalEmail.messageId,
+        }),
+      )
+      .returning('*')
+
+    // TODO validate that the UUID property exists on the database
+    await notionClient.pages.update({
+      page_id: notionPageID,
+      properties: {
+        UUID: {
+          rich_text: [
+            {
+              type: 'text',
+              text: {
+                content: replyEmail.uuid,
+              },
+            },
+          ],
+        },
+      },
+    })
+
+    const inbox = await notionClient.databases.retrieve({
+      // @ts-ignore beacuse there is most definitely a parent on this object
+      database_id: pageMetadata.parent.database_id,
+    })
+
+    // @ts-ignore beacuse there is most definitely a url on this object
+    const inboxPageURL = inbox.url
+
+    return { inboxPageURL }
   },
 }
