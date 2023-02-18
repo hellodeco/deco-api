@@ -370,15 +370,26 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     })
 
     // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
-    // @ts-ignore
     const to = pageMetadata?.properties?.To?.email
-      ?.split(',')
+      // allow spaces, commas or a combination of both as delimiters
+      ?.split(/,| /g)
+      // filter out empty strings
+      .filter(Boolean)
       .map((email) => email.trim())
 
-    // @ts-ignore
-    const subject = pageMetadata?.properties?.Name?.title
+    if (!to) {
+      throw new GraphQLError('No email addresses found in the "To" field of the Notion page.')
+    }
+
+    let subject = pageMetadata?.properties?.Name?.title
       ?.map((title) => title.plain_text)
       .join('')
+
+    
+    // default subject if no title is found on the Notion page
+    if (!subject) {
+      subject =  `RE: ${originalEmail.subject}`
+    }
 
     const sendGridResp = await sendgrid.send({
       to,
