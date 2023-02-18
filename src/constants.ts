@@ -82,3 +82,11 @@ export const REPLY_FEATURE_ENABLED = ['1', 'true'].includes(process.env.REPLY_FE
 export const FOUNDERS_USERFRONT_IDS = (process.env.FOUNDERS_USERFRONT_IDS || '').split(',').filter(Boolean);
 
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''
+
+const EMAIL_SEND_PER_MINUTE_LIMIT = 10
+
+const EMAIL_SEND_PER_DAY_LIMIT = 1000
+
+const ONE_MINUTE = 60 * 1000
+
+const ONE_DAY = 24 * 60 * 60 * 1000
