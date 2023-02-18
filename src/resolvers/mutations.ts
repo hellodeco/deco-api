@@ -6,6 +6,10 @@ import {
   EMAIL_DOMAIN,
   SENDGRID_API_KEY,
   REPLY_FEATURE_ENABLED,
+  EMAIL_SEND_PER_MINUTE_LIMIT,
+  EMAIL_SEND_PER_DAY_LIMIT,
+  ONE_MINUTE, 
+  ONE_DAY,
 } from '../constants'
 import {
   MutationResolvers,
@@ -313,13 +317,37 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       throw new GraphQLError('You do not have access to this feature.')
     }
 
-    const notionClient = await getNotionClient(userfrontID)
-
     const user = await db
       .users()
       .where('userfront_user_id', userfrontID)
       .select('*')
       .first()
+
+    const sentInLastMinute = await db
+      .emails()
+      .where('user_id', user.id)
+      .andWhere('created_at', '>', new Date(Date.now() - ONE_MINUTE))
+      .count('id as count')
+      .first() as unknown as { count: string }
+   
+    const minuteCount = sentInLastMinute?.count || 0
+
+    if (minuteCount >= EMAIL_SEND_PER_MINUTE_LIMIT) {
+      throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_MINUTE_LIMIT} emails per minute.`)
+    }
+
+    const sentInLastDat = await db
+      .emails()
+      .where('user_id', user.id)
+      .andWhere('created_at', '>', new Date(Date.now() - ONE_DAY))
+      .count('id as count')
+      .first() as unknown as { count: string }
+
+    const dailyCount = sentInLastDat?.count || 0
+
+    if (dailyCount >= EMAIL_SEND_PER_DAY_LIMIT) {
+      throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_DAY_LIMIT} emails per day.`)
+    }
 
     const originalEmail = await db
       .emails()
@@ -333,6 +361,8 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
         '"Reply to" email not found. You may not have access to the email you are trying to reply to.',
       )
     }
+
+    const notionClient = await getNotionClient(userfrontID)
 
     const { pageMetadata, plainText } = await getNotionPageContent({
       notionClient,
