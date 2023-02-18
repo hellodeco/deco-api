@@ -124,5 +124,5 @@ export enum EmailStatus {
   // the email is a reply to and was sent successfully
   REPLY_SENT__SUCCEEDED = 'REPLY_SENT__SUCCEEDED',
   // the email is a reply to and failed to send
-  REPLY_SENT__FAILED = 'RREPLY_SENT__FAILED',
+  REPLY_SENT__FAILED = 'REPLY_SENT__FAILED',
 }
