@@ -1,0 +1,17 @@
+{
+  "name": "userfront-utils",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@userfront/core": "^0.2.41",
+    "meow": "^10.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.9.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.4",
+    "prettier": "^2.5.1"
+  }
+}
