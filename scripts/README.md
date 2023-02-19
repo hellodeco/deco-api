@@ -17,5 +17,5 @@ PGPASSWORD="password" pg_dump -h localhost -p 5432 -U user deco > deco-db-backup
 
 Import the backup into your new container:
 ```
-PGPASSWORD="password" psql -h localhost -d deco -U user -p 5433 -f deco-db-backup.sql
+PGPASSWORD="password" psql -h localhost -d deco -U user -p 5433 < deco-db-backup.sql
 ```

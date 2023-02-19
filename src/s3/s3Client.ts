@@ -7,7 +7,7 @@ import {
   IS_LOCAL,
 } from '../constants'
 
-const client = new S3Client({
+export const client = new S3Client({
   endpoint: S3_ENDPOINT,
   region: S3_REGION,
   credentials: {
