@@ -13,7 +13,7 @@ import {
   EmailAttachmentTokens,
 } from './types/database'
 
-const dbConnection = knex(knexConfig)
+export const dbConnection = knex(knexConfig)
 
 export default dbConnection
 
