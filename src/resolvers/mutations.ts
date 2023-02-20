@@ -410,10 +410,8 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           notionPageID,
           plainTextContent: plainText,
           from: user.emailAddress,
-          // TODO we do not have a "to" field currently and should add this to the email table
-          // to: '',
+          to: to.join(','),
           userId: user.id,
-          // TODO add status' for sent emails/email replies (rn we only have statuses for incoming emails)
           status: EmailStatus.REPLY_SENT__SUCCEEDED,
           // @ts-ignore
           messageId: sendGridData.headers['x-message-id'],

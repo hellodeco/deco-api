@@ -1,0 +1,60 @@
+import { Knex } from "knex";
+
+export function chunkArr(
+  arr: Array<any>,
+  size: number = 100,
+): Array<Array<any>> {
+  let chunks: Array<any> = []
+
+  let start = 0
+  let end = size
+
+  while (start < arr.length) {
+    chunks.push(arr.slice(start, end))
+    start = end
+    end += size
+  }
+
+  return chunks
+}
+
+export async function up(knex: Knex): Promise<void> {
+  await knex.schema.alterTable('emails', (table) => {
+    table.string('to', 10000);
+  })
+
+  await knex.transaction(async (trx) => {
+    const emails = await trx('emails')
+      .where('to', null)
+      .select('id')
+    
+    const emailChunks = chunkArr(emails, 1000)
+
+    for (const emailChunk of emailChunks) {
+      await Promise.all(
+        emailChunk.map(async (email) => {
+          const result = await trx('email_headers')
+            .where('email_id', email.id)
+            .andWhere('key', 'to')
+            .select('value')
+            .first()
+          
+          if (result?.value) {
+            await trx('emails')
+              .where('id', email.id)
+              .update({
+                to: result?.value,
+              })
+          }
+        })
+      )
+    }
+  })
+}
+
+export async function down(knex: Knex): Promise<void> {
+  await knex.schema.alterTable('emails', (table) => {
+    table.dropColumn('to');
+  })
+}
+
