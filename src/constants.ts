@@ -83,10 +83,10 @@ export const FOUNDERS_USERFRONT_IDS = (process.env.FOUNDERS_USERFRONT_IDS || '')
 
 export const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''
 
-const EMAIL_SEND_PER_MINUTE_LIMIT = 10
+export const EMAIL_SEND_PER_MINUTE_LIMIT = 10
 
-const EMAIL_SEND_PER_DAY_LIMIT = 1000
+export const EMAIL_SEND_PER_DAY_LIMIT = 1000
 
-const ONE_MINUTE = 60 * 1000
+export const ONE_MINUTE = 60 * 1000
 
-const ONE_DAY = 24 * 60 * 60 * 1000
+export const ONE_DAY = 24 * 60 * 60 * 1000

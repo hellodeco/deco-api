@@ -18,11 +18,12 @@ import {
 import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
-import { NotionDatabaseType, DecoDBEmail, EmailStatus } from '../types/database'
+import { NotionDatabaseType, DecoDBEmail, EmailStatus, User } from '../types/database'
 import { objectCamelToSnake, isFounder } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
 import { getNotionPageContent } from '../notion/getNotionPageContent'
+import { getEmailsSentSince } from '../db-access/getEmailsSentSince'
 
 sendgrid.setApiKey(SENDGRID_API_KEY)
 
@@ -323,12 +324,10 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       .select('*')
       .first()
 
-    const sentInLastMinute = await db
-      .emails()
-      .where('user_id', user.id)
-      .andWhere('created_at', '>', new Date(Date.now() - ONE_MINUTE))
-      .count('id as count')
-      .first() as unknown as { count: string }
+    const sentInLastMinute = await getEmailsSentSince({
+      ms: ONE_MINUTE,
+      user,
+    })
    
     const minuteCount = sentInLastMinute?.count || 0
 
@@ -336,12 +335,10 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_MINUTE_LIMIT} emails per minute.`)
     }
 
-    const sentInLastDat = await db
-      .emails()
-      .where('user_id', user.id)
-      .andWhere('created_at', '>', new Date(Date.now() - ONE_DAY))
-      .count('id as count')
-      .first() as unknown as { count: string }
+    const sentInLastDat = await getEmailsSentSince({
+      ms: ONE_DAY,
+      user,
+    })
 
     const dailyCount = sentInLastDat?.count || 0
 
