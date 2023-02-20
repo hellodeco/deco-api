@@ -27,9 +27,6 @@ async function deleteUser() {
   const USERFRONT_ID = process.env.USERFRONT_ID 
   const USERFRONT_ADMIN_API_KEY = process.env.USERFRONT_ADMIN_API_KEY
 
-  console.log('USERFRONT_ID', USERFRONT_ID)
-  console.log('USERFRONT_ADMIN_API_KEY', USERFRONT_ADMIN_API_KEY)
-
   if (!USERFRONT_ID) {
     throw new Error('USERFRONT_ID is required')
   }
