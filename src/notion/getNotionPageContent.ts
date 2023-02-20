@@ -4,7 +4,6 @@ import {
   PartialBlockObjectResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import htmlCreator from 'html-creator'
-import { getNotionClient } from '../notion/getNotionClient'
 
 type NotionBlock = (BlockObjectResponse | PartialBlockObjectResponse) & {
   children?: NotionBlock[]
@@ -130,7 +129,18 @@ function blocksToHTML({ blocks }: { blocks: NotionBlock[] }) {
   const html = new htmlCreator([
     {
       type: 'head',
-      content: [{ type: 'title', content: 'Generated HTML' }]
+      content: [
+        // TOOD update title to email subject (e.g. notion page title)
+        { type: 'title', content: 'Generated HTML' },
+        {
+          type: 'style',
+          content: `
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            } 
+          `,
+        },
+      ]
     },
     {
       type: 'body',
