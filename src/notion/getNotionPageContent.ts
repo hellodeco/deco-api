@@ -127,7 +127,6 @@ function blocksToPlainText({ blocks }: { blocks: NotionBlock[] }): string {
 }
 
 function blocksToHTML({ blocks }: { blocks: NotionBlock[] }) {
-
   const html = new htmlCreator([
     {
       type: 'head',
@@ -158,16 +157,6 @@ function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
   for (let i = 0; i < blocks.length; i++) {
     const block = blocks[i]
 
-    // if (block.type === 'numbered_list_item' && blocks[i - 1]?.type !== 'numbered_list_item') {
-    //   console.log('pushing opening ol')
-    //   content.push({
-    //     type: 'ol',
-    //   })
-    // }
-
-    /**
-     * compress any rich_text items into an HTML node.
-     */
     content.push({
       type: notionTypeToHTMLMap[block.type],
       // keep track of the "notion type" so that we can use this later on to add "ol", "ul", etc.
@@ -207,19 +196,23 @@ function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
       }, [])
     })
 
-    // if (block.type === 'numbered_list_item' && block[i + 1]?.type !== 'numbered_list_item') {
-    //   console.log('pushing closing ol')
-    //   content.push({
-    //     type: 'ol',
-    //   })
-    // }
+    if (block.children?.length) {
+      content.push({
+        type: 'div',
+        attributes: { style: 'margin-left: 1rem' },
+        content: blocksToHTMLContent({ blocks: block.children })
+      })
+    }
   }
 
   const finalContent = []
   for (let i = 0; i < content.length; i++) {
     const item = content[i]
 
-    // Begin handling ordered lists
+    /**
+     * Begin handling ordered lists:
+     * compress any rich_text items into an HTML node.
+     */
     if (['bulleted_list_item', 'numbered_list_item'].includes(item.notionType)) {
       const originalListType = item.notionType
       const olContent = []
@@ -233,6 +226,8 @@ function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
         i++
       }
 
+      // move back to the previous node since the loop above will advance one past
+      // the final list item.
       i--
 
       finalContent.push({
@@ -242,32 +237,7 @@ function blocksToHTMLContent({ blocks }: { blocks: NotionBlock[] }): any[] {
     } else {
       finalContent.push(item)
     }
-
   }
 
   return finalContent
-
-  // return content.reduce((acc, item, i, content) => {
-  //   if (item.type === 'numbered_list_item' && content[i - 1]?.type !== 'numbered_list_item') {
-  //     console.log('pushing opening ol')
-  //     acc.push({
-  //       type: 'ol',
-  //       content: [],
-  //     })
-  //   }
-
-  //   acc.push({
-  //     ...item,
-  //     type: notionTypeToHTMLMap[item.type],
-  //   })
-
-  //   if (item.type === 'numbered_list_item' && content[i + 1]?.type !== 'numbered_list_item') {
-  //     console.log('pushing closing ol')
-  //     acc.push({
-  //       type: 'ol',
-  //     })
-  //   }
-
-  //   return acc
-  // }, [])
 }
