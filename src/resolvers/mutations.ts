@@ -410,7 +410,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           notionPageID,
           plainTextContent: plainText,
           from: user.emailAddress,
-          to: to.join(','),
+          to: JSON.stringify(to),
           userId: user.id,
           status: EmailStatus.REPLY_SENT__SUCCEEDED,
           // @ts-ignore

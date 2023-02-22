@@ -20,7 +20,7 @@ export function chunkArr(
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('emails', (table) => {
-    table.string('to', 10000);
+    table.jsonb('to');
   })
 
   await knex.transaction(async (trx) => {
@@ -33,17 +33,18 @@ export async function up(knex: Knex): Promise<void> {
     for (const emailChunk of emailChunks) {
       await Promise.all(
         emailChunk.map(async (email) => {
-          const result = await trx('email_headers')
+          const results = await trx('email_headers')
             .where('email_id', email.id)
             .andWhere('key', 'to')
             .select('value')
-            .first()
-          
-          if (result?.value) {
+
+          const toAddresses = results.map((result) => result.value).filter(Boolean)
+
+          if (toAddresses.length) {
             await trx('emails')
               .where('id', email.id)
               .update({
-                to: result?.value,
+                to: JSON.stringify(toAddresses),
               })
           }
         })
