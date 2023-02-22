@@ -335,12 +335,12 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_MINUTE_LIMIT} emails per minute.`)
     }
 
-    const sentInLastDat = await getEmailsSentSince({
+    const sentInLastDay = await getEmailsSentSince({
       ms: ONE_DAY,
       user,
     })
 
-    const dailyCount = sentInLastDat?.count || 0
+    const dailyCount = sentInLastDay?.count || 0
 
     if (dailyCount >= EMAIL_SEND_PER_DAY_LIMIT) {
       throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_DAY_LIMIT} emails per day.`)
