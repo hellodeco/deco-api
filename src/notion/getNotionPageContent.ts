@@ -169,7 +169,7 @@ function blocksToHTML({ blocks, subject }: { blocks: NotionBlock[], subject: str
   ])
 
 
-  return html.renderHTML()
+  return html.renderHTML({ disablePrettier: true })
 }
 
 const notionTypeToHTMLMap = {
