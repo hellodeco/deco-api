@@ -42,6 +42,7 @@ async function main() {
   } = await getNotionPageContent({
     notionPageID,
     notionClient,
+    defaultSubject: 'Testing Notion Page to HTML',
   })
 
   const htmlPath = path.join(os.tmpdir(), `notion-page-${notionPageID}-${uuidv4()}.html`)
