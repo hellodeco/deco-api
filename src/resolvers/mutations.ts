@@ -439,4 +439,26 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     return { inboxPageURL }
   },
+
+  createEmailPage: async (
+    _,
+    {},
+    { user: { userfrontID }, db },
+  ) => {
+    return {
+      pageId: '', 
+      notionEmailDatabaseId: '', 
+      notionPageURL: '', 
+    }
+  },
+
+  sendEmail: async (
+    _,
+    {},
+    { db, user: { userfrontID } },
+  ) => {
+    return {
+      inboxPageURL: '',
+    }
+  },
 }

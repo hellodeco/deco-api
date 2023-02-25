@@ -37,12 +37,14 @@ export type Email = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  createEmailPage?: Maybe<NotionEmailCreatedResponse>;
   createEmailReplyPage?: Maybe<NotionEmailCreatedResponse>;
   createUserfrontAndDecoUser?: Maybe<CreateUserfrontAndDecoUserResult>;
   deleteNotionTableProperties?: Maybe<Array<Maybe<Scalars['String']>>>;
   formatNotionTable?: Maybe<Scalars['Boolean']>;
   selectNotionDatabase?: Maybe<Scalars['Boolean']>;
-  sendEmailReply?: Maybe<SendEmailReplyResponse>;
+  sendEmail?: Maybe<SendEmailResponse>;
+  sendEmailReply?: Maybe<SendEmailResponse>;
   setDecoEmail?: Maybe<UpdateDecoEmailResult>;
   wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
@@ -159,8 +161,8 @@ export type QueryEmailUsernameAvailableArgs = {
   username: Scalars['String'];
 };
 
-export type SendEmailReplyResponse = {
-  __typename?: 'SendEmailReplyResponse';
+export type SendEmailResponse = {
+  __typename?: 'SendEmailResponse';
   inboxPageURL?: Maybe<Scalars['String']>;
 };
 
@@ -272,7 +274,7 @@ export type ResolversTypes = ResolversObject<{
   NotionIntegration: ResolverTypeWrapper<NotionIntegration>;
   NotionPage: ResolverTypeWrapper<NotionPage>;
   Query: ResolverTypeWrapper<{}>;
-  SendEmailReplyResponse: ResolverTypeWrapper<SendEmailReplyResponse>;
+  SendEmailResponse: ResolverTypeWrapper<SendEmailResponse>;
   String: ResolverTypeWrapper<Scalars['String']>;
   UUID: ResolverTypeWrapper<Scalars['UUID']>;
   UpdateDecoEmailErrorReasons: UpdateDecoEmailErrorReasons;
@@ -295,7 +297,7 @@ export type ResolversParentTypes = ResolversObject<{
   NotionIntegration: NotionIntegration;
   NotionPage: NotionPage;
   Query: {};
-  SendEmailReplyResponse: SendEmailReplyResponse;
+  SendEmailResponse: SendEmailResponse;
   String: Scalars['String'];
   UUID: Scalars['UUID'];
   UpdateDecoEmailResult: UpdateDecoEmailResult;
@@ -315,12 +317,14 @@ export type CreateUserfrontAndDecoUserResultResolvers<ContextType = any, ParentT
 }>;
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
+  createEmailPage?: Resolver<Maybe<ResolversTypes['NotionEmailCreatedResponse']>, ParentType, ContextType>;
   createEmailReplyPage?: Resolver<Maybe<ResolversTypes['NotionEmailCreatedResponse']>, ParentType, ContextType, Partial<MutationCreateEmailReplyPageArgs>>;
   createUserfrontAndDecoUser?: Resolver<Maybe<ResolversTypes['CreateUserfrontAndDecoUserResult']>, ParentType, ContextType, Partial<MutationCreateUserfrontAndDecoUserArgs>>;
   deleteNotionTableProperties?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   formatNotionTable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   selectNotionDatabase?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSelectNotionDatabaseArgs, 'databaseId' | 'type'>>;
-  sendEmailReply?: Resolver<Maybe<ResolversTypes['SendEmailReplyResponse']>, ParentType, ContextType, Partial<MutationSendEmailReplyArgs>>;
+  sendEmail?: Resolver<Maybe<ResolversTypes['SendEmailResponse']>, ParentType, ContextType>;
+  sendEmailReply?: Resolver<Maybe<ResolversTypes['SendEmailResponse']>, ParentType, ContextType, Partial<MutationSendEmailReplyArgs>>;
   setDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationSetDecoEmailArgs>>;
   wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
@@ -387,7 +391,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   getCurrentUserNotionIntegration?: Resolver<Maybe<ResolversTypes['NotionIntegration']>, ParentType, ContextType>;
 }>;
 
-export type SendEmailReplyResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendEmailReplyResponse'] = ResolversParentTypes['SendEmailReplyResponse']> = ResolversObject<{
+export type SendEmailResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SendEmailResponse'] = ResolversParentTypes['SendEmailResponse']> = ResolversObject<{
   inboxPageURL?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -422,7 +426,7 @@ export type Resolvers<ContextType = any> = ResolversObject<{
   NotionIntegration?: NotionIntegrationResolvers<ContextType>;
   NotionPage?: NotionPageResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
-  SendEmailReplyResponse?: SendEmailReplyResponseResolvers<ContextType>;
+  SendEmailResponse?: SendEmailResponseResolvers<ContextType>;
   UUID?: GraphQLScalarType;
   UpdateDecoEmailResult?: UpdateDecoEmailResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
