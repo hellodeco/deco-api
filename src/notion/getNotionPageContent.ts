@@ -2,48 +2,54 @@ import type { Client } from '@notionhq/client'
 import {
   BlockObjectResponse,
   PartialBlockObjectResponse,
-  GetPageResponse,
 } from '@notionhq/client/build/src/api-endpoints'
 import htmlCreator from 'html-creator'
+import { getEmailSubjectFromPageMetadata } from '../notion/pageMetadataUtils'
+import { NotionEmailPageMetadata } from '../types/notion'
 
 type NotionBlock = (BlockObjectResponse | PartialBlockObjectResponse) & {
   children?: NotionBlock[]
   type: string
 }
 
-interface NotionEmailPageProperties {
-  Name: {
-    title: Array<{
-      plain_text: string
-    }>
-  }
-  To: {
-    email: string
-  }
-}
-
-type NotionEmailPage = GetPageResponse & { properties: NotionEmailPageProperties }
-
 export async function getNotionPageContent({
   notionPageID,
   notionClient,
+  defaultSubject,
 }: {
   notionPageID: string
   notionClient: Client
+  defaultSubject: string
 }) {
   const pageMetadata = await notionClient.pages.retrieve({
     page_id: notionPageID,
-  }) as NotionEmailPage
+  }) as NotionEmailPageMetadata
 
   const blocks = await buildChildTree({
     blockId: notionPageID,
     notionClient,
   })
 
+  const subject = getEmailSubjectFromPageMetadata({
+    metadata: pageMetadata,
+    defaultSubject,
+  })
+
+  // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
+  const to = pageMetadata?.properties?.To?.email
+    // allow spaces, commas or a combination of both as delimiters
+    ?.split(/,| /g)
+    // filter out empty strings
+    .filter(Boolean)
+    .map((email) => email.trim())
+
+
   return {
     pageMetadata,
+    subject,
+    to,
     plainText: blocksToPlainText({ blocks }),
-    html: blocksToHTML({ blocks }),
+    html: blocksToHTML({ blocks, subject }),
   }
 }
 
@@ -139,13 +145,12 @@ function blocksToPlainText({ blocks }: { blocks: NotionBlock[] }): string {
   return contentLines.join('')
 }
 
-function blocksToHTML({ blocks }: { blocks: NotionBlock[] }) {
+function blocksToHTML({ blocks, subject }: { blocks: NotionBlock[], subject: string }) {
   const html = new htmlCreator([
     {
       type: 'head',
       content: [
-        // TOOD update title to email subject (e.g. notion page title)
-        { type: 'title', content: 'Generated HTML' },
+        { type: 'title', content: subject },
         {
           type: 'style',
           content: `

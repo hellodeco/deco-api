@@ -361,36 +361,26 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     const notionClient = await getNotionClient(userfrontID)
 
-    const { pageMetadata, plainText } = await getNotionPageContent({
+    const {
+      pageMetadata,
+      subject,
+      to,
+      plainText,
+      html,
+    } = await getNotionPageContent({
       notionClient,
       notionPageID,
+      defaultSubject: `RE: ${originalEmail.subject}`,
     })
 
-    // TODO we should do some form of validation that the email addresses found here are valid and formatted correctly
-    const to = pageMetadata?.properties?.To?.email
-      // allow spaces, commas or a combination of both as delimiters
-      ?.split(/,| /g)
-      // filter out empty strings
-      .filter(Boolean)
-      .map((email) => email.trim())
-
-    if (!to) {
+    if (!to || !to.length) {
       throw new GraphQLError('No email addresses found in the "To" field of the Notion page.')
-    }
-
-    let subject = pageMetadata?.properties?.Name?.title
-      ?.map((title) => title.plain_text)
-      .join('')
-
-    
-    // default subject if no title is found on the Notion page
-    if (!subject) {
-      subject =  `RE: ${originalEmail.subject}`
     }
 
     const sendGridResp = await sendgrid.send({
       to,
       subject,
+      html,
       from: user.emailAddress,
       text: plainText,
       headers: {
@@ -409,6 +399,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
           subject,
           notionPageID,
           plainTextContent: plainText,
+          htmlContent: html,
           from: user.emailAddress,
           to: JSON.stringify(to),
           userId: user.id,
