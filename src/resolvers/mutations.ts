@@ -303,6 +303,23 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     return notionEmailResp
   },
+
+  createEmailPage: async (
+    _,
+    {},
+    { user: { userfrontID }, db },
+  ) => {
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
+    }
+
+    return {
+      pageId: '', 
+      notionEmailDatabaseId: '', 
+      notionPageURL: '', 
+    }
+  },
+
   sendEmailReply: async (
     _,
     { notionPageID, originalEmailUUID },
@@ -440,23 +457,15 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     return { inboxPageURL }
   },
 
-  createEmailPage: async (
-    _,
-    {},
-    { user: { userfrontID }, db },
-  ) => {
-    return {
-      pageId: '', 
-      notionEmailDatabaseId: '', 
-      notionPageURL: '', 
-    }
-  },
-
   sendEmail: async (
     _,
     {},
     { db, user: { userfrontID } },
   ) => {
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
+    }
+
     return {
       inboxPageURL: '',
     }
