@@ -17,6 +17,13 @@ export async function maybeUpdateContactsPageProperties({
   notionEmailDatabaseId: string
   notionClient: Client
 }) {
+  console.log(
+    'Adding contact to notion, line 21: ',
+    notionContactsDatabaseId,
+    notionEmailDatabaseId,
+    'End log',
+  )
+
   const notionDB = await notionClient.databases.retrieve({
     database_id: notionContactsDatabaseId,
   })
@@ -25,8 +32,7 @@ export async function maybeUpdateContactsPageProperties({
 
   // the email relationship property name is dynamic and auto created
   // by the notion api, so we need to find it
-  let emailsRelationProp: GetDatabaseResponse['properties']['relation'] =
-    null
+  let emailsRelationProp: GetDatabaseResponse['properties']['relation'] = null
 
   for (let [, value] of Object.entries(notionDB.properties)) {
     // @ts-ignore b/c tsc can't figure this one out

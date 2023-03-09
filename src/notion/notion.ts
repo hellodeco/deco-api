@@ -319,7 +319,7 @@ export async function addEmailToNotion({
       Attachments: {
         type: 'rich_text',
         rich_text: {},
-      }
+      },
     },
   }
 
@@ -364,6 +364,7 @@ export async function addEmailToNotion({
       await notionClient.databases.update(updatePayload)
     }
   } catch (err) {
+    console.log('Error thrown on line 357 of notion.ts')
     // throw so that the caller can do something with the error.
     throw new Error(err)
   }
@@ -396,10 +397,7 @@ export async function addEmailToNotion({
 
   const replySectionBlocks = []
 
-  const children = [
-    ...replySectionBlocks,
-    ...emailBodyBlocks,
-  ]
+  const children = [...replySectionBlocks, ...emailBodyBlocks]
 
   /**
    * The Notion API limits children passed to the create page endpoint to 100.
@@ -442,8 +440,8 @@ export async function addEmailToNotion({
           ],
         },
         Attachments: {
-          rich_text: [ ...attachmentBlocks ],
-        }
+          rich_text: [...attachmentBlocks],
+        },
       },
       children: [...firstChildChunk],
     }
@@ -479,6 +477,8 @@ export async function addEmailToNotion({
         ],
       }
     }
+
+    console.log('Adding page to notion...', createEmailPagePayload, 'Line 481')
 
     pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
 
