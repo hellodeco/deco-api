@@ -23,7 +23,6 @@ const isDecoFrontend = rule({ cache: 'contextual' })(
   },
 )
 
-
 const permissions = shield(
   {
     Query: {
@@ -36,7 +35,6 @@ const permissions = shield(
       currentUserHasFileAccess: isAuthenticated,
     },
     Mutation: {
-      wipeNotionDatabase: isAuthenticated,
       deleteNotionTableProperties: isAuthenticated,
       formatNotionTable: isAuthenticated,
       setDecoEmail: isAuthenticated,

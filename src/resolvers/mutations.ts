@@ -8,7 +8,7 @@ import {
   REPLY_FEATURE_ENABLED,
   EMAIL_SEND_PER_MINUTE_LIMIT,
   EMAIL_SEND_PER_DAY_LIMIT,
-  ONE_MINUTE, 
+  ONE_MINUTE,
   ONE_DAY,
 } from '../constants'
 import {
@@ -18,7 +18,12 @@ import {
 import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
-import { NotionDatabaseType, DecoDBEmail, EmailStatus, User } from '../types/database'
+import {
+  NotionDatabaseType,
+  DecoDBEmail,
+  EmailStatus,
+  User,
+} from '../types/database'
 import { objectCamelToSnake, isFounder } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
@@ -28,10 +33,6 @@ import { getEmailsSentSince } from '../db-access/getEmailsSentSince'
 sendgrid.setApiKey(SENDGRID_API_KEY)
 
 export const mutationResolvers: MutationResolvers<ResolverContext> = {
-  wipeNotionDatabase: async (_, args, { notionAccess, user }) => {
-    const archivedIDs = await notionAccess.wipeNotionDatabase(user.userfrontID)
-    return archivedIDs
-  },
   deleteNotionTableProperties: async (_, args, { notionAccess, user }) => {
     const deletedProperties = await notionAccess.deleteNotionTableProperties(
       user.userfrontID,
@@ -328,11 +329,13 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       ms: ONE_MINUTE,
       user,
     })
-   
+
     const minuteCount = sentInLastMinute?.count || 0
 
     if (minuteCount >= EMAIL_SEND_PER_MINUTE_LIMIT) {
-      throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_MINUTE_LIMIT} emails per minute.`)
+      throw new GraphQLError(
+        `You have reached the limit of ${EMAIL_SEND_PER_MINUTE_LIMIT} emails per minute.`,
+      )
     }
 
     const sentInLastDay = await getEmailsSentSince({
@@ -343,7 +346,9 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     const dailyCount = sentInLastDay?.count || 0
 
     if (dailyCount >= EMAIL_SEND_PER_DAY_LIMIT) {
-      throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_DAY_LIMIT} emails per day.`)
+      throw new GraphQLError(
+        `You have reached the limit of ${EMAIL_SEND_PER_DAY_LIMIT} emails per day.`,
+      )
     }
 
     const originalEmail = await db
@@ -361,20 +366,17 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     const notionClient = await getNotionClient(userfrontID)
 
-    const {
-      pageMetadata,
-      subject,
-      to,
-      plainText,
-      html,
-    } = await getNotionPageContent({
-      notionClient,
-      notionPageID,
-      defaultSubject: `RE: ${originalEmail.subject}`,
-    })
+    const { pageMetadata, subject, to, plainText, html } =
+      await getNotionPageContent({
+        notionClient,
+        notionPageID,
+        defaultSubject: `RE: ${originalEmail.subject}`,
+      })
 
     if (!to || !to.length) {
-      throw new GraphQLError('No email addresses found in the "To" field of the Notion page.')
+      throw new GraphQLError(
+        'No email addresses found in the "To" field of the Notion page.',
+      )
     }
 
     const sendGridResp = await sendgrid.send({
