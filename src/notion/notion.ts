@@ -26,7 +26,6 @@ import { REPLY_FEATURE_ENABLED, FRONTEND_BASE_URL } from '../constants'
  * 3. detect if single selected page is correct format (full page database)
  * 4. if it isn't ask user to format it correctly and provide instructions (video + written instructions)
  * 5. once it is correct type, ask user to "format". This kicks off the following sequential steps under the hood:
- *     a. wipeNotionDatabase (delete all existing data)
  *     b. deleteNotionTableProperties (delete all existing table properties)
  *     c. formatNotionTable (add table properties)
  *
@@ -174,34 +173,6 @@ export async function getNotionDatabaseId(
     .first()
 
   return notionDB?.notionDatabaseId || null
-}
-
-export async function wipeNotionDatabase(userfrontID: string) {
-  const notion = await getNotionClient(userfrontID)
-  const notionDatabaseId = await getNotionDatabaseId(
-    userfrontID,
-    NotionDatabaseType.EMAIL,
-  )
-
-  const response = await notion.databases.query({
-    database_id: notionDatabaseId,
-  })
-
-  const promises = []
-  const archivedPageTitles = []
-
-  response.results.forEach((result) => {
-    promises.push(
-      notion.pages.update({
-        page_id: result.id,
-        archived: true,
-      }),
-    )
-    archivedPageTitles.push(result.id)
-  })
-
-  await Promise.all(promises)
-  return archivedPageTitles
 }
 
 export async function deleteNotionTableProperties(userfrontID: string) {

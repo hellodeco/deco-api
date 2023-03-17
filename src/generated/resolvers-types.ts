@@ -44,7 +44,6 @@ export type Mutation = {
   selectNotionDatabase?: Maybe<Scalars['Boolean']>;
   sendEmailReply?: Maybe<SendEmailReplyResponse>;
   setDecoEmail?: Maybe<UpdateDecoEmailResult>;
-  wipeNotionDatabase?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
 
 
@@ -322,7 +321,6 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   selectNotionDatabase?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType, RequireFields<MutationSelectNotionDatabaseArgs, 'databaseId' | 'type'>>;
   sendEmailReply?: Resolver<Maybe<ResolversTypes['SendEmailReplyResponse']>, ParentType, ContextType, Partial<MutationSendEmailReplyArgs>>;
   setDecoEmail?: Resolver<Maybe<ResolversTypes['UpdateDecoEmailResult']>, ParentType, ContextType, Partial<MutationSetDecoEmailArgs>>;
-  wipeNotionDatabase?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
 }>;
 
 export type NotionDatabaseInfoResolvers<ContextType = any, ParentType extends ResolversParentTypes['NotionDatabaseInfo'] = ResolversParentTypes['NotionDatabaseInfo']> = ResolversObject<{

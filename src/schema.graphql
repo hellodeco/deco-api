@@ -113,7 +113,6 @@ type Query {
 }
 
 type Mutation {
-  wipeNotionDatabase: [String]
   deleteNotionTableProperties: [String]
   formatNotionTable: Boolean
   setDecoEmail(username: String): UpdateDecoEmailResult
