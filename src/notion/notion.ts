@@ -17,6 +17,7 @@ import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr, isFounder } from '../utils'
 import { getNotionClient } from './getNotionClient'
 import { REPLY_FEATURE_ENABLED, FRONTEND_BASE_URL } from '../constants'
+import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
 
 /**
  * Notion formatting setup order of operations:
@@ -270,6 +271,8 @@ export async function addEmailToNotion({
     NotionDatabaseType.EMAIL,
   )
 
+  const subscription = await getSubscriptionByUserfrontUserId(userfrontID)
+
   const requiredProps = ['From', 'Delivered', 'UUID', 'Attachments']
 
   const updatePayload: UpdateDatabaseParameters = {
@@ -309,7 +312,10 @@ export async function addEmailToNotion({
     }
   }
 
-  if (REPLY_FEATURE_ENABLED || isFounder(userfrontID)) {
+  if (
+    (REPLY_FEATURE_ENABLED && subscription.subscriptionStatus === 'active') ||
+    isFounder(userfrontID)
+  ) {
     requiredProps.push('Actions')
 
     updatePayload.properties.Actions = {
@@ -426,7 +432,11 @@ export async function addEmailToNotion({
       }
     }
 
-    if (REPLY_FEATURE_ENABLED || isFounder(userfrontID)) {
+
+    if (
+      (REPLY_FEATURE_ENABLED && subscription.subscriptionStatus === 'active') ||
+      isFounder(userfrontID)
+    ) {
       createEmailPagePayload.properties.Actions = {
         rich_text: [
           {

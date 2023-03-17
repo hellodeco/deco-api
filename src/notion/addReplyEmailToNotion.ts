@@ -44,7 +44,9 @@ export async function addReplyEmailToNotion({
       !existingSubscription ||
       existingSubscription.subscriptionStatus !== 'active'
     ) {
-      throw new Error('Active Deco subscription required to send email replies.')
+      throw new Error(
+        'Active Deco subscription required to send email replies.',
+      )
     }
 
     const notionDatabaseId = await getNotionDatabaseId(

@@ -29,6 +29,7 @@ import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
 import { getNotionPageContent } from '../notion/getNotionPageContent'
 import { getEmailsSentSince } from '../db-access/getEmailsSentSince'
+import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
 
 sendgrid.setApiKey(SENDGRID_API_KEY)
 
@@ -260,7 +261,13 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     { originalEmailUUID },
     { user: { userfrontID }, db },
   ) => {
-    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+    const subscription = await getSubscriptionByUserfrontUserId(userfrontID)
+
+    if (
+      !REPLY_FEATURE_ENABLED &&
+      subscription.subscriptionStatus !== 'active' &&
+      !isFounder(userfrontID)
+    ) {
       throw new GraphQLError('You do not have access to this feature.')
     }
 
@@ -315,7 +322,14 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
      *  - should we add a new email to our db for each "to" address?
      *  - update the email status to EmailStatus.REPLY_SENT__FAILED if something goes wrong
      */
-    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+
+    const subscription = await getSubscriptionByUserfrontUserId(userfrontID)
+
+    if (
+      !REPLY_FEATURE_ENABLED &&
+      subscription.subscriptionStatus !== 'active' &&
+      !isFounder(userfrontID)
+    ) {
       throw new GraphQLError('You do not have access to this feature.')
     }
 
