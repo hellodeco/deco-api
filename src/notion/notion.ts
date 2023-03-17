@@ -364,7 +364,6 @@ export async function addEmailToNotion({
       await notionClient.databases.update(updatePayload)
     }
   } catch (err) {
-    console.log('Error thrown on line 357 of notion.ts')
     // throw so that the caller can do something with the error.
     throw new Error(err)
   }
@@ -477,8 +476,6 @@ export async function addEmailToNotion({
         ],
       }
     }
-
-    console.log('Adding page to notion...', createEmailPagePayload, 'Line 481')
 
     pageCreateResp = await notionClient.pages.create(createEmailPagePayload)
 

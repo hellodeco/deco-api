@@ -17,13 +17,6 @@ export async function maybeUpdateContactsPageProperties({
   notionEmailDatabaseId: string
   notionClient: Client
 }) {
-  console.log(
-    'Adding contact to notion, line 21: ',
-    notionContactsDatabaseId,
-    notionEmailDatabaseId,
-    'End log',
-  )
-
   const notionDB = await notionClient.databases.retrieve({
     database_id: notionContactsDatabaseId,
   })

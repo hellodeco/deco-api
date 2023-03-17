@@ -204,16 +204,12 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           emailRecipient.userfrontUserId,
         )
 
-        console.log('Getting notion client: ', notionClient)
-
         const notionContactResp = await addContactToNotion({
           userfrontID: emailRecipient.userfrontUserId,
           email: envelope.from,
           fullName: getFullNameFromEmailToStr(from),
           notionClient,
         })
-
-        console.log('Adding contact to notion contacts DB: ', notionContactResp)
 
         const notionEmailResp = await addEmailToNotion({
           newEmail: {
@@ -227,20 +223,15 @@ export async function emailReceiveHandler(req: Request, res: Response) {
           notionClient,
         })
 
-        console.log('Adding email to notion email DB: ', notionEmailResp)
-
         // re update page properties with notion rollup and relation. This is important because these cannot be
         // created until the email is created.
         if (notionContactResp) {
-          console.log('Adding notion rollup and relation...')
           await maybeUpdateContactsPageProperties({
             notionContactsDatabaseId:
               notionContactResp?.notionContactsDatabaseId,
             notionEmailDatabaseId: notionEmailResp.notionEmailDatabaseId,
             notionClient,
           })
-
-          console.log('Notion relation added.')
         }
 
         if (notionEmailResp?.pageId) {
