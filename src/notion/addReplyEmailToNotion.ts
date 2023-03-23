@@ -11,24 +11,25 @@ import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
 import { FRONTEND_BASE_URL, REPLY_FEATURE_ENABLED } from '../constants'
 
 export interface NewReply {
-  subject: string
-  to: string
   from: string
-  inReplyTo: string
-  emailThreadId: number
-  plainTextContent: string
   createdAt: string
+  subject?: string
+  to?: string
+  inReplyTo?: string
+  emailThreadId?: number
+  // TODO I think plainTextContent can be removed
+  // plainTextContent: string
 }
 
 export async function addReplyEmailToNotion({
   newReply,
   userfrontID,
-  originalEmailUUID,
+  originalEmailUUID = null,
   notionClient,
 }: {
   newReply: NewReply
   userfrontID: string
-  originalEmailUUID: string
+  originalEmailUUID?: string
   notionClient: Client
 }): Promise<{
   pageId: string
@@ -111,7 +112,7 @@ export async function addReplyEmailToNotion({
       await notionClient.databases.update(updatePayload)
     }
 
-    const { to, subject, from, inReplyTo } = newReply
+    const { to = '', subject = '', from, inReplyTo = '' } = newReply
 
     const deliveryDate = new Date(newReply.createdAt)
     const deliveryDateAsISOString = deliveryDate.toISOString()
@@ -170,6 +171,27 @@ export async function addReplyEmailToNotion({
 
     const pageId = pageCreateResp.id
 
+    /**
+     * Build out the URL used to send the email/reply
+     * originalEmailUUID is only passed if this is a reply to an email
+     * when creating a new email this won't exist
+     * 
+     * Example of email reply URL:
+     * `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
+     * 
+     * Example of new email URL:
+     * `${FRONTEND_BASE_URL}/email/reply/send/${pageId}`,
+     */
+    const sendUrlPathPieces = ['email', 'reply', 'send']
+
+    if (originalEmailUUID) {
+      sendUrlPathPieces.push(originalEmailUUID)
+    }
+
+    sendUrlPathPieces.push(pageId)
+    
+    const sendUrl = `${FRONTEND_BASE_URL}/${sendUrlPathPieces.join('/')}`,
+
     if (REPLY_FEATURE_ENABLED || isFounder(userfrontID)) {
       await notionClient.pages.update({
         page_id: pageId,
@@ -187,7 +209,7 @@ export async function addReplyEmailToNotion({
                 text: {
                   content: ' Send this email',
                   link: {
-                    url: `${FRONTEND_BASE_URL}/email/reply/send/${originalEmailUUID}/${pageId}`,
+                    url: sendUrl,
                   },
                 },
               },

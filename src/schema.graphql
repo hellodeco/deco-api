@@ -97,7 +97,7 @@ type NotionEmailCreatedResponse {
   notionPageURL: String
 }
 
-type SendEmailReplyResponse {
+type SendEmailResponse {
   inboxPageURL: String
 }
 
@@ -127,5 +127,7 @@ type Mutation {
   sendEmailReply(
     notionPageID: String
     originalEmailUUID: String
-  ): SendEmailReplyResponse
+  ): SendEmailResponse
+  createEmailPage: NotionEmailCreatedResponse
+  sendEmail(notionPageID: String): SendEmailResponse
 }

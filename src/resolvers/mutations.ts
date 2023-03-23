@@ -1,15 +1,11 @@
 import { isArray } from 'lodash'
-import Userfront, { user } from '@userfront/core'
+import Userfront from '@userfront/core'
 import sendgrid from '@sendgrid/mail'
 import { GraphQLError } from 'graphql'
 import {
   EMAIL_DOMAIN,
   SENDGRID_API_KEY,
   REPLY_FEATURE_ENABLED,
-  EMAIL_SEND_PER_MINUTE_LIMIT,
-  EMAIL_SEND_PER_DAY_LIMIT,
-  ONE_MINUTE, 
-  ONE_DAY,
 } from '../constants'
 import {
   MutationResolvers,
@@ -18,12 +14,14 @@ import {
 import { createUser, getUserBySignupEmail } from './../db-access/db-access'
 import { reservedUsernames } from '../reservedUsernames'
 import { ResolverContext } from '../types/shared'
-import { NotionDatabaseType, DecoDBEmail, EmailStatus, User } from '../types/database'
+import { NotionDatabaseType, EmailStatus } from '../types/database'
 import { objectCamelToSnake, isFounder } from '../utils'
 import { addReplyEmailToNotion } from '../notion/addReplyEmailToNotion'
 import { getNotionClient } from '../notion/getNotionClient'
 import { getNotionPageContent } from '../notion/getNotionPageContent'
-import { getEmailsSentSince } from '../db-access/getEmailsSentSince'
+import { hasUserReachedDailySendLimit } from '../hasUserReachedDailySendLimit'
+import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
+
 
 sendgrid.setApiKey(SENDGRID_API_KEY)
 
@@ -324,26 +322,11 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       .select('*')
       .first()
 
-    const sentInLastMinute = await getEmailsSentSince({
-      ms: ONE_MINUTE,
-      user,
-    })
-   
-    const minuteCount = sentInLastMinute?.count || 0
+    // TODO test this shit
+    const [hasReachedLimit, message] = await hasUserReachedDailySendLimit({ user })
 
-    if (minuteCount >= EMAIL_SEND_PER_MINUTE_LIMIT) {
-      throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_MINUTE_LIMIT} emails per minute.`)
-    }
-
-    const sentInLastDay = await getEmailsSentSince({
-      ms: ONE_DAY,
-      user,
-    })
-
-    const dailyCount = sentInLastDay?.count || 0
-
-    if (dailyCount >= EMAIL_SEND_PER_DAY_LIMIT) {
-      throw new GraphQLError(`You have reached the limit of ${EMAIL_SEND_PER_DAY_LIMIT} emails per day.`)
+    if (hasReachedLimit) {
+      throw new GraphQLError(message)
     }
 
     const originalEmail = await db
@@ -438,5 +421,58 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
     const inboxPageURL = inbox.url
 
     return { inboxPageURL }
+  },
+  createEmailPage: async (
+    _,
+    __,
+    { db, user: { userfrontID } },
+  ) => {
+    // TODO add the extra conditions from Tyler's PR here
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
+    }
+
+    const user = await db
+      .users()
+      .where('userfront_user_id', userfrontID)
+      .select('*')
+      .first()
+
+    // TODO test that this works since it is a new function
+    const [hasReachedLimit, message] = await hasUserReachedDailySendLimit({ user })
+
+    if (hasReachedLimit) {
+      throw new GraphQLError(message)
+    }
+
+    const notionClient = await getNotionClient(userfrontID)
+
+    const replyEmail = {
+      from: user.emailAddress,
+      createdAt: new Date().toISOString(),
+    }
+
+    // TODO update the name of the function to addNewEmailPageToNotion()
+    const notionEmailResp = await addReplyEmailToNotion({
+      newReply: replyEmail,
+      userfrontID: userfrontID,
+      notionClient,
+    })
+
+    return notionEmailResp
+  },
+  sendEmail: async (
+    _,
+    { notionPageID },
+    { db, user: { userfrontID } },
+  ) => {
+    // TODO add the extra conditions from Tyler's PR here
+    if (!REPLY_FEATURE_ENABLED && !isFounder(userfrontID)) {
+      throw new GraphQLError('You do not have access to this feature.')
+    }
+
+    return {
+      inboxPageURL: '',
+    }
   },
 }
