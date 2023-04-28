@@ -263,7 +263,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
   ) => {
     const subscription = await getSubscriptionByUserfrontUserId(userfrontID)
 
-    if (subscription.subscriptionStatus !== 'active') {
+    if (!subscription || subscription.subscriptionStatus !== 'active') {
       throw new GraphQLError('You do not have access to this feature.')
     }
 
@@ -321,7 +321,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
 
     const subscription = await getSubscriptionByUserfrontUserId(userfrontID)
 
-    if (subscription.subscriptionStatus !== 'active') {
+    if (!subscription || subscription.subscriptionStatus !== 'active') {
       throw new GraphQLError('You do not have access to this feature.')
     }
 
