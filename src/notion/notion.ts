@@ -16,7 +16,7 @@ import { createAttachmentBlocks } from './createAttachmentBlocks'
 import { createPlainTextBlocks } from './createPlainTextBlocks'
 import { chunkArr, getEmailFromEmailToStr, isFounder } from '../utils'
 import { getNotionClient } from './getNotionClient'
-import { REPLY_FEATURE_ENABLED, FRONTEND_BASE_URL } from '../constants'
+import { FRONTEND_BASE_URL } from '../constants'
 import { getSubscriptionByUserfrontUserId } from '../db-access/db-access'
 
 /**
@@ -312,10 +312,7 @@ export async function addEmailToNotion({
     }
   }
 
-  if (
-    (REPLY_FEATURE_ENABLED && subscription.subscriptionStatus === 'active') ||
-    isFounder(userfrontID)
-  ) {
+  if (subscription && subscription.subscriptionStatus === 'active') {
     requiredProps.push('Actions')
 
     updatePayload.properties.Actions = {
@@ -432,11 +429,7 @@ export async function addEmailToNotion({
       }
     }
 
-
-    if (
-      (REPLY_FEATURE_ENABLED && subscription.subscriptionStatus === 'active') ||
-      isFounder(userfrontID)
-    ) {
+    if (subscription && subscription.subscriptionStatus === 'active') {
       createEmailPagePayload.properties.Actions = {
         rich_text: [
           {
