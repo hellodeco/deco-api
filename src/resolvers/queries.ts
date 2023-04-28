@@ -39,8 +39,13 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
   },
   getCurrentUserNotionIntegration: async (parent, args, { dbAccess, user }) => {
     // omit the access token since it is a sensitive value and not needed for front end code
-    const { accessToken, id, ...integration } =
-      await dbAccess.getNotionIntegrationByUserfrontID(user.userfrontID)
+    const integration = await dbAccess.getNotionIntegrationByUserfrontID(user.userfrontID)
+
+    if (!integration) {
+      return null
+    }
+
+    const { accessToken, id, ...integrationRest } = integration
 
     if (!accessToken) {
       return null
@@ -48,7 +53,7 @@ export const queryResolvers: QueryResolvers<ResolverContext> = {
 
     return {
       id: String(id),
-      ...integration,
+      ...integrationRest,
     }
   },
   getCurrentUserNotionDatabaseInfo: async (
