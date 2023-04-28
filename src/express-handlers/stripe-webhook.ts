@@ -35,6 +35,9 @@ export async function handleStripeWebhook(req: Request, res: Response) {
     return res.status(400).send(`Webhook Error: ${err.message}`)
   }
 
+  // console.log('event', event)
+  return res.status(200).end()
+
   // todo - write handlers for cancelation events (after we launch)
   // will also want to split into separate handlers per event type and extract to their own files
   switch (event.type) {

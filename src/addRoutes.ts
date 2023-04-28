@@ -21,6 +21,7 @@ import {
   NOTION_REDIRECT_URI,
   USERFRONT_READONLY_API_KEY,
   S3_BUCKET,
+  SERVER_BASE_URL,
 } from './constants'
 import { handleStripeWebhook } from './express-handlers/stripe-webhook'
 import { emailReceiveHandler } from './express-handlers/sendgrid'
@@ -331,6 +332,48 @@ export function addRoutes(app: Express) {
 
     return res.status(200).json({ sessionUrl: session.url })
   })
+
+  app.get('/stripe/checkout-session/redirect', async (req, res) => {
+    const sessionPayload: Stripe.Checkout.SessionCreateParams = {
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${SERVER_BASE_URL}/stripe/checkout-session/callback?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${FRONTEND_BASE_URL}/checkout-failed`,
+      allow_promotion_codes: true,
+      // metadata: { userfrontUserId: userfrontUserId },
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionPayload)
+
+    // console.log('session', session)
+
+    res.redirect(session.url)
+  })
+
+  app.get('/stripe/checkout-session/callback', async (req: Request<{}, {}, {}, { session_id: string }>, res) => {
+    const { session_id } = req.query
+    
+    console.log('session_id', session_id)
+    console.log('req.query', req.query)
+    console.log(session_id.length)
+
+    if (!session_id) {
+      return res.redirect(`${FRONTEND_BASE_URL}/checkout-failed`)
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(session_id)
+
+    console.log('session', session)
+
+    const { name, email } = session.customer_details
+
+    res.json({ message: 'success' })
+  }) 
 
   app.post('/stripe/billing-portal', async (req, res) => {
     const { userfrontUserId } = req.body
