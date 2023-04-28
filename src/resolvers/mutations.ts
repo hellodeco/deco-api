@@ -336,7 +336,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       user,
     })
 
-    const minuteCount = sentInLastMinute?.count || 0
+    const minuteCount = Number(sentInLastMinute?.count) || 0
 
     if (minuteCount >= EMAIL_SEND_PER_MINUTE_LIMIT) {
       throw new GraphQLError(
@@ -349,7 +349,7 @@ export const mutationResolvers: MutationResolvers<ResolverContext> = {
       user,
     })
 
-    const dailyCount = sentInLastDay?.count || 0
+    const dailyCount = Number(sentInLastDay?.count) || 0
 
     if (dailyCount >= EMAIL_SEND_PER_DAY_LIMIT) {
       throw new GraphQLError(
