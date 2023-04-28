@@ -302,6 +302,54 @@ export function addRoutes(app: Express) {
     }
   })
 
+  app.get('/stripe/checkout-session', async (req: Request<{}, any, any, { userfrontUserId: string; email: string>, res) => {
+    const { userfrontUserId, email } = req.query
+
+    const sessionPayload: Stripe.Checkout.SessionCreateParams = {
+      line_items: [
+        {
+          price: process.env.STRIPE_PRICE_ID,
+          quantity: 1,
+        },
+      ],
+      mode: 'subscription',
+      success_url: `${FRONTEND_BASE_URL}/email`,
+      cancel_url: `${FRONTEND_BASE_URL}/checkout-failed`,
+      allow_promotion_codes: true,
+      metadata: { userfrontUserId: userfrontUserId },
+    }
+
+    const existingSub = await getSubscriptionByUserfrontUserId(userfrontUserId)
+
+    if (existingSub) {
+      sessionPayload.customer = existingSub.stripeCustomerId
+    } else {
+      sessionPayload.customer_email = email
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionPayload)
+
+    res.redirect(session.url)
+  })
+
+  app.get('/stripe/billing-portal', async (req: Request<{}, any, any, { userfrontUserId: string; }>, res) => {
+    const { userfrontUserId } = req.query
+
+    const subscription = await getSubscriptionByUserfrontUserId(userfrontUserId)
+
+    if (!subscription) {
+      return res.status(400).json({ message: 'user not found' })
+    }
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: subscription.stripeCustomerId,
+      return_url: `${FRONTEND_BASE_URL}/account`,
+    })
+
+    res.redirect(session.url)
+  })
+
+  // TODO remove this after deploying corresponding frontend changes
   app.post('/stripe/checkout-session', async (req, res) => {
     const { userfrontUserId, email } = req.body
 
@@ -332,6 +380,7 @@ export function addRoutes(app: Express) {
     return res.status(200).json({ sessionUrl: session.url })
   })
 
+  // TODO remove this after deploying corresponding frontend changes
   app.post('/stripe/billing-portal', async (req, res) => {
     const { userfrontUserId } = req.body
 
