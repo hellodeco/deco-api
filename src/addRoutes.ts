@@ -302,7 +302,7 @@ export function addRoutes(app: Express) {
     }
   })
 
-  app.get('/stripe/checkout-session', async (req: Request<{}, any, any, { userfrontUserId: string; email: string>, res) => {
+  app.get('/stripe/checkout-session', async (req: Request<{}, any, any, { userfrontUserId: string; email: string; }>, res) => {
     const { userfrontUserId, email } = req.query
 
     const sessionPayload: Stripe.Checkout.SessionCreateParams = {
